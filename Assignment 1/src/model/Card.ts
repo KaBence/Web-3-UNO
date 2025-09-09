@@ -17,36 +17,32 @@ type WildCard = {
   Type: Type.Wild | Type.WildDrawFour;
 };
 
-// Create card Functions
+//Checks
 
-export function CreateNumberedCard(number: CardNumber, color: Colors): Card {
-  return { CardNumber: number, Color: color, Type: Type.Numbered };
+export function hasColor(card: Card, color: Colors): boolean {
+  return "Color" in card && card.Color === color;
 }
 
-export function CreateSpecialColoredCard(type: Type.Skip | Type.Reverse | Type.DrawTwo, color: Colors): Card {
-  return { Type: type, Color: color };
-}
-
-export function CreateWildCard(type: Type.Wild | Type.WildDrawFour): Card {
-  return { Type: type };
+export function hasNumber(card: Card, number: CardNumber): boolean {
+  return card.Type === Type.Numbered && card.CardNumber === number;
 }
 
 //Enums
 
 export enum Colors {
-  Red = "1",
-  Green = "2",
-  Blue = "3",
-  Yellow = "4",
+  Red = "RED",
+  Green = "GREEN",
+  Blue = "BLUE",
+  Yellow = "YELLOW",
 }
 
 export enum Type {
-  Skip = "1",
-  Reverse = "2",
-  DrawTwo = "3",
-  Wild = "4",
-  WildDrawFour = "5",
-  Numbered = "0",
+  Skip = "SKIP",
+  Reverse = "REVERSE",
+  DrawTwo = "DRAW",
+  Wild = "WILD",
+  WildDrawFour = "WILD DRAW",
+  Numbered = "NUMBERED",
 }
 
 export const numberValues = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9] as const;

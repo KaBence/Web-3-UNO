@@ -12,81 +12,84 @@ describe("Initial deck", () => {
     expect(
       initialDeck
       .filter(is({type: card.Type.Numbered, color: card.Colors.Blue}))
-      .size)
+      .size())
     .toEqual(19)
   })
   it("contains 19 numbered green cards", () => {
     expect(
       initialDeck
-      .filter(is({type: 'NUMBERED', color: 'GREEN'}))
-      .size)
+      .filter(is({type: card.Type.Numbered, color: card.Colors.Green}))
+      .size())
     .toEqual(19)
   })
   it("contains 19 numbered red cards", () => {
     expect(
       initialDeck
-      .filter(is({type: 'NUMBERED', color: 'RED'}))
-      .size)
+      .filter(is({type: card.Type.Numbered, color: card.Colors.Red}))
+      .size())
     .toEqual(19)
   })
   it("contains 19 numbered yellow cards", () => {
     expect(
       initialDeck
-      .filter(is({type: 'NUMBERED', color: 'YELLOW'}))
-      .size)
+      .filter(is({type: card.Type.Numbered, color: card.Colors.Yellow}))
+      .size())
     .toEqual(19)
   })
   it("only contains numbered card with numbers between 0 and 9", () => {
-    const numberedDeck = initialDeck.filter(is({type: 'NUMBERED'}))
-    while(numberedDeck.size > 0) {
-      const n = (numberedDeck.deal() as {number: number}).number
-      expect(n).toBeGreaterThanOrEqual(0)
-      expect(n).toBeLessThan(10)
+    const numberedDeck = initialDeck.filter(is({type: card.Type.Numbered}))
+    while(numberedDeck.size() > 0) {
+      const dealtCard = numberedDeck.deal();
+      if (dealtCard && dealtCard.Type === card.Type.Numbered) {
+        const n = dealtCard.CardNumber;
+        expect(n).toBeGreaterThanOrEqual(0);
+        expect(n).toBeLessThan(10);
+      }
     }
   })
   it("contains numbered cards of every legal number and color", () => {
-    for(let color of deck.colors) {
-      expect(initialDeck.filter(is({number: 0, color})).size).toBe(1)
+    for(let color of Object.values(card.Colors)) {
+      expect(initialDeck.filter(is({number: 0, color})).size()).toBe(1)
     }
-  for(let number = 1; number < 10; number++) {
-      for(let color of deck.colors) {
-        expect(initialDeck.filter(is({number, color})).size).toBe(2)
+    for(let number = 1; number < 10; number++) {
+      for(let color of Object.values(card.Colors)) {
+        expect(initialDeck.filter(is({number: number as card.CardNumber, color})).size()).toBe(2)
       }
     }
   })
   it("contains 8 skip cards", () => {
-    expect(initialDeck.filter(is({type: 'SKIP'})).size).toEqual(8)
+    expect(initialDeck.filter(is({type: card.Type.Skip})).size()).toEqual(8)
   })
   it("contains 2 skip cards of each color", () => {
-    for(let color of deck.colors) {
-      expect(initialDeck.filter(is({type: 'SKIP', color})).size).toBe(2)
+    for(let color of Object.values(card.Colors)) {
+      expect(initialDeck.filter(is({type: card.Type.Skip, color})).size()).toBe(2)
     }
   })
   it("contains 8 reverse cards", () => {
-    expect(initialDeck.filter(is({type: 'REVERSE'})).size).toEqual(8)
+    expect(initialDeck.filter(is({type: card.Type.Reverse})).size()).toEqual(8)
   })
   it("contains 2 reverse cards of each color", () => {
-    for(let color of deck.colors) {
-      expect(initialDeck.filter(is({type: 'REVERSE', color})).size).toBe(2)
+    for(let color of Object.values(card.Colors)) {
+      expect(initialDeck.filter(is({type: card.Type.Reverse, color})).size()).toBe(2)
     }
   })
   it("contains 8 draw cards", () => {
-    expect(initialDeck.filter(is({type: 'DRAW'})).size).toEqual(8)
+    expect(initialDeck.filter(is({type: card.Type.DrawTwo})).size()).toEqual(8)
   })
   it("contains 2 draw cards of each color", () => {
-    for(let color of deck.colors) {
-      expect(initialDeck.filter(is({type:'DRAW',color})).size).toBe(2)
+    for(let color of Object.values(card.Colors)) {
+      expect(initialDeck.filter(is({type:card.Type.DrawTwo,color})).size()).toBe(2)
     }
   })
   it("contains 4 wild cards", () => {
-    expect(initialDeck.filter(is({type:'WILD'})).size).toEqual(4)
+    expect(initialDeck.filter(is({type:card.Type.Wild})).size()).toEqual(4)
   })
   it("contains 4 wild draw cards", () => {
-    expect(initialDeck.filter(is({ type:'WILD DRAW' })).size).toEqual(4)
+    expect(initialDeck.filter(is({ type:card.Type.WildDrawFour })).size()).toEqual(4)
   })
   // Blank cards skipped, since they have no gameplay
   it("contains 108 cards", () => {
-    expect(initialDeck.size).toEqual(108)
+    expect(initialDeck.size()).toEqual(108)
   })
 })
 
@@ -140,35 +143,35 @@ describe('fromMemento', () => {
         { type: 'WILD DRAW' }
       ]
       const created: deck.Deck = createDeckFromMemento(cards)
-      let card = created.deal()!
-      expect(card.type).toEqual('NUMBERED')
-      expect(deck.hasColor(card, 'BLUE')).toBeTruthy()
-      expect(deck.hasNumber(card, 7)).toBeTruthy()
+      let drawncard = created.deal()!
+      expect(drawncard.Type).toEqual(card.Type.Numbered)
+      expect(card.hasColor(drawncard, card.Colors.Blue)).toBeTruthy()
+      expect(card.hasNumber(drawncard, 7)).toBeTruthy()
       
-      card = created.deal()!
-      expect(card.type).toEqual('SKIP')
-      expect(deck.hasColor(card, 'RED')).toBeTruthy()
+      drawncard = created.deal()!
+      expect(drawncard.Type).toEqual(card.Type.Skip)
+      expect(card.hasColor(drawncard, card.Colors.Red)).toBeTruthy()
 
-      card = created.deal()!
-      expect(card.type).toEqual('REVERSE')
-      expect(deck.hasColor(card, 'GREEN')).toBeTruthy()
+      drawncard = created.deal()!
+      expect(drawncard.Type).toEqual(card.Type.Reverse)
+      expect(card.hasColor(drawncard, card.Colors.Green)).toBeTruthy()
 
-      card = created.deal()!
-      expect(card.type).toEqual('DRAW')
-      expect(deck.hasColor(card, 'YELLOW')).toBeTruthy()
+      drawncard = created.deal()!
+      expect(drawncard.Type).toEqual(card.Type.DrawTwo)
+      expect(card.hasColor(drawncard, card.Colors.Yellow)).toBeTruthy()
 
-      card = created.deal()!
-      expect(card.type).toEqual('WILD')
+      drawncard = created.deal()!
+      expect(drawncard.Type).toEqual(card.Type.Wild)
 
-      card = created.deal()!
-      expect(card.type).toEqual('WILD DRAW')
+      drawncard = created.deal()!
+      expect(drawncard.Type).toEqual(card.Type.WildDrawFour)
 
       expect(created.deal()).toBeUndefined()
     })
 
     it("returns an empty deck on empty input", () => {
       const created: deck.Deck = createDeckFromMemento([])
-      expect(created.size).toEqual(0)
+      expect(created.size()).toEqual(0)
     })
   })
 
@@ -177,10 +180,10 @@ describe('fromMemento', () => {
       expect(() => createDeckFromMemento([{type: 'wut?'}])).toThrowError()
     })
     it("throws on missing number on numbered type", () => {
-      expect(() => createDeckFromMemento([{type: 'NUMBERED', color: 'BLUE'}])).toThrowError()
+      expect(() => createDeckFromMemento([{type: card.Type.Numbered, color: 'BLUE'}])).toThrowError()
     })
     it("throws on missing color on numbered type", () => {
-      expect(() => createDeckFromMemento([{type: 'NUMBERED', number: 7}])).toThrowError()
+      expect(() => createDeckFromMemento([{type: card.Type.Numbered, number: 7}])).toThrowError()
     })
     it("throws on missing color on skip type", () => {
       expect(() => createDeckFromMemento([{type: 'SKIP'}])).toThrowError()

@@ -1,19 +1,24 @@
 import { Randomizer, Shuffler, standardRandomizer, standardShuffler } from '../../src/utils/random_utils'
+import * as deck from '../../src/model/Deck'
+import * as deckFactory from '../../src/model/DeckFactory'
 
 // Fix (or import) these types:
 type Card = any
-type Deck = any
+type Deck = deck.Deck
 type Round = any
 type Game = any
 
 //Fill out the empty functions
 export function createInitialDeck(): Deck {
+  return deckFactory.CreateDeck()
 }
 
 export function createDeckFromMemento(cards: Record<string, string | number>[]): Deck {
+  return deckFactory.createDeckFromMemento(cards)
 }
 
-export type HandConfig = {
+//----- this is supposed to be roundconfig not handConfig -----
+export type RoundConfig = {
   players: string[]
   dealer: number
   shuffler?: Shuffler<Card>
