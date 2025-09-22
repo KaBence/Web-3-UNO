@@ -4,10 +4,7 @@ export function CreateNumberedCard(number: CardNumber, color: Colors): Card {
   return { CardNumber: number, Color: color, Type: Type.Numbered };
 }
 
-export function CreateSpecialColoredCard(
-  type: Type.Skip | Type.Reverse | Type.DrawTwo,
-  color: Colors
-): Card {
+export function CreateSpecialColoredCard( type: Type.Skip | Type.Reverse | Type.DrawTwo, color: Colors): Card {
   return { Type: type, Color: color };
 }
 
@@ -35,11 +32,7 @@ export function CreateColoredSpecialCards(): Card[] {
 
   for (let color of Object.values(Colors)) {
     for (let type of specialTypes) {
-      if (
-        type === Type.Skip ||
-        type === Type.Reverse ||
-        type === Type.DrawTwo
-      ) {
+      if (type === Type.Skip || type === Type.Reverse || type === Type.DrawTwo) {
         cards.push(CreateSpecialColoredCard(type, color));
         cards.push(CreateSpecialColoredCard(type, color));
       }
