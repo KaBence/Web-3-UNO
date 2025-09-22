@@ -4,6 +4,7 @@ import { standardShuffler } from '../../src/utils/random_utils'
 import { is } from '../utils/predicates'
 import * as deck from '../../src/model/Deck'
 import * as card from '../../src/model/Card'
+import * as deckFactory from '../../src/model/DeckFactory'
 import { memoizingShuffler } from '../utils/shuffling'
 
 describe("Initial deck", () => {
@@ -97,14 +98,14 @@ describe("Deck methods", () => {
   describe("shuffle", () => {
     const deck = createInitialDeck()
     it("calls the shuffler", () => {
-      const mockShuffler = jest.fn()
+      const mockShuffler = jest.fn<(cards:card.Card[])=> card.Card[]>()
       deck.shuffle(mockShuffler)
       expect(mockShuffler).toHaveBeenCalled()
     })
   })
   describe("deal", () => {
     let deck: deck.Deck = createInitialDeck()
-    let shuffledCards: Readonly<deck.Card[]> = []
+    let shuffledCards: Readonly<card.Card[]> = []
     const memoShuffler = memoizingShuffler(standardShuffler)
     beforeEach(() => {
       deck = createInitialDeck()
@@ -112,18 +113,18 @@ describe("Deck methods", () => {
       shuffledCards = memoShuffler.memo
     })
     it("removes a card", () => {
-      const deckSize = deck.size
+      const deckSize = deck.size()
       deck.deal()
-      expect(deck.size).toEqual(deckSize - 1)
+      expect(deck.size()).toEqual(deckSize - 1)
     })
     it("returns all cards in order", () => {
-      const deckSize = deck.size
+      const deckSize = deck.size()
       for(let i = 0; i < deckSize; i++) {
         expect(deck.deal()).toEqual(shuffledCards[i])
       }
     })
     it("returns undefined if the deck is empty", () => {
-      while(deck.size > 0) { 
+      while(deck.size() > 0) { 
         deck.deal() 
       }
       expect(deck.deal()).toBeUndefined()
@@ -208,6 +209,6 @@ describe("toMemento", () => {
         { type: 'WILD DRAW' }
       ]
       const created = createDeckFromMemento(cards)
-      expect(created.toMemento()).toEqual(cards)
+      expect(deckFactory.createMementoFromDeck(created)).toEqual(cards)
   })
 })
