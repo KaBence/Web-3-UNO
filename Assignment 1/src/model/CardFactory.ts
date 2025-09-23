@@ -1,15 +1,15 @@
-import { CardNumber, Colors, Type, Card, numberValues } from "./Card";
+import { CardNumber, Colors, Type, Card,NumberedCard,SpecialColoredCard,WildCard, numberValues } from "./Card";
 
-export function CreateNumberedCard(number: CardNumber, color: Colors): Card {
-  return { CardNumber: number, Color: color, Type: Type.Numbered };
+export function CreateNumberedCard(number: CardNumber, color: Colors): NumberedCard {
+  return new NumberedCard(number, color);
 }
 
-export function CreateSpecialColoredCard( type: Type.Skip | Type.Reverse | Type.DrawTwo, color: Colors): Card {
-  return { Type: type, Color: color };
+export function CreateSpecialColoredCard(type: Type.Skip | Type.Reverse | Type.Draw, color: Colors): SpecialColoredCard {
+  return new SpecialColoredCard(type, color);
 }
 
-export function CreateWildCard(type: Type.Wild | Type.WildDrawFour): Card {
-  return { Type: type };
+export function CreateWildCard(type: Type.Wild | Type.WildDrawFour): WildCard {
+  return new WildCard(type);
 }
 
 
@@ -28,11 +28,11 @@ export function CreateNumberedCards(): Card[] {
 
 export function CreateColoredSpecialCards(): Card[] {
   const cards: Card[] = [];
-  const specialTypes = [Type.Skip, Type.Reverse, Type.DrawTwo];
+  const specialTypes = [Type.Skip, Type.Reverse, Type.Draw];
 
   for (let color of Object.values(Colors)) {
     for (let type of specialTypes) {
-      if (type === Type.Skip || type === Type.Reverse || type === Type.DrawTwo) {
+      if (type === Type.Skip || type === Type.Reverse || type === Type.Draw) {
         cards.push(CreateSpecialColoredCard(type, color));
         cards.push(CreateSpecialColoredCard(type, color));
       }

@@ -41,8 +41,8 @@ describe("Initial deck", () => {
     const numberedDeck = initialDeck.filter(is({type: card.Type.Numbered}))
     while(numberedDeck.size() > 0) {
       const dealtCard = numberedDeck.deal();
-      if (dealtCard && dealtCard.Type === card.Type.Numbered) {
-        const n = dealtCard.CardNumber;
+      if (dealtCard && dealtCard.getType() === card.Type.Numbered) {
+        const n = dealtCard.getNumber();
         expect(n).toBeGreaterThanOrEqual(0);
         expect(n).toBeLessThan(10);
       }
@@ -75,11 +75,11 @@ describe("Initial deck", () => {
     }
   })
   it("contains 8 draw cards", () => {
-    expect(initialDeck.filter(is({type: card.Type.DrawTwo})).size()).toEqual(8)
+    expect(initialDeck.filter(is({type: card.Type.Draw})).size()).toEqual(8)
   })
   it("contains 2 draw cards of each color", () => {
     for(let color of Object.values(card.Colors)) {
-      expect(initialDeck.filter(is({type:card.Type.DrawTwo,color})).size()).toBe(2)
+      expect(initialDeck.filter(is({type:card.Type.Draw,color})).size()).toBe(2)
     }
   })
   it("contains 4 wild cards", () => {
@@ -98,7 +98,7 @@ describe("Deck methods", () => {
   describe("shuffle", () => {
     const deck = createInitialDeck()
     it("calls the shuffler", () => {
-      const mockShuffler = jest.fn<(cards:card.Card[])=> card.Card[]>()
+      const mockShuffler = jest.fn<(cards:card.Card[])=> void>()
       deck.shuffle(mockShuffler)
       expect(mockShuffler).toHaveBeenCalled()
     })
@@ -145,27 +145,27 @@ describe('fromMemento', () => {
       ]
       const created: deck.Deck = createDeckFromMemento(cards)
       let drawncard = created.deal()!
-      expect(drawncard.Type).toEqual(card.Type.Numbered)
-      expect(card.hasColor(drawncard, card.Colors.Blue)).toBeTruthy()
-      expect(card.hasNumber(drawncard, 7)).toBeTruthy()
+      expect(drawncard.getType()).toEqual(card.Type.Numbered)
+      expect(drawncard.hasColor(card.Colors.Blue)).toBeTruthy()
+      expect(drawncard.hasNumber(7)).toBeTruthy()
       
       drawncard = created.deal()!
-      expect(drawncard.Type).toEqual(card.Type.Skip)
-      expect(card.hasColor(drawncard, card.Colors.Red)).toBeTruthy()
+      expect(drawncard.getType()).toEqual(card.Type.Skip)
+      expect(drawncard.hasColor(card.Colors.Red)).toBeTruthy()
 
       drawncard = created.deal()!
-      expect(drawncard.Type).toEqual(card.Type.Reverse)
-      expect(card.hasColor(drawncard, card.Colors.Green)).toBeTruthy()
+      expect(drawncard.getType()).toEqual(card.Type.Reverse)
+      expect(drawncard.hasColor( card.Colors.Green)).toBeTruthy()
 
       drawncard = created.deal()!
-      expect(drawncard.Type).toEqual(card.Type.DrawTwo)
-      expect(card.hasColor(drawncard, card.Colors.Yellow)).toBeTruthy()
+      expect(drawncard.getType()).toEqual(card.Type.Draw)
+      expect(drawncard.hasColor(card.Colors.Yellow)).toBeTruthy()
 
       drawncard = created.deal()!
-      expect(drawncard.Type).toEqual(card.Type.Wild)
+      expect(drawncard.getType()).toEqual(card.Type.Wild)
 
       drawncard = created.deal()!
-      expect(drawncard.Type).toEqual(card.Type.WildDrawFour)
+      expect(drawncard.getType()).toEqual(card.Type.WildDrawFour)
 
       expect(created.deal()).toBeUndefined()
     })
@@ -209,6 +209,6 @@ describe("toMemento", () => {
         { type: 'WILD DRAW' }
       ]
       const created = createDeckFromMemento(cards)
-      expect(deckFactory.createMementoFromDeck(created)).toEqual(cards)
+      expect(created.createMementoFromDeck()).toEqual(cards)
   })
 })

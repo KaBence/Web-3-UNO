@@ -2,7 +2,7 @@ import { Card } from "../../src/model/Card"
 import { Round } from "../../src/model/round"
 import { Shuffler, standardShuffler } from "../../src/utils/random_utils"
 import { CardPredicate, CardSpec, is, not } from "./predicates"
-import { HandConfig, createRound } from "./test_adapter"
+import { RoundConfig, createRound } from "./test_adapter"
 
 function constrainedShuffler(...constraints: [number, CardPredicate][]): Shuffler<Card> {
   return (cards: Card[]) => {

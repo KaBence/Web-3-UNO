@@ -1,11 +1,11 @@
-import * as card from '../../src/model/Card'
+import {Card ,Type,CardNumber,Colors} from '../../src/model/Card'
 
-export type CardPredicate = (_: card.Card | undefined) => boolean
+export type CardPredicate = (_: Card | undefined) => boolean
 
 export type CardSpec = {
-  type?: card.Type | card.Type[]
-  color?: card.Colors | card.Colors[]
-  number?: card.CardNumber | card.CardNumber[]
+  type?: Type | Type[]
+  color?: Colors | Colors[]
+  number?: CardNumber | CardNumber[]
 }
 
 export function is(spec: CardSpec): CardPredicate {
@@ -15,17 +15,17 @@ export function is(spec: CardSpec): CardPredicate {
     return spec === p
   }  
 
-  return (c: card.Card | undefined) => {
+  return (c: Card | undefined) => {
     if (c === undefined) return false
-    switch(c.Type) {
-      case card.Type.Numbered:
-        return conforms(spec.type, card.Type.Numbered) && conforms(spec.color, c.Color) && conforms(spec.number, c.CardNumber)
-      case card.Type.Skip: 
-      case card.Type.Reverse: 
-      case card.Type.DrawTwo:
-        return conforms(spec.type, c.Type) && conforms(spec.color, c.Color) && spec.number === undefined
+    switch(c.getType()) {
+      case Type.Numbered:
+        return conforms(spec.type, Type.Numbered) && conforms(spec.color, c.getColor()) && conforms(spec.number, c.getNumber())
+      case Type.Skip: 
+      case Type.Reverse: 
+      case Type.Draw:
+        return conforms(spec.type, c.getType()) && conforms(spec.color, c.getColor()) && spec.number === undefined
       default:
-        return conforms(spec.type, c.Type) && spec.color === undefined && spec.number === undefined
+        return conforms(spec.type, c.getType()) && spec.color === undefined && spec.number === undefined
     }    
   }  
 }  

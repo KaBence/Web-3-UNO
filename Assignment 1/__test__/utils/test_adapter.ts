@@ -10,7 +10,7 @@ type Game = any
 
 //Fill out the empty functions
 export function createInitialDeck(): Deck {
-  return deckFactory.CreateDeck()
+  return new deck.DrawDeck()
 }
 
 export function createDeckFromMemento(cards: Record<string, string | number>[]): Deck {
@@ -30,7 +30,7 @@ export function createRound({
     dealer, 
     shuffler = standardShuffler,
     cardsPerPlayer = 7
-  }: HandConfig): Round {
+  }: RoundConfig): Round {
 }
 
 export function createRoundFromMemento(memento: any, shuffler: Shuffler<Card> = standardShuffler): Round {

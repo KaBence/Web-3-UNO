@@ -1,30 +1,51 @@
-// Card Types
+export abstract class Card{
+  constructor(type: Type) {
+    this.type = type;
+  }
 
-export type Card = NumberedCard | SpecialColoredCard | WildCard;
+  getType(): Type {
+    return this.type;
+  }
 
-type NumberedCard = {
-  CardNumber: CardNumber;
-  Color: Colors;
-  Type: Type.Numbered;
-};
+  getColor(): Colors | undefined {
+    return this.color;
+  }
 
-type SpecialColoredCard = {
-  Type: Type.Skip | Type.Reverse | Type.DrawTwo;
-  Color: Colors;
-};
+  getNumber(): CardNumber | undefined {
+    return this.number;
+  }
 
-type WildCard = {
-  Type: Type.Wild | Type.WildDrawFour;
-};
+  hasColor(color: Colors): boolean {
+    return this.color === color;
+  }
+  hasNumber(number: CardNumber): boolean {
+    return this.number === number;
+  }
 
-//Checks
-
-export function hasColor(card: Card, color: Colors): boolean {
-  return "Color" in card && card.Color === color;
+  protected color?: Colors;
+  protected number?: CardNumber;
+  private type: Type;
 }
 
-export function hasNumber(card: Card, number: CardNumber): boolean {
-  return card.Type === Type.Numbered && card.CardNumber === number;
+export class NumberedCard extends Card {
+  constructor(cardNumber: CardNumber,color: Colors) {
+    super(Type.Numbered);
+    this.number = cardNumber;
+    this.color = color;
+  }
+}
+
+export class SpecialColoredCard extends Card {
+  constructor(type: Type.Skip | Type.Reverse | Type.Draw, color: Colors) {
+    super(type);
+    this.color = color;
+  }
+}
+
+export class WildCard extends Card {
+  constructor(type: Type.Wild | Type.WildDrawFour) {
+    super(type);
+  }
 }
 
 //Enums
@@ -39,7 +60,7 @@ export enum Colors {
 export enum Type {
   Skip = "SKIP",
   Reverse = "REVERSE",
-  DrawTwo = "DRAW",
+  Draw = "DRAW",
   Wild = "WILD",
   WildDrawFour = "WILD DRAW",
   Numbered = "NUMBERED",
