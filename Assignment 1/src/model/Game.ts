@@ -9,21 +9,27 @@ export class Game {
   private scores: Record<PlayerNames, number>;
   private cardsPerPlayer: number;
 
-  constructor(players: Player[], targetScore: number, cardsPerPlayer: number, currentRound: Round) {
+  constructor(players: Player[], targetScore: number, cardsPerPlayer: number) {
     this.players = players;
     this.targetScore =targetScore;
     this.cardsPerPlayer = cardsPerPlayer;
- this.scores = {} as Record<PlayerNames, number>;
-  for (const p of players) {
-    this.scores[p.getId()] = 0;
-  }  this.currentRound = new Round(this.players, dealer, this.cardsPerPlayer); 
-  }
+    this.currentRound = new Round(this.players, dealer, this.cardsPerPlayer); 
+    this.scores = {} as Record<PlayerNames, number>;
+      for (const p of players) {
+           this.scores[p.getId()] = 0;
+          } 
+    }
 
   public getPlayer(playerId: PlayerNames): Player {
-   const player = this.players.find(p => p.getId() === playerId);
-  if (!player) throw new Error("Invalid playerId");
-  return player;
-  }
+    const player = this.players.find(p => p.getId() === playerId);
+    if (!player) {
+      throw new Error("Invalid playerId");
+    }
+    return player;
+}
+
+ 
+ 
   public getPlayers(): Player[] {
     // return shallow copy to protect encapsulation
     return [...this.players];
@@ -42,8 +48,8 @@ export class Game {
   }
 
   public createRound(dealer: number): Round {
-  this.currentRound = new Round(this.players, dealer, this.cardsPerPlayer);
-  return this.currentRound;
+    this.currentRound = new Round(this.players, dealer, this.cardsPerPlayer);
+    return this.currentRound;
 }
   public getCurrentRound(): Round  {
     return  this.currentRound ;
@@ -62,10 +68,8 @@ export class Game {
     .filter(([_, score]) => score >= this.targetScore)
     .map(([id]) => this.getPlayer(id as PlayerNames));
 
-  if (winners.length > 1) {
-    throw new Error("Multiple winners");
-  }
-  return winners.length === 1 ? winners[0] : null;
+ 
+    return  winners[0] || null;
 }
 
 

@@ -15,9 +15,9 @@ export class GameFactory {
     players: Player[],
     targetScore: number,
     cardsPerPlayer: number, 
-    currentRound: Round 
+ 
   ): Game {
-    return new Game(players, targetScore, cardsPerPlayer, currentRound);
+    return new Game(players, targetScore, cardsPerPlayer);
   }
 
   //later reconsider
