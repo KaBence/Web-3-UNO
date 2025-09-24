@@ -107,25 +107,21 @@ export class Round {
         specificPlayer.setUno(true);
     }
 
-    canPlay(card:Card) : boolean { //inst is easier by passing whole card?      
-        switch (this.currentCard().getType()) {         //to be implemented by Basia
+    canPlay(card:Card) : boolean { //this.currentCard() to be implemented by Basia   
+        switch (card.getType()) {         
             case Type.Skip || Type.Reverse || Type.DrawTwo:
                 if(this.currentCard().getType() === card.getType() || this.currentCard().getColor() === card.getColor())
                     return true;
                 return false;
 
-            case Type.Dummy:
-                if(this.currentCard().getColor() === card.getColor())
-                    return true;
-                return false;
+            case Type.Type.Wild || Type.WildDrawFour:
+                return true
 
             case Type.Numbered:
                 if(this.currentCard().getNumber() === card.getNumber() || this.currentCard().getColor() === card.getColor())
                     return true;
                 return false;
             default:
-                if(card.Type === Type.Wild || card.Type === Type.WildDrawFour)
-                    return true;
                 throw("Unexpected move not coverd by the logic")
         }
     }
