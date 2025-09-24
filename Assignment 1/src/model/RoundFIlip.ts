@@ -1,8 +1,8 @@
 import { DrawPile } from "./Deck";
 import { DiscardPile } from "./Deck";
+import {Hand} from "./Hand";
 import { Player, PlayerNames } from "./Player";
 import {Card,Type} from "./Card";
-import {Hand} from "./Deck";
 import { ShuffleBuilder } from "../../__test__/utils/shuffling";
 
 export class Round {
@@ -24,6 +24,8 @@ export class Round {
         this.currentPlayer = (dealer + 1) % this.players.length; //should be next player after dealer
         this.cardsPerPlayer = cardsPerPlayer;
     }
+
+    //Getters and Setters
 
     getDrawPile() : DrawPile {
         return this.drawPile;
@@ -91,10 +93,13 @@ export class Round {
         return this.players.find(p => p.getID === player.valueOf)?.getHand()!;
     }
 
+    //Game logic methods
+
     draw() : void { //call play with that card (play should check if can play) and return true if it was played
         const card = this.drawPile.top();
         this.getSpecificPlayer(this.currentPlayer).setUno(false);
-        if(this.play(card)) return //pls play take a card not a number
+        if(this.play(card)) 
+            return //pls play take a card not a number
         this.getSpecificPlayer(this.currentPlayer).getHand().addCard(card);
     }
 
@@ -114,46 +119,73 @@ export class Round {
                     return true;
                 return false;
 
-            case Type.Type.Wild || Type.WildDrawFour:
-                return true
+            case Type.Wild || Type.WildDrawFour:
+                return true;
 
             case Type.Numbered:
                 if(this.currentCard().getNumber() === card.getNumber() || this.currentCard().getColor() === card.getColor())
                     return true;
                 return false;
+
             default:
                 throw("Unexpected move not coverd by the logic")
         }
     }
-    
-    //Not touched
+
     challengeWildDrawFour(): void {
-        const currentIndex = this.players.findIndex(p => p.id === this.currentPlayer);
-        const prevIndex = (currentIndex - 1 + this.players.length) % this.players.length;
-        const prevPlayer = this.players[prevIndex];
-        const prevHand = prevPlayer.hand;
-        const prevCard = this.discardPile.peek(-1);
-
-        if (!prevCard) return;
-
-        const brokeRules = prevHand.cards.some(card =>
-            this.canPlayCardForPrev(card, prevCard) && card.type !== "WILD DRAW"
-        );
-
-        if (brokeRules) {
-            prevPlayer.hand.drawCards(4);
-            this.players.find(p => p.id === this.currentPlayer)?.hand.drawCards(6);
+        if(this.couldPlayInstedofDrawFour()) {
+            this.getPlayerHand(this.getNextPlayer()).drawCards(6);
         }
+        else {
+            this.getPlayerHand(this.currentPlayer).drawCards(4);
+        }
+        //do we want to add function nextPlayer()? that will change current player to next player based on getNextPlayer() annd it will call play()
     }
 
-  
-    canPlayCardForPrev(card: Card, top: Card): boolean {
-        return (
-            card.Type === "NUMBERED" && top.Type === "NUMBERED" && card.CardNumber === top.CardNumber ||
-            "Color" in card && "Color" in top && card.Color === top.Color
-        );
+    //Helper functions
+
+    getNextPlayer() : PlayerNames {
+        let index = 0;
+        if(this.getCurrentDirection() === "clockwise") { //will be changed to enum
+            index = (this.players.findIndex(p => p.getID === this.currentPlayer.valueOf) + 1) % this.players.length;
+        }
+        else {
+            index = (this.players.findIndex(p => p.getID === this.currentPlayer.valueOf) - 1) % this.players.length;
+        }
+        
+        return this.getPlayerHand(this.players[index].getID());
     }
 
+    couldPlayInstedofDrawFour() : boolean { 
+        const hand = this.getPlayerHand(this.getNextPlayer()).getCards();
+
+        for (let i = 0; i < hand.size(); i++) {
+            switch (hand[i].getType()) {         
+                case Type.Skip || Type.Reverse || Type.DrawTwo:
+                    if(this.currentCard().getType() === hand[i].getType() || this.currentCard().getColor() ===  hand[i].getColor())
+                        return true;
+                    break;
+
+                case Type.Wild || Type.WildDrawFour:
+                    break;
+
+                case Type.Numbered:
+                    if(this.currentCard().getNumber() ===  hand[i].getNumber() || this.currentCard().getColor() ===  hand[i].getColor())
+                        return true;
+                    break;
+
+                default:
+                    break;
+            }
+        }
+        return false;
+    }
+    
+
+
+
+
+    //not my part - can be used as inspiration for part of the play function
     specialCardsExecution() : void {
         if (this.status) {
             const top = this.discardPile.peek();

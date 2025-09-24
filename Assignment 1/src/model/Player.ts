@@ -1,4 +1,4 @@
-import { Hand } from "./Deck";
+import { Hand } from "./Hand";
 
 export class Player {
   private id: PlayerNames;
