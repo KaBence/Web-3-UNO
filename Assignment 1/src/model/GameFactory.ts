@@ -1,24 +1,28 @@
 // GameFactory.ts
 import { Game } from "./Game";
 import { Player, PlayerNames } from "./Player";
+import { Round } from "./Round";
 
 export type GameMemento = {
   players: PlayerNames[];
   targetScore: number;
   cardsPerPlayer: number;
-  scores: number[];
+  scores: Record<PlayerNames, number>;
 };
 
 export class GameFactory {
   public static createGame(
     players: Player[],
     targetScore: number,
-    cardsPerPlayer: number
+    cardsPerPlayer: number, 
+    currentRound: Round 
   ): Game {
-    return new Game(players, targetScore, cardsPerPlayer);
+    return new Game(players, targetScore, cardsPerPlayer, currentRound);
   }
 
-  public static createGameFromMemento(record: GameMemento): Game {
+  //later reconsider
+
+  /*public static createGameFromMemento(record: GameMemento): Game {
     const players = record.players.map((p: PlayerNames) => new Player(p));
     const game = new Game(players, record.targetScore, record.cardsPerPlayer);
 
@@ -35,5 +39,5 @@ export class GameFactory {
       cardsPerPlayer: game.getCardsPerPlayer(),
       scores: game.getScores(),
     };
-  }
+  }*/
 }

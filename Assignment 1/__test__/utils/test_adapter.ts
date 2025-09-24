@@ -62,9 +62,12 @@ export function createGame(props: Partial<GameConfig>): Game {
   const targetScore = props.targetScore ?? 500
   const cardsPerPlayer = props.cardsPerPlayer ?? 7
 
+  //Reound
   return GameFactory.createGame(players, targetScore, cardsPerPlayer)
 }
 
+
+//very wrong lets redo net time
 export function createGameFromMemento(memento: any): any {
   return {
     getPlayer: (i: number) => ({ name: memento.players[i] }),

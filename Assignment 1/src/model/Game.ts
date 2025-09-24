@@ -1,26 +1,28 @@
 // Game.ts
-import { Player } from "./Player";
+import { Player, PlayerNames } from "./Player";
 import { Round } from "./Round";
 
 export class Game {
   private players: Player[];
-  private currentRound?: Round;
+  private currentRound: Round;
   private targetScore: number;
-  private scores: number[];
+  private scores: Record<PlayerNames, number>;
   private cardsPerPlayer: number;
 
-  constructor(players: Player[], targetScore: number, cardsPerPlayer: number) {
+  constructor(players: Player[], targetScore: number, cardsPerPlayer: number, currentRound: Round) {
     this.players = players;
     this.targetScore =targetScore;
     this.cardsPerPlayer = cardsPerPlayer;
-    this.scores = new Array(players.length).fill(0);
+ this.scores = {} as Record<PlayerNames, number>;
+  for (const p of players) {
+    this.scores[p.getId()] = 0;
+  }  this.currentRound = new Round(this.players, dealer, this.cardsPerPlayer); 
   }
 
-  public getPlayer(playerId: number): Player {
-    if (playerId < 0 || playerId >= this.players.length) {
-      throw new Error("Invalid playerId");
-    }
-    return this.players[playerId];
+  public getPlayer(playerId: PlayerNames): Player {
+   const player = this.players.find(p => p.getId() === playerId);
+  if (!player) throw new Error("Invalid playerId");
+  return player;
   }
   public getPlayers(): Player[] {
     // return shallow copy to protect encapsulation
@@ -35,39 +37,41 @@ export class Game {
     return this.cardsPerPlayer;
   }
   
-  public getScores(): number[] {
-    return [...this.scores];
+  public getScores(): Record<PlayerNames, number>{
+    return {...this.scores};
   }
 
   public createRound(dealer: number): Round {
   this.currentRound = new Round(this.players, dealer, this.cardsPerPlayer);
   return this.currentRound;
 }
-  public getCurrentRound(): Round | undefined {
-    return this.currentRound;
+  public getCurrentRound(): Round  {
+    return  this.currentRound ;
   }
 
 
-  public score(playerId: number): number {
-    if (playerId < 0 || playerId >= this.scores.length) {
+  public getScore(playerId: PlayerNames): number {
+    if (!(playerId in this.scores)) {
       throw new Error("Invalid playerId");
     }
     return this.scores[playerId];
   }
 
-  public winner(): Player | null {
-const winners = this.scores
-  .map((s, i) => (s >= this.targetScore ? i : -1))
-  .filter(i => i !== -1);
+ public winner(): Player | null {
+  const winners = Object.entries(this.scores)
+    .filter(([_, score]) => score >= this.targetScore)
+    .map(([id]) => this.getPlayer(id as PlayerNames));
 
-if (winners.length > 1) throw new Error("Multiple winners");
-return winners.length === 1 ? this.players[winners[0]] : null;
-
+  if (winners.length > 1) {
+    throw new Error("Multiple winners");
   }
+  return winners.length === 1 ? winners[0] : null;
+}
+
 
   // helper: add score for a player
-  public addScore(playerId: number, points: number): void {
-    if (playerId < 0 || playerId >= this.scores.length) {
+  public addScore(playerId: PlayerNames, points: number): void {
+    if (!(playerId in this.scores)) {
       throw new Error("Invalid playerId");
     }
     this.scores[playerId] += points;
