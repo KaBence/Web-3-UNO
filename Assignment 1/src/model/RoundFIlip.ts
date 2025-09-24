@@ -1,19 +1,19 @@
 import { DrawPile } from "./Deck";
 import { DiscardPile } from "./Deck";
-import { Player } from "./Player";
-import { Card } from "./Card";
+import { Player, PlayerNames } from "./Player";
+import {Card,Type} from "./Card";
 import {Hand} from "./Deck";
 import { ShuffleBuilder } from "../../__test__/utils/shuffling";
 
 export class Round {
-        drawPile: DrawPile;
-        discardPile: DiscardPile; //dont we need corrent color as well fdor wild cards?
-        players: Player[];
-        currentPlayer: number //where aree we settin current player?
-        currentDirection: "clockwise" | "counter-clockwise";
-        dealer: number;
-        cardsPerPlayer: number;
-        status: boolean; //are +2, +4 or skips  executed
+        private drawPile: DrawPile;
+        private discardPile: DiscardPile; //dont we need corrent color as well fdor wild cards?
+        private players: Player[];
+        private currentPlayer: PlayerNames //where aree we settin current player?
+        private currentDirection: "clockwise" | "counter-clockwise"; //will be replased with enum
+        private dealer: number;
+        private cardsPerPlayer: number;
+        //private status: boolean; play is taking care of +2 and canPlay will check if i can play smth or if i have to draw
     
     constructor(players: Player[], dealer: number, shuffler: ShuffleBuilder, cardsPerPlayer: number) {
         this.drawPile = new DrawPile();
@@ -23,34 +23,114 @@ export class Round {
         this.dealer = dealer;
         this.currentPlayer = (dealer + 1) % this.players.length; //should be next player after dealer
         this.cardsPerPlayer = cardsPerPlayer;
-        this.status = false;
     }
 
-    playerHand(player:number) : Hand {
-        return this.players.find(p => p.id === player)?.hand!;
+    getDrawPile() : DrawPile {
+        return this.drawPile;
     }
 
-    draw() : void {
+    setDrawPile(drawPile: DrawPile) : void {
+        this.drawPile = drawPile;
+    }
+
+    getDiscardPile() : DiscardPile {
+        return this.discardPile;
+    }
+
+    setDiscardPile(discardPile: DiscardPile) : void {
+        this.discardPile = discardPile;
+    }
+
+    getPlayers() : Player[] {
+        return this.players;
+    }
+
+    getSpecificPlayer(player: PlayerNames): Player {
+        const specificPlayer =  this.players.find(p => p.getID === player.valueOf);
+        if (specificPlayer != undefined) return specificPlayer;
+        throw Error("Player not found!")
+    }
+
+    setPlayers(players: Player[]) : void {
+        this.players = players;
+    }
+
+    getCurrentPlayer() : number {
+        return this.currentPlayer;
+    }
+
+    setCurrentPlayer(player: number) : void {
+        this.currentPlayer = player;
+    }
+
+    getCurrentDirection() : "clockwise" | "counter-clockwise" { //will be replased with enum
+        return this.currentDirection;
+    }
+
+    setCurrentDirection(direction: "clockwise" | "counter-clockwise") : void {
+        this.currentDirection = direction;
+    }
+
+    getDealer() : number {
+        return this.dealer;
+    }
+
+    setDealer(dealer: number) : void {
+        this.dealer = dealer;
+    }
+
+    getCardsPerPlayer() : number {
+        return this.cardsPerPlayer;
+    }
+
+    setCardsPerPlayer(cards: number) : void {
+        this.cardsPerPlayer = cards;
+    }
+
+    getPlayerHand(player:PlayerNames) : Hand {
+        return this.players.find(p => p.getID === player.valueOf)?.getHand()!;
+    }
+
+    draw() : void { //call play with that card (play should check if can play) and return true if it was played
         const card = this.drawPile.top();
-        this.players.find(p => p.id === this.currentPlayer)?.hand.addCard(card); //we need stuff for hand (addCard playCard getCard)
+        this.getSpecificPlayer(this.currentPlayer).setUno(false);
+        if(this.play(card)) return //pls play take a card not a number
+        this.getSpecificPlayer(this.currentPlayer).getHand().addCard(card);
     }
 
-    sayUno(player:number) : void {
-        this.players.find(p => p.id === player)?.setUno(true);
+    sayUno(player:PlayerNames) : void {
+        const specificPlayer = this.getSpecificPlayer(player)
+        if(specificPlayer.getHand().size() != 1) {
+            specificPlayer.getHand().addCard() //should that be in for loop or should it have 4 as argument
+            return
+        }
+        specificPlayer.setUno(true);
     }
 
-    canPlay(card:number) : boolean { //inst is easier by passing whole card?      
-        if (this.status) return false; //if +2, +4 or skip is active and play should automaticly skip or give cards
-        const top = this.discardPile.peek();
-        const playerCard = this.players.find(p => p.id === this.currentPlayer)?.hand.getCard(card);
-        return ( 
-            playerCard.Color === top.Color || 
-            playerCard.CardNumber === top.CardNumber ||  
-            playerCard.Type === "WILD" || 
-            playerCard.type === "WILD DRAW"
-        );
-    }
+    canPlay(card:Card) : boolean { //inst is easier by passing whole card?      
+        switch (this.currentCard().getType()) {         //to be implemented by Basia
+            case Type.Skip || Type.Reverse || Type.DrawTwo:
+                if(this.currentCard().getType() === card.getType() || this.currentCard().getColor() === card.getColor())
+                    return true;
+                return false;
 
+            case Type.Dummy:
+                if(this.currentCard().getColor() === card.getColor())
+                    return true;
+                return false;
+
+            case Type.Numbered:
+                if(this.currentCard().getNumber() === card.getNumber() || this.currentCard().getColor() === card.getColor())
+                    return true;
+                return false;
+            default:
+                if(card.Type === Type.Wild || card.Type === Type.WildDrawFour)
+                    return true;
+                throw("Unexpected move not coverd by the logic")
+        }
+    }
+    
+    //Not touched
     challengeWildDrawFour(): void {
         const currentIndex = this.players.findIndex(p => p.id === this.currentPlayer);
         const prevIndex = (currentIndex - 1 + this.players.length) % this.players.length;

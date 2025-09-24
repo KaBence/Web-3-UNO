@@ -1,24 +1,38 @@
 import { Hand } from "./Deck";
 
 export class Player {
-  id: PlayerNames;
-  hand: Hand;
-  score: number;
-  uno: boolean;
+  private id: PlayerNames;
+  private hand: Hand;
+  private unoCalled: boolean;
 
   constructor(id: PlayerNames, hand: Hand) {
     this.id = id;
     this.hand = hand;
-    this.score = 0;
-    this.uno = false;
+    this.unoCalled = false;
+  }
+
+  getID(): PlayerNames {
+    return this.id;
+  }
+
+  setID(id: PlayerNames): void {
+    this.id = id;
+  }
+
+  getHand(): Hand{
+    return this.hand;
+  }
+
+  setHand(hand: Hand): void {
+    this.hand = hand
+  }
+
+  getUno(): boolean {
+    return this.unoCalled;
   }
 
   setUno(bool: boolean): void {
-    this.uno = bool;
-  }
-
-  setScore(score: number): void {
-    this.score += score;
+    this.unoCalled = bool;
   }
 
 };
