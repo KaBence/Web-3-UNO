@@ -55,49 +55,49 @@ export class DiscardDeck extends Deck {
   filter(predicate: CardPredicate): Deck {
     throw new Error("Method not implemented.");
   }
+
+  peak(): Card | undefined {
+    if (this.cards.length === 0) {
+      return undefined;
+    }
+    return this.cards[this.cards.length - 1];
+  }
+  addCard(card: Card): void {
+    this.cards.push(card);
+  }
   constructor() {
     super(DeckTypes.Discard);
   }
 }
 
 export class DrawDeck extends Deck {
+  constructor(cards?: Card[]) {
+    super(DeckTypes.Draw);
+    this.cards = cards ? cards: [
+      ...CardFactory.CreateNumberedCards(),
+      ...CardFactory.CreateColoredSpecialCards(),
+      ...CardFactory.CreateWildCards(),
+    ];
+  }
+  
   filter(predicate: CardPredicate): Deck {
     const filteredCards = this.cards.filter((card) => predicate(card));
     return new DrawDeck(filteredCards);
   }
-  constructor(cards?: Card[]) {
-    super(DeckTypes.Draw);
-    this.cards = cards ? cards: [
-          ...CardFactory.CreateNumberedCards(),
-          ...CardFactory.CreateColoredSpecialCards(),
-          ...CardFactory.CreateWildCards(),
-        ];
-  }
 
   deal(): Card | undefined {
-    if (this.size() === 0) {
+    return this.cards.pop();
+  }
+
+  peak(): Card | undefined {
+    if (this.cards.length === 0) {
       return undefined;
     }
-    const [topCard, ...remainingCards] = this.cards;
-    this.cards = remainingCards;
-    return topCard;
-  }
-}
-
-export class HandDeck extends Deck {
-  deal(): Card | undefined {
-    throw new Error("Method not implemented.");
-  }
-  filter(predicate: CardPredicate): Deck {
-    throw new Error("Method not implemented.");
-  }
-  constructor() {
-    super(DeckTypes.Hand);
+    return this.cards[this.cards.length - 1];
   }
 }
 
 export enum DeckTypes {
   Discard,
   Draw,
-  Hand,
 }

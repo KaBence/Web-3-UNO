@@ -119,7 +119,7 @@ describe("Deck methods", () => {
     })
     it("returns all cards in order", () => {
       const deckSize = deck.size()
-      for(let i = 0; i < deckSize; i++) {
+      for(let i = deckSize-1; i > 0; i--) {
         expect(deck.deal()).toEqual(shuffledCards[i])
       }
     })
@@ -145,27 +145,28 @@ describe('fromMemento', () => {
       ]
       const created: deck.Deck = createDeckFromMemento(cards)
       let drawncard = created.deal()!
-      expect(drawncard.getType()).toEqual(card.Type.Numbered)
-      expect(drawncard.hasColor(card.Colors.Blue)).toBeTruthy()
-      expect(drawncard.hasNumber(7)).toBeTruthy()
-      
-      drawncard = created.deal()!
-      expect(drawncard.getType()).toEqual(card.Type.Skip)
-      expect(drawncard.hasColor(card.Colors.Red)).toBeTruthy()
-
-      drawncard = created.deal()!
-      expect(drawncard.getType()).toEqual(card.Type.Reverse)
-      expect(drawncard.hasColor( card.Colors.Green)).toBeTruthy()
-
-      drawncard = created.deal()!
-      expect(drawncard.getType()).toEqual(card.Type.Draw)
-      expect(drawncard.hasColor(card.Colors.Yellow)).toBeTruthy()
+      expect(drawncard.getType()).toEqual(card.Type.WildDrawFour)
 
       drawncard = created.deal()!
       expect(drawncard.getType()).toEqual(card.Type.Wild)
 
       drawncard = created.deal()!
-      expect(drawncard.getType()).toEqual(card.Type.WildDrawFour)
+      expect(drawncard.getType()).toEqual(card.Type.Draw)
+      expect(drawncard.hasColor(card.Colors.Yellow)).toBeTruthy()
+      
+      drawncard = created.deal()!
+      expect(drawncard.getType()).toEqual(card.Type.Reverse)
+      expect(drawncard.hasColor( card.Colors.Green)).toBeTruthy()
+
+      drawncard = created.deal()!
+      expect(drawncard.getType()).toEqual(card.Type.Skip)
+      expect(drawncard.hasColor(card.Colors.Red)).toBeTruthy()
+
+      drawncard = created.deal()!
+      expect(drawncard.getType()).toEqual(card.Type.Numbered)
+      expect(drawncard.hasColor(card.Colors.Blue)).toBeTruthy()
+      expect(drawncard.hasNumber(7)).toBeTruthy()
+      
 
       expect(created.deal()).toBeUndefined()
     })
