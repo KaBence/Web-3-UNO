@@ -63,13 +63,13 @@ export class Game {
     return this.scores[playerId];
   }
 
- public winner(): Player | null {
+ public winner(): Player | undefined {
   const winners = Object.entries(this.scores)
     .filter(([_, score]) => score >= this.targetScore)
     .map(([id]) => this.getPlayer(id as PlayerNames));
 
  
-    return  winners[0] || null;
+    return  winners[0];
 }
 
 
