@@ -12,7 +12,7 @@ type Game = any
 
 //Fill out the empty functions
 export function createInitialDeck(): Deck {
-  return deckFactory.CreateDeck()
+  return new deck.DrawDeck()
 }
 
 export function createDeckFromMemento(cards: Record<string, string | number>[]): Deck {
