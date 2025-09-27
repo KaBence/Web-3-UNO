@@ -1,6 +1,7 @@
 export abstract class Card{
-  constructor(type: Type) {
+  constructor(type: Type, color?: Colors) {
     this.type = type;
+    color ? (this.color = color) : undefined;
   }
 
   getType(): Type {
@@ -36,7 +37,7 @@ export class NumberedCard extends Card {
 }
 
 export class SpecialColoredCard extends Card {
-  constructor(type: Type.Skip | Type.Reverse | Type.Draw, color: Colors) {
+  constructor(type: Type.Skip | Type.Reverse | Type.Draw | Type.Dummy, color: Colors) {
     super(type);
     this.color = color;
   }
@@ -64,6 +65,7 @@ export enum Type {
   Wild = "WILD",
   WildDrawFour = "WILD DRAW",
   Numbered = "NUMBERED",
+  Dummy = "DUMMY",
 }
 
 export const numberValues = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9] as const;

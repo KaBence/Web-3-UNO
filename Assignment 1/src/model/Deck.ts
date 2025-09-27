@@ -2,10 +2,16 @@ import { CardPredicate } from "../../__test__/utils/predicates";
 import { Card ,Type} from "./Card";
 import * as deckFactory from "./DeckFactory";
 import * as CardFactory from "./CardFactory";
+import * as randomUtils from "../utils/random_utils";
+
 
 export abstract class Deck {
   constructor(type: DeckTypes) {
     this.type = type;
+  }
+
+  getCards(): Card[] {
+    return [...this.cards];
   }
 
   size(): number {
@@ -56,17 +62,15 @@ export class DiscardDeck extends Deck {
     throw new Error("Method not implemented.");
   }
 
-  peak(): Card | undefined {
-    if (this.cards.length === 0) {
-      return undefined;
-    }
+  peek(): Card {
     return this.cards[this.cards.length - 1];
   }
   addCard(card: Card): void {
     this.cards.push(card);
   }
-  constructor() {
+  constructor(cards?:Card[]) {
     super(DeckTypes.Discard);
+    this.cards = cards ? cards : [];
   }
 }
 
@@ -78,6 +82,7 @@ export class DrawDeck extends Deck {
       ...CardFactory.CreateColoredSpecialCards(),
       ...CardFactory.CreateWildCards(),
     ];
+    this.shuffle(randomUtils.standardShuffler);
   }
   
   filter(predicate: CardPredicate): Deck {
