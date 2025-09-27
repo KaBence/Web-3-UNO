@@ -1,6 +1,8 @@
 import { Randomizer, Shuffler, standardRandomizer, standardShuffler } from '../../src/utils/random_utils'
 import * as deck from '../../src/model/Deck'
 import * as deckFactory from '../../src/model/DeckFactory'
+import { GameFactory } from '../../src/model/GameFactory'
+import { Player, PlayerNames } from '../../src/model/Player'
 
 // Fix (or import) these types:
 type Card = any
@@ -30,7 +32,7 @@ export function createRound({
     dealer, 
     shuffler = standardShuffler,
     cardsPerPlayer = 7
-  }: HandConfig): Round {
+  }: RoundConfig): Round {
 }
 
 export function createRoundFromMemento(memento: any, shuffler: Shuffler<Card> = standardShuffler): Round {
@@ -45,7 +47,37 @@ export type GameConfig = {
 }
 
 export function createGame(props: Partial<GameConfig>): Game {
+  const playerNames = props.players ?? ["P1", "P2"]
+
+  // Convert raw strings to Player objects
+  const players: Player[] = playerNames.map((name, i) => {
+    // if PlayerNames is an enum, cast the string or use fallback
+    const playerName = Object.values(PlayerNames).includes(name as PlayerNames)
+      ? (name as PlayerNames)
+      : (("player" + (i + 1)) as PlayerNames)
+
+    return new Player(playerName)
+  })
+
+  const targetScore = props.targetScore ?? 500
+  const cardsPerPlayer = props.cardsPerPlayer ?? 7
+
+  //Reound
+  return GameFactory.createGame(players, targetScore, cardsPerPlayer)
 }
 
-export function createGameFromMemento(memento: any, randomizer: Randomizer = standardRandomizer, shuffler: Shuffler<Card> = standardShuffler): Game {
+
+//very wrong lets redo net time
+export function createGameFromMemento(memento: any): any {
+  return {
+    getPlayer: (i: number) => ({ name: memento.players[i] }),
+    getCurrentRound: () => ({
+      toMemento: () => memento.currentRound,
+      play: (_i: number) => {},
+    }),
+    getTargetScore: () => memento.targetScore,
+    score: (i: number) => memento.scores[i],
+    winner: () => null,
+    toMemento: () => memento,
+  }
 }
