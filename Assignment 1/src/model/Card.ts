@@ -2,10 +2,15 @@ export abstract class Card{
   constructor(type: Type, color?: Colors) {
     this.type = type;
     color ? (this.color = color) : undefined;
+    this.pointValue = 0;
   }
 
   getType(): Type {
     return this.type;
+  }
+
+  getPointValue(): number {
+    return this.pointValue;
   }
 
   getColor(): Colors | undefined {
@@ -23,6 +28,7 @@ export abstract class Card{
     return this.number === number;
   }
 
+  protected pointValue: number;
   protected color?: Colors;
   protected number?: CardNumber;
   private type: Type;
@@ -33,6 +39,7 @@ export class NumberedCard extends Card {
     super(Type.Numbered);
     this.number = cardNumber;
     this.color = color;
+    this.pointValue = cardNumber;
   }
 }
 
@@ -40,12 +47,14 @@ export class SpecialColoredCard extends Card {
   constructor(type: Type.Skip | Type.Reverse | Type.Draw | Type.Dummy, color: Colors) {
     super(type);
     this.color = color;
+    this.pointValue = 20;
   }
 }
 
 export class WildCard extends Card {
   constructor(type: Type.Wild | Type.WildDrawFour) {
     super(type);
+    this.pointValue = 50;
   }
 }
 
@@ -71,3 +80,5 @@ export enum Type {
 export const numberValues = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9] as const;
 
 export type CardNumber = (typeof numberValues)[number];
+
+

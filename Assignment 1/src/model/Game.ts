@@ -75,7 +75,20 @@ export class Game {
   return undefined;
 }
 
-
+public calculateRoundScores(): void {
+  let roundScore = 0;
+  for (const player of this.players) {
+    if (player!= this.currentRound.winner()) {
+      const hand = player.getHand().getCards();
+      for (const card of hand) {
+        roundScore += card.getPointValue();
+      }
+    }
+  }
+  if (this.currentRound.winner() != undefined) {
+    this.addScore(this.currentRound.winner()!.getID(), roundScore);
+  }
+}
   // helper: add score for a player
   public addScore(playerId: PlayerNames, points: number): void {
     if (!(playerId in this.scores)) {
