@@ -8,20 +8,21 @@ export class Game {
   private targetScore: number;
   private scores: Record<PlayerNames, number>;
   private cardsPerPlayer: number;
+  private dealer: number = 0;
 
   constructor(players: Player[], targetScore: number, cardsPerPlayer: number) {
     this.players = players;
     this.targetScore =targetScore;
     this.cardsPerPlayer = cardsPerPlayer;
-    this.currentRound = new Round(this.players, dealer, this.cardsPerPlayer); 
+    this.currentRound = new Round(this.players, this.dealer, this.cardsPerPlayer); 
     this.scores = {} as Record<PlayerNames, number>;
       for (const p of players) {
-           this.scores[p.getId()] = 0;
+           this.scores[p.getID()] = 0;
           } 
     }
 
   public getPlayer(playerId: PlayerNames): Player {
-    const player = this.players.find(p => p.getId() === playerId);
+    const player = this.players.find(p => p.getID() === playerId);
     if (!player) {
       throw new Error("Invalid playerId");
     }
@@ -48,7 +49,8 @@ export class Game {
   }
 
   public createRound(dealer: number): Round {
-    this.currentRound = new Round(this.players, dealer, this.cardsPerPlayer);
+    this.dealer = this.dealer++ % this.players.length;
+    this.currentRound = new Round(this.players, this.dealer, this.cardsPerPlayer);
     return this.currentRound;
 }
   public getCurrentRound(): Round  {
@@ -64,15 +66,29 @@ export class Game {
   }
 
  public winner(): Player | undefined {
-  const winners = Object.entries(this.scores)
-    .filter(([_, score]) => score >= this.targetScore)
-    .map(([id]) => this.getPlayer(id as PlayerNames));
-
- 
-    return  winners[0];
+  for (const [id,score] of Object.entries(this.scores)) {
+    if(score >= this.targetScore) {
+      let tempID = Number(id) as PlayerNames;
+      return this.getPlayer(tempID);
+    }
+  }
+  return undefined;
 }
 
-
+public calculateRoundScores(): void {
+  let roundScore = 0;
+  for (const player of this.players) {
+    if (player!= this.currentRound.winner()) {
+      const hand = player.getHand().getCards();
+      for (const card of hand) {
+        roundScore += card.getPointValue();
+      }
+    }
+  }
+  if (this.currentRound.winner() != undefined) {
+    this.addScore(this.currentRound.winner()!.getID(), roundScore);
+  }
+}
   // helper: add score for a player
   public addScore(playerId: PlayerNames, points: number): void {
     if (!(playerId in this.scores)) {
