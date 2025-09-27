@@ -259,21 +259,10 @@ export class Round {
     const hand = this.getPlayerHand(this.getNextPlayer()).getCards();
 
     for (let i = 0; i < hand.length; i++) {
-      switch (hand[i].getType()) {
-        case Type.Skip || Type.Reverse || Type.Draw:
-            if (this.currentCard()!.getType() === hand[i].getType() || this.currentCard()!.getColor() === hand[i].getColor()){
+      if (hand[i].getType() !== Type.Wild || hand[i].getType() !== Type.WildDrawFour) {
+        if (this.currentCard()!.getColor() === hand[i].getColor()){
                 return true;
-            }
-            break;
-        case Type.Wild || Type.WildDrawFour:
-          break;
-        case Type.Numbered:
-          if (this.currentCard()!.getNumber() === hand[i].getNumber() || this.currentCard()!.getColor() === hand[i].getColor()){
-                return true;
-            }
-          break;
-        default:
-          break;
+        }
       }
     }
     return false;
