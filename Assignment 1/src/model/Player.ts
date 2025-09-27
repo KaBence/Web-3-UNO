@@ -27,7 +27,7 @@ export class Player {
     this.hand = hand
   }
 
-  getUno(): boolean {
+  hasUno(): boolean {
     return this.unoCalled;
   }
 
