@@ -96,6 +96,10 @@ export class Round {
     return this.discardPile.peek();
   }
 
+  getPlayersCard(player:PlayerNames,card:number): Card {
+    return this.getPlayerHand(player).getCards()[card]
+  }
+
   roundHasEnded(): boolean {
     return this.players.some((p) => p.getHand().size() === 0);
   }
@@ -118,8 +122,9 @@ export class Round {
   }
 
   //also takes an optional color enum for wildcards
-  play(card: Card, automaticDraw: boolean, colour?: Colors): void {
-    if (!this.canPlay(card)) {
+  play(cardID: number, automaticDraw: boolean, colour?: Colors): void {
+    const card = this.getPlayersCard(this.currentPlayer,cardID);
+    if (!this.canPlay(cardID)) {
       if (automaticDraw) {
         this.draw(1, this.getCurrentPlayer().getID());
       }
@@ -173,7 +178,7 @@ export class Round {
       }
       this.getPlayerHand(playedId).addCard(card!);
       if (noCards === 1) {
-        this.play(card!, false);
+        this.play(this.getPlayerHand(playedId).size()-1, false);
       }
     }
   }
@@ -184,8 +189,8 @@ export class Round {
     const hand = specificPlayer.getHand();
     if (hand.size() === 2) {
       if (
-        this.canPlay(hand.getCards()[0]) ||
-        this.canPlay(hand.getCards()[1])
+        this.canPlay(0) ||
+        this.canPlay(1)
       ) {
         specificPlayer.setUno(true);
         return;
@@ -200,7 +205,8 @@ export class Round {
     specificPlayer.setUno(true);
   }
 
-  canPlay(card: Card): boolean {
+  canPlay(cardId: number): boolean {
+    const card = this.getPlayerHand(this.currentPlayer).getCards()[cardId]
     switch (card.getType()) {
       case Type.Skip || Type.Reverse || Type.Draw:
         if (this.currentCard()!.getType() === card.getType() || this.currentCard()!.getColor() === card.getColor()) {
