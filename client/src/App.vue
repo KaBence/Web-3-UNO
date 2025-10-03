@@ -1,11 +1,14 @@
 <template>
-  <div id="app">
- 
-    <Decks />
-  </div>
+  <RouterView />
 </template>
 
-<script setup lang="ts">
+<!-- <style scoped>
+
+
+header {
+  line-height: 1.5;
+  max-height: 100vh;
+}
 
 import Decks from "./components/Game/Decks.vue"
 </script>
@@ -20,4 +23,4 @@ import Decks from "./components/Game/Decks.vue"
   margin: 0;
   padding: 20px;
 }
-</style>
+</style> -->
