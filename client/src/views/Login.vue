@@ -1,7 +1,7 @@
-<script>
+<script setup>
 
 </script>
 
 <template>
-    <button>Hello</button>
+    <button>Hellooooo</button>
 </template>
