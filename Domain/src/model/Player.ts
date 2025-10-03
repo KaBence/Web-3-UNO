@@ -4,11 +4,17 @@ export class Player {
   private id: PlayerNames;
   private hand: Hand;
   private unoCalled: boolean;
+  private name: string;
 
-  constructor(id: PlayerNames, hand: Hand) {
+  constructor(id: PlayerNames, name:string) {
     this.id = id;
-    this.hand = hand;
+    this.hand = new Hand();
     this.unoCalled = false;
+    this.name = name;
+  }
+
+  getName():string{
+    return this.name;
   }
 
   getID(): PlayerNames {

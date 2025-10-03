@@ -23,16 +23,18 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
 import { useRouter } from "vue-router";
+import { usePlayerStore } from "@/Stores/PlayerStore";
+import { ref } from "vue";
 
-const playerName = ref("");
+let playerName = ref("")
+const playerStore = usePlayerStore();
 const router = useRouter();
 
 function goToLobby() {
-  const name = playerName.value;
-  if (!name) return; // simple guard; add your own validation UI if you want
-  router.push({ path: "/lobby", query: { name } }); //
+  playerStore.player = playerName.value
+  if (!playerStore.player) return; // simple guard; add your own validation UI if you want
+  router.push({ path: "/lobby", query: {player: playerStore.player} }); //
 }
 </script>
 

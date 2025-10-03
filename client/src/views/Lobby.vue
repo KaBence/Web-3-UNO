@@ -57,25 +57,16 @@
 <script lang="ts" setup>
 import { ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
+import { usePlayerStore } from "@/Stores/PlayerStore";
 
-const route = useRoute();
+const playerStore = usePlayerStore();
 const router = useRouter();
-const playerName = route.query.name as string || "Player"; // fallback name
+const playerName = playerStore.player ? playerStore.player : "Player"
 let nameFirstLetter = playerName.split("")[0]
 
 // Create New Game Logic - no server yet.
 const hasJoinedGame = ref({ joinedGameId: 101 });
 const hasCreatedGame = ref(false);
-
-const arrow = () => {
-  if (!hasJoinedGame.value.joinedGameId) {
-    hasJoinedGame.value.joinedGameId = Math.floor(Math.random() * 1000);
-  } else {
-    hasJoinedGame.value.joinedGameId = 0;
-  }
-
-
-}
 
 const getGames = () => {
   // Placeholder games data; replace with real data from server
@@ -85,7 +76,6 @@ const getGames = () => {
     { id: 103, players: 3, max: 4 },
   ];
 };
-
 
 //Join game logic
 const joinGame = (id: number) => {
