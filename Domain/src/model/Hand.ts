@@ -11,7 +11,7 @@ export class Hand{
 
     removeCard(card: Card): Card | undefined {
         const index = this.cards.indexOf(card);
-        return index !== -1 ? this.cards[index] : undefined;
+        return index !== -1 ? this.cards.splice(index,1)[0] : undefined;
     }
 
     getCards(): Card[] {
