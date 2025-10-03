@@ -28,6 +28,8 @@
 <script setup lang="ts">
 import { computed } from "vue"
 import type { GameCardLike  as Card} from "../../utils/ui-types" 
+
+//TODO remake to not use domain Card directly
 import {  Type } from "../../../../Domain/src/model/Card";
 
 const props = defineProps<{ card: Card }>()

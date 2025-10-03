@@ -1,7 +1,7 @@
 <template>
   <div class="hand">
     <UnoCard
-      v-for="(c, i) in hand"
+      v-for="(c, i) in hand" 
       :key="`${c.getType()}-${c.getNumber() ?? ''}-${i}`"
       :card="c"
       class="hand-card"
@@ -13,10 +13,10 @@
 
 <script setup lang="ts">
 import UnoCard from "./Card.vue"
-import type { Card } from "../../../../Domain/src/model/Card"
+import type { Card as GameCardLike } from "../../../../Domain/src/model/Card"
 
-const props = defineProps<{ hand: Card[] }>()
-const emit = defineEmits<{ (e: "play", card: Card): void }>()
+const props = defineProps<{ hand: GameCardLike[] }>()
+const emit = defineEmits<{ (e: "play", card: GameCardLike): void }>()
 
 // calculate curved spread
 function cardStyle(index: number, total: number) {
