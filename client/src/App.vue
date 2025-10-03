@@ -65,20 +65,20 @@ function chooseColor(color: string) {
   </div>
 </template>
 
-<style scoped>
+<!-- <style scoped>
+
+
 header {
   line-height: 1.5;
   max-height: 100vh;
 }
 
-.logo {
-  display: block;
-  margin: 0 auto 2rem;
-}
+import Decks from "./components/Game/Decks.vue"
+</script>
 
-nav {
-  width: 100%;
-  font-size: 12px;
+<style>
+#app {
+  font-family: Avenir, Helvetica, Arial, sans-serif;
   text-align: center;
   margin-top: 2rem;
 }
