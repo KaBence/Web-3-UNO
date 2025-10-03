@@ -1,7 +1,13 @@
-<script>
-
+<script setup lang="ts">
+    import GameStatus from '@/components/Game/GameStatus.vue';
+    import StatusBar from '@/components/Game/StatusBar.vue';
 </script>
 
 <template>
-    <button>Hello</button>
-</template>
+    <GameStatus/>
+    <StatusBar/>
+    </template>
+
+<style>
+
+</style>

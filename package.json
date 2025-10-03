@@ -5,6 +5,9 @@
     "client",
     "server"
   ],
+  "scripts": {
+    "test": "jest"
+  },
   "author": "Sir Filip Witkiewicz, Michaela Veselovská, Barbara Abramczyk, Bence Kabály",
   "dependencies": {
     "@graphql-tools/schema": "^10.0.25",
