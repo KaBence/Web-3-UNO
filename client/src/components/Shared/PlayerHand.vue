@@ -32,6 +32,7 @@ function cardStyle(index: number, total: number) {
 <style scoped>
 .hand {
   display: flex;
+  flex-wrap: wrap;
   justify-content: center;
   gap: 0; /* overlap to make fan effect look nice */
   margin-top: 20px;

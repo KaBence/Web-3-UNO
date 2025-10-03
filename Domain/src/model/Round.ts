@@ -230,13 +230,13 @@ export class Round {
   // currently the logic is not logicing because by the time this is called the next player is called at the end of PLAY()
   challengeWildDrawFour(isChallenged: boolean): void {
     if (!isChallenged) {
-      this.draw(4, this.getNextPlayer());
+      this.draw(4, this.getCurrentPlayer().getID());
       this.currentPlayer = this.getNextPlayer();
       return;
     }
     if (this.couldPlayInsteadofDrawFour()) {
-      this.draw(6, this.getNextPlayer());
-      this.currentPlayer = this.getNextPlayer();
+      this.draw(6, this.getPreviosPlayer());
+      //this.currentPlayer = this.getNextPlayer();
     } else {
       this.draw(4, this.currentPlayer);
     }
@@ -261,8 +261,25 @@ export class Round {
     return this.players[index].getID();
   }
 
+  getPreviosPlayer(): PlayerNames {
+    let index = 0;
+    if (this.getCurrentDirection() === Direction.Clockwise) {
+      index =
+        (this.players.findIndex((p) => p.getID === this.currentPlayer.valueOf) -
+          1) %
+        this.players.length;
+    } else {
+      index =
+        (this.players.findIndex((p) => p.getID === this.currentPlayer.valueOf) +
+          1) %
+        this.players.length;
+    }
+
+    return this.players[index].getID();
+  }
+
   couldPlayInsteadofDrawFour(): boolean {
-    const hand = this.getPlayerHand(this.getNextPlayer()).getCards();
+    const hand = this.getPlayerHand(this.getPreviosPlayer()).getCards();
 
     for (let i = 0; i < hand.length; i++) {
       switch (hand[i].getType()) {
