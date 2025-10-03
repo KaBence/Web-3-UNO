@@ -15,13 +15,7 @@
       </div>
     </div>
   </div>
-  <div class="direction">
-    <img
-      src="../../../public/arrow.ico"
-      alt="Kierunek gry"
-      :style="{ transform: `rotate(${arrowAngle}deg)` }"
-    />
-  </div>
+
 </template>
 
 <script lang="ts" setup>

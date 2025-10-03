@@ -1,68 +1,12 @@
 <script setup lang="ts">
 import { RouterLink, RouterView } from 'vue-router'
-import PlayersBar from './components/Game/PlayersBar.vue'
-import PlayAfterDrawPopup from './components/Game/PlayAfterDrawPopup.vue'
-import ChallengeDrawFourPopup from './components/Game/ChallengeDrawFourPopup.vue'
-import ChooseColorPopup from './components/Game/ChooseColorPopup.vue'
 
-import { challengDrawFour, selectColor } from "./services/gameService";
-import { ref } from 'vue';
-
-const showPopup = ref(false);
-const showColorPopup = ref(true);
-
-function closeChallengePopup() {
-  showPopup.value = false;
-}
-
-function closeColorPopup() {
-  showColorPopup.value = false;
-}
-
-function handleYes() {
-  challengDrawFour(true);
-  closeChallengePopup();
-}
-
-function handleNo() {
-  challengDrawFour(false);
-  closeChallengePopup();
-}
-
-function chooseColor(color: string) {
-  selectColor(color);
-  closeColorPopup();
-}
 </script>
 
 <template>
-  <header>
-    <img alt="Vue logo" class="logo" src="@/assets/logo.svg" width="125" height="125" />
-    <div class="wrapper">
-      <nav>
-        <RouterLink to="/">Home</RouterLink>
-      </nav>
-    </div>
-  </header>
-
   <RouterView />
 
-  <div v-if="showPopup" class="popup-overlay" @click.self="closeChallengePopup">
-    <div class="popup-wrapper">
-      <ChallengeDrawFourPopup @yes="handleYes" @no="handleNo" />
-    </div>
-  </div>
-
-  <div v-if="showColorPopup" class="popup-overlay" @click.self="closeColorPopup">
-    <div class="popup-wrapper">
-      <ChooseColorPopup @color="chooseColor" />
-    </div>
-  </div>
-
-  <div class="game-ui">
-    <PlayersBar />
-    <PlayAfterDrawPopup />
-  </div>
+  
 </template>
 
 <!-- <style scoped>
@@ -155,3 +99,4 @@ nav a:first-of-type {
   width: 100%;
 }
 </style>
+-->

@@ -25,14 +25,19 @@
 </template>
 
 <script lang="ts" setup>
-import { defineEmits } from 'vue';
+import { defineEmits ,ref} from 'vue';
+import { challengDrawFour, selectColor } from "@/services/gameService";
+
+const showColorPopup = ref(false);
+
+
 
 const emit = defineEmits<{
   (e: 'color', color: string): void
 }>();
 
 function chooseColor(color: string) {
-  emit('color', color);
+  selectColor(color);
 }
 </script>
 
