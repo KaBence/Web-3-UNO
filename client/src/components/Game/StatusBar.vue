@@ -16,7 +16,7 @@ function formatMessage(template: string, ...args: any[]): string {
     return template.replace(/{(\d+)}/g, (match, index) => args[index] || '');
 }
 
-const message = ref(formatMessage(StatusMessages.PointsFromPlayer,["Bence","Filip"]));
+const message = ref(formatMessage(StatusMessages.Reverse));
 
 // Example data
 const isYourTurn = ref(true);
