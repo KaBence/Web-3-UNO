@@ -1,6 +1,7 @@
 // Game.ts
 import { Player, PlayerNames } from "./Player";
 import { Round } from "./Round";
+import { DrawDeck } from "./Deck";
 
 export class Game {
   private players: Player[];
@@ -8,7 +9,7 @@ export class Game {
   private targetScore: number;
   private scores: Record<PlayerNames, number>;
   private cardsPerPlayer: number;
-  private dealer: number = 0;
+  private dealer: number = -1;
 
   constructor(targetScore: number, cardsPerPlayer: number) {
     this.players = {} as Player[];
@@ -54,9 +55,38 @@ export class Game {
     return { ...this.scores };
   }
 
-  public createRound(dealer: number): Round {
-    this.dealer = this.dealer++ % this.players.length;
-    this.currentRound = new Round(
+    private selectDealer(): number {
+    let highestCardValue = -1;
+    let dealer: PlayerNames = this.players[0].getID();
+    const dealerDeck = new DrawDeck;
+
+    this.players.forEach((player) => {
+      const card = dealerDeck.deal();
+      if (card) {
+        const cardValue = card.getPointValue();
+        if (cardValue > highestCardValue) {
+          highestCardValue = cardValue;
+          dealer = player.getID();
+        }
+      }
+    });
+    return dealer.valueOf();
+  }
+
+  private setInitialDealer(): void {
+    this.dealer = this.selectDealer();
+  }
+
+
+
+  public createRound(): Round {
+      if (this.dealer === -1) {
+        this.setInitialDealer();
+      }
+      else {
+        this.dealer = (this.dealer + 1) % this.players.length;
+      }
+      this.currentRound = new Round(
       this.players,
       this.dealer,
       this.cardsPerPlayer
