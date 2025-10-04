@@ -4,7 +4,7 @@ export function CreateNumberedCard(number: CardNumber, color: Colors): NumberedC
   return new NumberedCard(number, color);
 }
 
-export function CreateSpecialColoredCard(type: Type.Skip | Type.Reverse | Type.Draw, color: Colors): SpecialColoredCard {
+export function CreateSpecialColoredCard(type: Type.Skip | Type.Reverse | Type.Draw | Type.Dummy, color: Colors): SpecialColoredCard {
   return new SpecialColoredCard(type, color);
 }
 

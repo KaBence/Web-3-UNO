@@ -23,7 +23,14 @@ export abstract class Deck {
   }
 
   abstract filter(predicate: CardPredicate): Deck;
-  abstract deal(): Card | undefined;
+  deal(): Card | undefined {
+    return this.cards.pop();
+  }
+
+  
+  addCard(card: Card): void {
+    this.cards.push(card);
+  }
 
   createMementoFromDeck(): Record<string, string | number>[] {
     const memento: Record<string, string | number>[] = [];
@@ -55,18 +62,13 @@ export abstract class Deck {
 }
 
 export class DiscardDeck extends Deck {
-  deal(): Card | undefined {
-    throw new Error("Method not implemented.");
-  }
+  
   filter(predicate: CardPredicate): Deck {
     throw new Error("Method not implemented.");
   }
 
   peek(): Card {
     return this.cards[this.cards.length - 1];
-  }
-  addCard(card: Card): void {
-    this.cards.push(card);
   }
   constructor(cards?:Card[]) {
     super(DeckTypes.Discard);
@@ -90,9 +92,7 @@ export class DrawDeck extends Deck {
     return new DrawDeck(filteredCards);
   }
 
-  deal(): Card | undefined {
-    return this.cards.pop();
-  }
+  
 
   peak(): Card | undefined {
     if (this.cards.length === 0) {

@@ -21,11 +21,16 @@ const message = ref(formatMessage(StatusMessages.Reverse));
 // Example data
 const isYourTurn = ref(true);
 const score = ref(120);
+const arrowAngle = ref(180); 
 </script>
 
 <template>
     <div class="status-bar">
         <div class="message" v-if="message">{{ message }}</div>
+        <div>
+            <img src="../../../public/arrow.ico" alt="Kierunek gry" :style="{ transform: `rotate(${arrowAngle}deg)` }"
+                class="arrow" />
+        </div>
         <div class="turn-indicator" :class="{ active: isYourTurn }">
             <span v-if="isYourTurn">Your Turn</span>
             <span v-else="">Someone's turn</span>
@@ -55,12 +60,12 @@ const score = ref(120);
     padding: 5px 50px;
     border-radius: 8px;
     font-size: 20px;
-    min-width: 40%; 
-    max-width: 60%; 
-    text-align: left; 
-    overflow: hidden; 
-    white-space: nowrap; 
-    text-overflow: ellipsis; 
+    min-width: 40%;
+    max-width: 60%;
+    text-align: left;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
 }
 
 .turn-indicator {
@@ -76,6 +81,11 @@ const score = ref(120);
 .turn-indicator.active {
     background-color: #28a745;
     box-shadow: 0 0 10px rgba(40, 167, 69, 0.8);
+}
+
+.arrow {
+    width: 50px;
+    height: 100%;
 }
 
 .score {
