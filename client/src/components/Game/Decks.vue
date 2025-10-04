@@ -9,6 +9,11 @@
         <DiscardPile :cards="discardPile" />
       </div>
     </div>
+    <!-- UNO buttons -->
+    <div class="button-row">
+      <UnoButton @click="onUno"></UnoButton>
+      <CallUnoButton @click="onCallUno"></CallUnoButton>
+    </div>
 
     <!-- Player hand -->
     <div class="hand-area">
@@ -25,6 +30,9 @@ import type { Card as GameCard } from "../../../../Domain/src/model/Card"
 import DrawPile from "../Shared/DrawPile.vue"
 import DiscardPile from "../Shared/DIscardPile.vue"
 import PlayerHand from "../Shared/PlayerHand.vue"
+import UnoButton from "../Shared/UnoButton.vue"
+import CallUnoButton from "../Shared/AccuseOfUno.vue"
+
 
 const drawDeck = new DrawDeck()
 const discardDeck = new DiscardDeck()
@@ -55,6 +63,14 @@ function playCard(card: GameCard) {
   discardDeck.addCard(card)
   discardPile.value = [...discardPile.value, card]
 }
+function onUno() {
+  alert("You shouted UNO!");
+}
+
+function onCallUno() {
+  alert("You accused someone of not saying UNO!");
+}
+
 </script>
 
 <style scoped>
@@ -68,6 +84,12 @@ function playCard(card: GameCard) {
   background: #f7f7f7; /* light background */
   min-height: 100vh;
   padding: 20px;
+}
+/* Button row */
+.button-row {
+  display: flex;
+  justify-content: center;
+  gap: 40px;
 }
 
 .title {
@@ -97,8 +119,8 @@ function playCard(card: GameCard) {
 
 /* Hand area */
 .hand-area {
-  margin-top: 30px;
-  padding: 20px 40px;
+  margin-top: 10px;
+
   border-radius: 15px;
   background: #fff;
   border: 2px solid #ddd;

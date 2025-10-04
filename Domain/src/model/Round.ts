@@ -16,6 +16,7 @@ export class Round {
   private currentPlayer: PlayerNames;
   private currentDirection: Direction;
   private cardsPerPlayer: number;
+    private roundWinner?: Player;
 
   constructor(players: Player[], dealer: number, cardsPerPlayer: number) {
     this.drawPile = new DrawDeck();
@@ -109,7 +110,9 @@ export class Round {
     const winner = this.players.find((p) => p.getHand().size() === 0);
     return winner;
   }
-
+  getWinner(): Player | undefined {
+    return this.roundWinner;
+  }
   //catchUnoFailuere)() this is responsible for a situation when an accuser player says that the accused has not said uno. if that is true so if the accussed has one card the accussed has to draw 4 cards if the accuser was wrong then they have to draw 6 cards from the draw deck
 
   catchUnoFailure(accuser: PlayerNames, accused: PlayerNames): void {
@@ -157,6 +160,14 @@ export class Round {
           throw "Unexpected move not coverd by the logic";
       }
     }
+     if (this.roundHasEnded()) {
+      const winner = this.winner();
+      if (winner) {
+        this.roundWinner = winner;
+        return; 
+      }
+    }
+  
     this.currentPlayer = this.getNextPlayer();
   }
   //bb
