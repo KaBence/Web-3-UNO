@@ -10,8 +10,11 @@ export async function getPlayers(): Promise<Player[]> {
     const hand1 = new Hand([cards1]);
     const hand2 = new Hand([cards1, cards2]);
 
-    const player1 = new Player(1, hand1);
-    const player2 = new Player(2, hand2);
+    const player1 = new Player(1,"Player 1");
+    const player2 = new Player(2, "PLayer 2");
+
+    player1.setHand(hand1)
+    player2.setHand(hand2)
 
     console.log("Hand before adding "+hand2.getCards().length);
     hand2.addCard(cards2);

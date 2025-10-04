@@ -1,7 +1,7 @@
 <template>
   <div class="players-bar">
     <div v-for="player in players" :key="player.getID()" class="player-column">
-      <h3 class="player-name">{{ player.getID() }}</h3>
+      <div class="player-name">{{ player.getName() }}</div>
 
       <div class="player-hand">
         <div
@@ -9,8 +9,10 @@
           :key="index"
           class="card back"
           :style="{
-            transform: `rotate(${index * 5 - (player.getHand().size() * 2.5)}deg) translateX(${index * 12}px)`
-          }"
+              transform: `rotate(${index * 5 - (player.getHand().size() * 2.5)}deg) 
+              translateX(${index * 12 - (player.getHand().size() * 12) / 2}px)`
+            }"
+
         ></div>
       </div>
     </div>
@@ -21,17 +23,12 @@
 <script lang="ts" setup>
   import { ref, onMounted } from "vue";
   import { getPlayers, getDirection} from "../../services/gameService";
-  import type { Player } from "../../../../Domain/src/model/Player";
-
-  const arrowAngle = ref(0); 
-
-
+  import type { Player } from "@/../Domain/src/model/Player";
 
   const players = ref<Player[]>([]);
 
   onMounted(async () => {
     players.value = await getPlayers();
-    arrowAngle.value = await getDirection(); 
   });
 </script>
 
@@ -40,7 +37,7 @@
     display: flex;
     justify-content: center;
     gap: 40px;
-    margin-top: 20px;
+    background: #f7f7f7;
   }
 
   .player-column {
@@ -50,6 +47,8 @@
   }
 
   .player-name {
+    text-align: center;
+    width: 100;
     font-weight: bold;
     color: black;
     margin-bottom: 10px;
@@ -59,6 +58,8 @@
     position: relative;
     height: 160px;
     width: 200px;
+    display: flex;
+    justify-content: center;
   }
 
   .card {
