@@ -82,8 +82,9 @@ export class Round {
     return this.cardsPerPlayer;
   }
 
-  getPlayerHand(player: PlayerNames): Hand { /////////////////////////
-    return this.players.find((p) => p.getID === player.valueOf)?.getHand()!;
+  getPlayerHand(player: PlayerNames): Hand | undefined{ 
+    let p = this.players.find((p) => p.getID === player.valueOf)
+    return p ? p.getHand() : undefined
   }
 
   //Game logic methods
@@ -96,8 +97,9 @@ export class Round {
     return this.discardPile.peek();
   }
 
-  getPlayersCard(player: PlayerNames, card: number): Card {
-    return this.getPlayerHand(player).getCards()[card];
+  getPlayersCard(player: PlayerNames, card: number): Card| undefined {
+    let hand = this.getPlayerHand(player)
+    return hand ? hand.getCards()[card] : undefined
   }
 
   roundHasEnded(): boolean {
@@ -115,7 +117,7 @@ export class Round {
   //catchUnoFailuere)() this is responsible for a situation when an accuser player says that the accused has not said uno. if that is true so if the accussed has one card the accussed has to draw 4 cards if the accuser was wrong then they have to draw 6 cards from the draw deck
 
   catchUnoFailure(accuser: PlayerNames, accused: PlayerNames): void {
-    if (!this.getSpecificPlayer(accused).hasUno()) { /////////////////////////////////
+    if (!this.getSpecificPlayer(accused).hasUno()) {
       this.draw(4, accused);
     } else {
       // Accuser is wrong → accuser draws 6
@@ -126,6 +128,10 @@ export class Round {
   //also takes an optional color enum for wildcards
   play(cardID: number, colour?: Colors): void {
     const card = this.getPlayersCard(this.currentPlayer, cardID);
+    if (card == undefined){
+      console.log("I tried to take a card that doesn't exist, whoops")
+      return;
+    }
     if (!this.canPlay(cardID)) {
       this.draw(1, this.currentPlayer);
     } 
@@ -181,7 +187,13 @@ export class Round {
       if (this.getSpecificPlayer(playedId).hasUno()) {
         this.getSpecificPlayer(playedId).setUno(false);
       }
-      this.getPlayerHand(playedId).addCard(card);
+      let hand = this.getPlayerHand(playedId)
+      if (hand){
+        hand.addCard(card);
+      }
+      else{
+        console.log("Tried to access a player's hand who doesn't exists")
+      }
     }
   }
 
@@ -206,7 +218,7 @@ export class Round {
   }
 
   canPlay(cardId: number): boolean {
-    const card = this.getPlayerHand(this.currentPlayer).getCards()[cardId];
+    const card = this.getPlayerHand(this.currentPlayer)!.getCards()[cardId];
     switch (card.getType()) {
       case Type.Reverse:
       case Type.Draw:
@@ -270,7 +282,7 @@ export class Round {
   }
 
   couldPlayInsteadofDrawFour(): boolean {
-    const hand = this.getPlayerHand(this.getNextPlayer()).getCards();
+    const hand = this.getPlayerHand(this.getNextPlayer())!.getCards();
 
     for (let i = 0; i < hand.length; i++) {
       switch (hand[i].getType()) {
@@ -314,7 +326,7 @@ export class Round {
         let wildcard = this.discardPile.deal()!;
         this.drawPile.addCard(wildcard);
         this.drawPile.shuffle(randomUtils.standardShuffler);
-        this.drawPile.addCard(this.drawPile.deal()!);
+        this.discardPile.addCard(this.drawPile.deal()!);
         this.handleStartRound();
       case Type.Wild:
         // not doing anything in this case, cause the GUI has to notice the wild card and the logic will happen there and calling different function in Round
