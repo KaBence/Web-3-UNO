@@ -12,6 +12,7 @@ export class Game {
   private scores: Record<PlayerNames, number>;
   private cardsPerPlayer: number = 7;
   private dealer: number = -1;
+  private winner?: PlayerNames;
 
   constructor(id: number) {
     this.players = [];
@@ -102,21 +103,21 @@ export class Game {
     return this.scores[playerId];
   }
 
-  public winner(): Player | undefined {
+  public setWinner(): void {
     for (const [id, score] of Object.entries(this.scores)) {
       if (score >= this.targetScore) {
         let tempID = Number(id) as PlayerNames;
-        return this.getPlayer(tempID);
+        this.winner = tempID;
       }
     }
-    return undefined;
   }
 
   public roundFinished(): void {
     if (this.currentRound?.getWinner())
     {
       this.calculateRoundScores()
-      if(this.winner())
+      this.setWinner();
+      if(!this.winner)
       {
         this.createRound()
       }
