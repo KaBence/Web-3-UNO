@@ -11,7 +11,7 @@
 
 <script setup lang="ts">
 import Card from "./Card.vue"
-import { DrawDeck  } from "../../../../Domain/src/model/Deck";
+import { DrawDeck  } from "Domain/src/model/Deck";
 
 //later replace with fetch() from backend
 const deck = new DrawDeck() // generates + shuffles automatically
