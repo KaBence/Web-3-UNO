@@ -23,7 +23,7 @@
           <section class="games">
             <h3><b>Games</b></h3>
             <ul class="game-list">
-              <li class="game-item" v-for="g in games" :key="g.id">
+              <li class="game-item" v-for="g in visibleGames" :key="g.id">
                 <div class="meta">
                   <div class="title">Game {{ g.id }}</div>
                  <div class="sub">
@@ -39,7 +39,7 @@
                   <button class="btn-leave" type="button" v-else-if="hasJoinedGame.joinedGameId == g.id"
                     @click="leaveGame(g.id)">Leave</button>
                   <button class="btn-start-game" type="button" v-if="hasJoinedGame.joinedGameId == g.id"
-                    @click="StartGame(g.id)">Start Game bish</button>
+                    @click="StartGame(g.id)">Start Game</button>
                 </div>
               </li>
             </ul>
@@ -60,34 +60,49 @@
   </template>
 
   <script lang="ts" setup>
-  import { ref } from "vue";
+  import { ref, computed } from "vue"; // For game status Used to create reactive values that automatically update when their dependencies change.
   import { useRoute, useRouter } from "vue-router";
   import { usePlayerStore } from "@/Stores/PlayerStore";
 
   const playerStore = usePlayerStore();
   const router = useRouter();
-  const playerName = playerStore.player ? playerStore.player : "Player"
-  let nameFirstLetter = playerName.split("")[0]
+  const playerName = playerStore.player ? playerStore.player : "Player";
+  let nameFirstLetter = playerName.split("")[0];
 
   // Create New Game Logic - no server yet.
-  const hasJoinedGame = ref({ joinedGameId: null as number | null });
-  const hasCreatedGame = ref(false);
-  type Game = { id: number; players: string[] };
+  type GameStatus = "open" | "inProgress"; //Game status types created for the feature of not being able to join started game there is no "finished" cos the game shall disappear from the list when finished
+  type Game = { id: number; players: string[]; status: GameStatus}; 
 
   const getGames = (): Game[] => {
-    // Placeholder games data; replace with real data from server
-    return [
-    { id: 101, players: ["Alice", "Bob"] },
-    { id: 102, players: ["Eve"] },
-    { id: 103, players: ["Mallory", "Trent", "Peggy"] },
-    { id: 104, players: ["Oscar", "Victor"] },
-    { id: 105, players: ["Peggy"] },
-    { id: 106, players: ["Alice", "Trent", "Eve"] },
-    { id: 107, players: ["Bob", "Victor"] },
-    { id: 108, players: ["Eve"] },
-    { id: 109, players: ["Mallory", "Trent", "Peggy"] },
+  // Placeholder games data; replace with real data from server
+  return [
+    { id: 101, players: ["Alice", "Bob"], status: "inProgress" },
+    { id: 102, players: ["Eve"], status: "open" },
+    { id: 103, players: ["Mallory", "Trent", "Peggy"], status: "open" },
+    { id: 104, players: ["Oscar", "Victor"], status: "open" },
+    { id: 105, players: ["Peggy"], status: "open" },
+    { id: 106, players: ["Alice", "Trent", "Eve"], status: "open" },
+    { id: 107, players: ["Bob", "Victor"], status: "open" },
+    { id: 108, players: ["Eve"], status: "open" },
+    { id: 109, players: ["Mallory", "Trent", "Peggy"], status: "open" },
+    { id: 110, players: ["Charlie", "Dana"], status: "open" },
+    { id: 111, players: ["Frank"], status: "open" },
+    { id: 112, players: ["Grace", "Heidi", "Ivan"], status: "open" },
+    { id: 113, players: ["Judy", "Karl"], status: "open" },
+    { id: 114, players: ["Liam", "Mia", "Noah", "Olivia"], status: "open" },
+    { id: 115, players: ["Peggy", "Quinn"], status: "open" },
+    { id: 116, players: ["Ruth", "Steve"], status: "open" },
+    { id: 117, players: ["Trent", "Uma", "Victor"], status: "open" },
+    { id: 118, players: ["Wendy"], status: "open" },
+    { id: 119, players: ["Xander", "Yara", "Zoe"], status: "open" },
+    { id: 120, players: ["Alice", "Eve", "Mallory"], status: "open" },
     ];
   };
+
+  const games = ref<Game[]>(getGames());
+  const visibleGames = computed<Game[]>(() => games.value.filter(g => g.status === "open")); //filter out games that are not open
+  const hasJoinedGame = ref({ joinedGameId: null as number | null });
+  const hasCreatedGame = ref(false);
 
   //Join game logic
   const joinGame = (id: number) => {
@@ -127,11 +142,11 @@
   }
 
   const StartGame = (id: number) => {
-    router.push({ path: "/Game", query: { id } })
+    // marking as in progress so it disappears from visibleGames
+    const g = games.value.find(x => x.id === id);
+    if(g) g.status = "inProgress";
+    router.push({ path: "/Game", query: { id } });
   }
-
-  const games = ref(getGames());
-
   </script>
 
   <style scoped>
