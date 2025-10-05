@@ -19,7 +19,7 @@ export class Round {
   private currentPlayer: PlayerNames;
   private currentDirection: Direction;
   private cardsPerPlayer: number = 7;
-  private roundWinner?: Player;
+  private roundWinner?: PlayerNames;
   private statusMessage?: String;
 
   constructor(players: Player[], dealer: number, cardsPerPlayer: number) {
@@ -114,7 +114,7 @@ export class Round {
     const winner = this.players.find((p) => p.getHand().size() === 0);
     return winner;
   }
-  getWinner(): Player | undefined {
+  getWinner(): PlayerNames | undefined {
     return this.roundWinner;
   }
   //catchUnoFailuere)() this is responsible for a situation when an accuser player says that the accused has not said uno. if that is true so if the accussed has one card the accussed has to draw 4 cards if the accuser was wrong then they have to draw 6 cards from the draw deck
@@ -167,7 +167,7 @@ export class Round {
     if (this.roundHasEnded()) {
       const winner = this.winner();
       if (winner) {
-        this.roundWinner = winner;
+        this.roundWinner = winner.getID();
         return; 
       }
     }
@@ -359,6 +359,6 @@ export class Round {
     for (let player of this.players){
       playerMementos.push(player.createMementoFromPlayer())
     }
-    return new RoundMemento(playerMementos,this.drawPile.createMementoFromDeck(),this.discardPile.createMementoFromDeck(),this.currentPlayer,this.currentDirection,this.winner)
+    return new RoundMemento(playerMementos,this.drawPile.createMementoFromDeck(),this.discardPile.createMementoFromDeck(),this.currentPlayer,this.currentDirection,this.getWinner())
   }
 }
