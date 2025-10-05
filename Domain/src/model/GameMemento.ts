@@ -8,9 +8,9 @@ export class GameMemento {
   private readonly currentRound?: RoundMemento;
   private readonly scores: Record<PlayerNames, number>;
   private readonly dealer: number;
-  private readonly winner?:PlayerMemento
+  private readonly winner?:PlayerNames
 
-  constructor(id:number,scores:Record<PlayerNames,number>,dealer:number,players: PlayerMemento[], round?:RoundMemento,winner?:PlayerMemento) {
+  constructor(id:number,scores:Record<PlayerNames,number>,dealer:number,players: PlayerMemento[], round?:RoundMemento,winner?:PlayerNames) {
     this.players = [...players];
     this.scores = {...scores};
     this.dealer = dealer;
@@ -38,5 +38,9 @@ export class GameMemento {
 
   public getId(){
     return this.id;
+  }
+
+  public getWinner(){
+    return this.winner
   }
 }

@@ -112,6 +112,17 @@ export class Game {
     return undefined;
   }
 
+  public roundFinished(): void {
+    if (this.currentRound?.getWinner())
+    {
+      this.calculateRoundScores()
+      if(this.winner())
+      {
+        this.createRound()
+      }
+    }
+  }
+
   public calculateRoundScores(): void {
     if (this.currentRound == undefined) {
       return;

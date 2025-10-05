@@ -9,7 +9,7 @@ export class RoundMemento {
   private readonly players: PlayerMemento[];
   private readonly currentPlayer: PlayerNames;
   private readonly currentDirection: Direction;
-  private readonly roundWinner?: PlayerMemento;
+  private readonly roundWinner?: PlayerNames;
 
   constructor(
     players: PlayerMemento[],
@@ -17,7 +17,7 @@ export class RoundMemento {
     discardPile: DeckMemento,
     currentPlayer: PlayerNames,
     currentDirection: Direction,
-    roundWinner?: PlayerMemento
+    roundWinner?: PlayerNames
   ) {
     this.players = players;
     this.currentDirection = currentDirection;
@@ -48,7 +48,7 @@ export class RoundMemento {
     return this.currentDirection;
   }
 
-  getWinner(): PlayerMemento | undefined {
+  getWinner(): PlayerNames | undefined {
     return this.roundWinner;
   }
 }
