@@ -12,7 +12,6 @@
     <!-- UNO buttons -->
     <div class="button-row">
       <UnoButton @click="onUno"></UnoButton>
-      <CallUnoButton @click="onCallUno"></CallUnoButton>
     </div>
 
     <!-- Player hand -->
