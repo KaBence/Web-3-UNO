@@ -1,21 +1,22 @@
 // Game.ts
 import { Player, PlayerNames } from "./Player";
-import { Round } from "./Round";
+import { Round } from "./round";
 import { DrawDeck } from "./Deck";
+import { GameMemento } from "./GameMemento";
 
 export class Game {
+  private id: number;
   private players: Player[];
   private currentRound?: Round;
-  private targetScore: number;
+  private targetScore: number = 500;
   private scores: Record<PlayerNames, number>;
-  private cardsPerPlayer: number;
+  private cardsPerPlayer: number = 7;
   private dealer: number = -1;
 
-  constructor(targetScore: number, cardsPerPlayer: number) {
-    this.players = {} as Player[];
-    this.targetScore = targetScore;
-    this.cardsPerPlayer = cardsPerPlayer;
+  constructor(id: number) {
+    this.players = [];
     this.scores = {} as Record<PlayerNames, number>;
+    this.id = id;
   }
 
   public getPlayer(playerId: PlayerNames): Player {
@@ -55,10 +56,10 @@ export class Game {
     return { ...this.scores };
   }
 
-    private selectDealer(): number {
+  private selectDealer(): number {
     let highestCardValue = -1;
     let dealer: PlayerNames = this.players[0].getID();
-    const dealerDeck = new DrawDeck;
+    const dealerDeck = new DrawDeck();
 
     this.players.forEach((player) => {
       const card = dealerDeck.deal();
@@ -77,16 +78,13 @@ export class Game {
     this.dealer = this.selectDealer();
   }
 
-
-
   public createRound(): Round {
-      if (this.dealer === -1) {
-        this.setInitialDealer();
-      }
-      else {
-        this.dealer = (this.dealer + 1) % this.players.length;
-      }
-      this.currentRound = new Round(
+    if (this.dealer === -1) {
+      this.setInitialDealer();
+    } else {
+      this.dealer = (this.dealer + 1) % this.players.length;
+    }
+    this.currentRound = new Round(
       this.players,
       this.dealer,
       this.cardsPerPlayer
@@ -137,5 +135,22 @@ export class Game {
       throw new Error("Invalid playerId");
     }
     this.scores[playerId] += points;
+  }
+
+  public createGameFromMemento(memento: GameMemento): void {
+    this.scores = memento.getScores();
+    this.currentRound?.createRoundFromMememto(memento.getCurrentRound());
+    this.dealer = memento.getDealer();
+    this.players = memento.getPlayers();
+  }
+
+  public createMementoFromGame(): GameMemento {
+    return new GameMemento(
+      this.id,
+      this.scores,
+      this.dealer,
+      this.players,
+      this.currentRound
+    );
   }
 }
