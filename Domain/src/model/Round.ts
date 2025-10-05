@@ -4,6 +4,8 @@ import { Player, PlayerNames } from "./Player";
 import { Card, Type, Colors, SpecialColoredCard } from "./Card";
 import { CreateSpecialColoredCard } from "./CardFactory";
 import * as randomUtils from "../utils/random_utils";
+import { RoundMemento } from "./RoundMemento";
+import { PlayerMemento } from "./PlayerMemento";
 
 export enum Direction {
   Clockwise = "clockwise",
@@ -16,8 +18,9 @@ export class Round {
   private players: Player[];
   private currentPlayer: PlayerNames;
   private currentDirection: Direction;
-  private cardsPerPlayer: number;
-    private roundWinner?: Player;
+  private cardsPerPlayer: number = 7;
+  private roundWinner?: Player;
+  private statusMessage?: String;
 
   constructor(players: Player[], dealer: number, cardsPerPlayer: number) {
     this.cardsPerPlayer = cardsPerPlayer;
@@ -161,7 +164,7 @@ export class Round {
         // we don't do anything because it is covered above the switch
       }
     }
-     if (this.roundHasEnded()) {
+    if (this.roundHasEnded()) {
       const winner = this.winner();
       if (winner) {
         this.roundWinner = winner;
@@ -338,5 +341,24 @@ export class Round {
 
   setWildColor(color:Colors) : void{
     this.discardPile.addCard(CreateSpecialColoredCard(Type.Dummy, color))
+  }
+
+  createRoundFromMememto(memento:RoundMemento):void{
+    for (let player of memento.getPlayers()){
+      let p = this.getSpecificPlayer(player.getId())
+      p.createPlayerFromMemento(player)
+    }
+    this.currentDirection = memento.getCurrentDirection();
+    this.currentPlayer = memento.getCurrentPlayer();
+    this.drawPile.createDeckFromMemento(memento.getDrawPile());
+    this.discardPile.createDeckFromMemento(memento.getDiscardPile())
+  }
+
+  createMementoFromRound():RoundMemento{
+    let playerMementos: PlayerMemento[] = [];
+    for (let player of this.players){
+      playerMementos.push(player.createMementoFromPlayer())
+    }
+    return new RoundMemento(playerMementos,this.drawPile.createMementoFromDeck(),this.discardPile.createMementoFromDeck(),this.currentPlayer,this.currentDirection,this.winner)
   }
 }

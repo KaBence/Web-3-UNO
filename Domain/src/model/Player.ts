@@ -1,4 +1,5 @@
 import { Hand } from "./Hand";
+import { PlayerMemento } from "./PlayerMemento";
 
 export class Player {
   private id: PlayerNames;
@@ -41,6 +42,16 @@ export class Player {
     this.unoCalled = bool;
   }
 
+  createPlayerFromMemento(memento:PlayerMemento):void{
+    this.id = memento.getId()
+    this.name= memento.getName()
+    this.hand.createHandFromMemento(memento.getHand())
+    this.unoCalled=memento.getUnoCalled()
+  }
+
+  createMementoFromPlayer():PlayerMemento{
+    return new PlayerMemento(this.id,this.name,this.hand.createMementoFromHand(),this.unoCalled)
+  }
 };
 
 

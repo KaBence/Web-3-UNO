@@ -63,6 +63,7 @@
   import { ref, computed } from "vue"; // For game status Used to create reactive values that automatically update when their dependencies change.
   import { useRoute, useRouter } from "vue-router";
   import { usePlayerStore } from "@/Stores/PlayerStore";
+ import * as api from '../model/api'
 
   const playerStore = usePlayerStore();
   const router = useRouter();
@@ -74,28 +75,7 @@
   type Game = { id: number; players: string[]; status: GameStatus}; 
 
   const getGames = (): Game[] => {
-  // Placeholder games data; replace with real data from server
-  return [
-    { id: 101, players: ["Alice", "Bob"], status: "inProgress" },
-    { id: 102, players: ["Eve"], status: "open" },
-    { id: 103, players: ["Mallory", "Trent", "Peggy"], status: "open" },
-    { id: 104, players: ["Oscar", "Victor"], status: "open" },
-    { id: 105, players: ["Peggy"], status: "open" },
-    { id: 106, players: ["Alice", "Trent", "Eve"], status: "open" },
-    { id: 107, players: ["Bob", "Victor"], status: "open" },
-    { id: 108, players: ["Eve"], status: "open" },
-    { id: 109, players: ["Mallory", "Trent", "Peggy"], status: "open" },
-    { id: 110, players: ["Charlie", "Dana"], status: "open" },
-    { id: 111, players: ["Frank"], status: "open" },
-    { id: 112, players: ["Grace", "Heidi", "Ivan"], status: "open" },
-    { id: 113, players: ["Judy", "Karl"], status: "open" },
-    { id: 114, players: ["Liam", "Mia", "Noah", "Olivia"], status: "open" },
-    { id: 115, players: ["Peggy", "Quinn"], status: "open" },
-    { id: 116, players: ["Ruth", "Steve"], status: "open" },
-    { id: 117, players: ["Trent", "Uma", "Victor"], status: "open" },
-    { id: 118, players: ["Wendy"], status: "open" },
-    { id: 119, players: ["Xander", "Yara", "Zoe"], status: "open" },
-    { id: 120, players: ["Alice", "Eve", "Mallory"], status: "open" },
+    return [
     ];
   };
 
@@ -128,13 +108,9 @@
     hasJoinedGame.value.joinedGameId = null;
   }
 
-  const createGame = () => {
-    if (hasJoinedGame.value.joinedGameId) {
-      window.alert("You must leave current game, before creating a new one.");
-      console.log("You must leave current game, before creating a new one.");
-      return;
-    }
+  const createGame = async () => {
 
+    await api.createGame()
     console.log("Creating a new game");
     // Implement start game logic here
 

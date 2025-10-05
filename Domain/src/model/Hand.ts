@@ -1,4 +1,5 @@
 import { Card } from "./Card";
+import { HandMemento } from "./HandMemento";
 
 export class Hand{
     constructor(cards?: Card[]) {
@@ -19,6 +20,14 @@ export class Hand{
     }
     size(): number {
         return this.cards.length;
+    }
+
+    createHandFromMemento(memento:HandMemento):void{
+        this.cards = memento.getCards()
+    }
+
+    createMementoFromHand():HandMemento{
+        return new HandMemento(this.cards)
     }
     private cards: Card[] = [];
 }

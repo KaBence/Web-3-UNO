@@ -3,6 +3,7 @@ import { Card ,Type} from "./Card";
 import * as deckFactory from "./DeckFactory";
 import * as CardFactory from "./CardFactory";
 import * as randomUtils from "../utils/random_utils";
+import { DeckMemento } from "./DeckMemento";
 
 
 export abstract class Deck {
@@ -18,7 +19,7 @@ export abstract class Deck {
     return this.cards.length;
   }
 
-  getType(): DeckTypes {  
+  getType(): DeckTypes {
     return this.type;
   }
 
@@ -27,30 +28,16 @@ export abstract class Deck {
     return this.cards.pop();
   }
 
-  
   addCard(card: Card): void {
     this.cards.push(card);
   }
 
-  createMementoFromDeck(): Record<string, string | number>[] {
-    const memento: Record<string, string | number>[] = [];
-    for (const deckCard of this.cards) {
-      switch (deckCard.getType()) {
-        case Type.Numbered:
-          memento.push({type: deckCard.getType(), color: deckCard.getColor()!, number: deckCard.getNumber()!,});
-          break;
-        case Type.Skip:
-        case Type.Reverse:
-        case Type.Draw:
-          memento.push({ type: deckCard.getType(), color: deckCard.getColor()! });
-          break;
-        case Type.Wild:
-        case Type.WildDrawFour:
-          memento.push({ type: deckCard.getType() });
-          break;
-      }
-    }
-    return memento;
+  createMementoFromDeck(): DeckMemento {
+    return new DeckMemento(this.type, this.cards);
+  }
+
+  createDeckFromMemento(memento: DeckMemento): void {
+    this.cards = memento.getCards()
   }
 
   shuffle(shuffler: (cards: Card[]) => void): void {
