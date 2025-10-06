@@ -2,6 +2,7 @@ import { PlayerNames } from "./Player";
 import { Direction } from "./round";
 import { PlayerMemento } from "./PlayerMemento";
 import { DeckMemento } from "./DeckMemento";
+import { Card } from "./Card";
 
 export class RoundMemento {
   private readonly drawPile: DeckMemento;
@@ -10,6 +11,8 @@ export class RoundMemento {
   private readonly currentPlayer: PlayerNames;
   private readonly currentDirection: Direction;
   private readonly roundWinner?: PlayerNames;
+  private readonly statusMessage: String
+  private readonly topCard:Card
 
   constructor(
     players: PlayerMemento[],
@@ -17,6 +20,8 @@ export class RoundMemento {
     discardPile: DeckMemento,
     currentPlayer: PlayerNames,
     currentDirection: Direction,
+    statusMessage:String,
+    topCard:Card,
     roundWinner?: PlayerNames
   ) {
     this.players = players;
@@ -25,8 +30,18 @@ export class RoundMemento {
     this.drawPile = drawPile;
     this.discardPile = discardPile;
     this.roundWinner = roundWinner
+    this.statusMessage = statusMessage
+    this.topCard=topCard
   }
   //Getters and Setters
+
+  getTopCard():Card{
+    return this.topCard
+  }
+
+  getStatusMessage():String {
+    return this.statusMessage
+  }
 
   getDrawPile(): DeckMemento {
     return this.drawPile;

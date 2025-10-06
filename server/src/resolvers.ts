@@ -11,16 +11,16 @@ export class Resolvers {
 
    Query = {
     activeGames: async () => {
-      return this.api.getActiveGames();
+      return await this.api.getActiveGames();
     },
     pendingGames: async () => {
-      return this.api.getPendingGames();
+      return await this.api.getPendingGames();
     },
   };
 
   Mutation = {
     createGame: async () => {
-      return this.api.createGame();
+      return await this.api.createGame();
     },
     addPlayer: async (
       _: any,

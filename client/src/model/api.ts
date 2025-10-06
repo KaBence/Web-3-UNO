@@ -62,32 +62,31 @@ export async function createGame() {
   const mutation = gql`
     mutation Mutation {
       createGame {
-        currentRound {
-          currentPlayer
-          direction
-          drawdeck {
-            color
-            number
-            type
-          }
-          players {
-            hand {
-              cards {
-                number
-                color
-                type
-              }
+        scores
+        id
+        dealer
+        players {
+          unoCalled
+          name
+          hand {
+            cards {
+              color
+              number
+              type
             }
-            name
-            unoCalled
+          }
+        }
+        currentRound {
+          winner
+          topCard {
+            type
+            number
+            color
           }
           statusMessage
-          topCard {
-            color
-            number
-            type
-          }
-          winner {
+          players {
+            unoCalled
+            name
             hand {
               cards {
                 color
@@ -96,6 +95,8 @@ export async function createGame() {
               }
             }
           }
+          currentPlayer
+          currentDirection
         }
       }
     }
@@ -108,6 +109,60 @@ export async function createGame() {
     return game;
   } catch (error: any) {
     console.error("Failed to create game:", error);
+    throw error;
+  }
+}
+
+export async function getPendingGames() {
+  const query = gql`
+    
+query PendingGames {
+  pendingGames {
+    dealer
+    id
+    scores
+    players {
+      unoCalled
+      name
+      hand {
+        cards {
+          color
+          number
+          type
+        }
+      }
+    }
+    currentRound {
+      winner
+      topCard {
+        type
+        number
+        color
+      }
+      statusMessage
+      players {
+        unoCalled
+        name
+        hand {
+          cards {
+            color
+            number
+            type
+          }
+        }
+      }
+      currentPlayer
+      currentDirection
+    }
+  }
+}
+  `;
+  try {
+    const { data } = await apolloClient.query({ query });
+
+    return data.pendingGames;
+  } catch (error: any) {
+    console.error("Failed to get pending games:", error);
     throw error;
   }
 }

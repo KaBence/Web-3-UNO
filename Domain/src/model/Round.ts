@@ -20,22 +20,26 @@ export class Round {
   private currentDirection: Direction;
   private cardsPerPlayer: number = 7;
   private roundWinner?: PlayerNames;
-  private statusMessage?: String;
+  private statusMessage: String;
+  private topCard:Card
 
-  constructor(players: Player[], dealer: number, cardsPerPlayer: number) {
-    this.cardsPerPlayer = cardsPerPlayer;
+  constructor(players: Player[], dealer: number) {
     this.players = players;
     this.currentDirection = Direction.Clockwise;
-    this.currentPlayer = (dealer + 1) % this.players.length; //should be next player after dealer
+    this.currentPlayer = this.players.length ===0 ? -1 : (dealer + 1) % this.players.length; //should be next player after dealer
     
     this.drawPile = new DrawDeck();
-    for (let i = 0; i < cardsPerPlayer; i++) {
+    for (let i = 0; i < this.cardsPerPlayer; i++) {
       for (const player of this.players) {
         this.draw(1,player.getID())
       }
     }
     this.discardPile = new DiscardDeck([this.drawPile.deal()!]);
-    this.handleStartRound();
+    this.topCard = this.discardPile.peek()
+    if (dealer>-1) {
+      this.handleStartRound();
+    }
+    this.statusMessage = "Round Created"
   }
   //Getters and Setters
 
@@ -85,6 +89,10 @@ export class Round {
     return this.cardsPerPlayer;
   }
 
+  getStatusMessage():String{
+    return this.statusMessage
+  }
+
   getPlayerHand(player: PlayerNames): Hand | undefined{ 
     let p = this.players.find((p) => p.getID === player.valueOf)
     return p ? p.getHand() : undefined
@@ -97,7 +105,8 @@ export class Round {
   }
 
   currentCard(): Card {
-    return this.discardPile.peek();
+    this.topCard = this.discardPile.peek();
+    return this.topCard
   }
 
   getPlayersCard(player: PlayerNames, card: number): Card| undefined {
@@ -343,7 +352,7 @@ export class Round {
     this.discardPile.addCard(CreateSpecialColoredCard(Type.Dummy, color))
   }
 
-  createRoundFromMememto(memento:RoundMemento):void{
+   createRoundFromMememto(memento:RoundMemento):void{
     for (let player of memento.getPlayers()){
       let p = this.getSpecificPlayer(player.getId())
       p.createPlayerFromMemento(player)
@@ -352,6 +361,7 @@ export class Round {
     this.currentPlayer = memento.getCurrentPlayer();
     this.drawPile.createDeckFromMemento(memento.getDrawPile());
     this.discardPile.createDeckFromMemento(memento.getDiscardPile())
+    this.topCard = this.currentCard()
   }
 
   createMementoFromRound():RoundMemento{
@@ -359,6 +369,6 @@ export class Round {
     for (let player of this.players){
       playerMementos.push(player.createMementoFromPlayer())
     }
-    return new RoundMemento(playerMementos,this.drawPile.createMementoFromDeck(),this.discardPile.createMementoFromDeck(),this.currentPlayer,this.currentDirection,this.getWinner())
+    return new RoundMemento(playerMementos,this.drawPile.createMementoFromDeck(),this.discardPile.createMementoFromDeck(),this.currentPlayer,this.currentDirection,this.statusMessage,this.topCard,this.getWinner())
   }
 }

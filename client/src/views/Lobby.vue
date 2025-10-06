@@ -29,7 +29,7 @@
                  <div class="sub">
                     <span v-if="g.players.length === 0">No players yet</span>
                     <template v-else>
-                      <span class="player-chip" v-for="p in g.players" :key="p">{{ p }}</span>
+                      <span class="player-chip" v-for="p in g.players">{{ p }}</span>
                     </template>
                   </div>
                 </div>
@@ -64,23 +64,15 @@
   import { useRoute, useRouter } from "vue-router";
   import { usePlayerStore } from "@/Stores/PlayerStore";
  import * as api from '../model/api'
+import { usePendingGameStore } from "@/Stores/PendingGameStore";
 
   const playerStore = usePlayerStore();
+  const pendingGamesStore = usePendingGameStore()
   const router = useRouter();
   const playerName = playerStore.player ? playerStore.player : "Player";
   let nameFirstLetter = playerName.split("")[0];
 
-  // Create New Game Logic - no server yet.
-  type GameStatus = "open" | "inProgress"; //Game status types created for the feature of not being able to join started game there is no "finished" cos the game shall disappear from the list when finished
-  type Game = { id: number; players: string[]; status: GameStatus}; 
-
-  const getGames = (): Game[] => {
-    return [
-    ];
-  };
-
-  const games = ref<Game[]>(getGames());
-  const visibleGames = computed<Game[]>(() => games.value.filter(g => g.status === "open")); //filter out games that are not open
+  const visibleGames = pendingGamesStore.games
   const hasJoinedGame = ref({ joinedGameId: null as number | null });
   const hasCreatedGame = ref(false);
 
@@ -119,8 +111,7 @@
 
   const StartGame = (id: number) => {
     // marking as in progress so it disappears from visibleGames
-    const g = games.value.find(x => x.id === id);
-    if(g) g.status = "inProgress";
+    const g = pendingGamesStore.games.find(g=>g.id === id)
     router.push({ path: "/Game", query: { id } });
   }
   </script>

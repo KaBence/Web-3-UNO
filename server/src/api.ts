@@ -16,7 +16,7 @@ export class GameAPI {
   }
 
   async getPendingGames(): Promise<Game[]> {
-    throw new Error("Method not implemented.");
+    return this.server.all_pending_games();
   }
 
   async getActiveGames(): Promise<Game[]> {
@@ -161,14 +161,19 @@ export class GameAPI {
     throw new Error("Method not implemented.");
   }
 
+  
+
   async createGame() {
     try {
       // 2️⃣ Persist the snapshot
       const game = await this.server.createGame()
       // 3️⃣ Return a clean API response
-      return ApiResponse.ok(game, "Game created successfully")
-    } catch (error: any) {
-      return ApiResponse.fail(error.message)
+      return game
+      // return JSON.parse(JSON.stringify(game));
+      // return ApiResponse.ok(game, "Game created successfully")
+    } 
+    catch (error: any) {
+      throw new Error(error.message); // GraphQL can handle errors directly
     }
   }
 }

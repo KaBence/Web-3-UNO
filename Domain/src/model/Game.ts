@@ -3,6 +3,8 @@ import { Player, PlayerNames } from "./Player";
 import { Round } from "./round";
 import { DrawDeck } from "./Deck";
 import { GameMemento } from "./GameMemento";
+import { PlayerMemento } from "./PlayerMemento";
+import { Hand } from "./Hand";
 
 export class Game {
   private id: number;
@@ -12,12 +14,15 @@ export class Game {
   private scores: Record<PlayerNames, number>;
   private cardsPerPlayer: number = 7;
   private dealer: number = -1;
+  // private isActive:boolean
   private winner?: PlayerNames;
 
   constructor(id: number) {
     this.players = [];
     this.scores = {} as Record<PlayerNames, number>;
     this.id = id;
+    // this.currentRound = new Round([],-1)
+    // this.isActive = false
   }
 
   public getPlayer(playerId: PlayerNames): Player {
@@ -57,6 +62,10 @@ export class Game {
     return { ...this.scores };
   }
 
+  public getId(){
+    return this.id
+  }
+
   private selectDealer(): number {
     let highestCardValue = -1;
     let dealer: PlayerNames = this.players[0].getID();
@@ -87,8 +96,7 @@ export class Game {
     }
     this.currentRound = new Round(
       this.players,
-      this.dealer,
-      this.cardsPerPlayer
+      this.dealer
     );
     return this.currentRound;
   }
@@ -121,6 +129,7 @@ export class Game {
       {
         this.createRound()
       }
+
     }
   }
 
@@ -150,19 +159,36 @@ export class Game {
   }
 
   public createGameFromMemento(memento: GameMemento): void {
+    const players:Player[] = []
+    for(let player of memento.getPlayers()){
+      let p = new Player(player.getId(),player.getName());
+      p.getHand().createHandFromMemento(player.getHand())
+      p.setUno(player.getUnoCalled())
+      players.push(p)
+    }
     this.scores = memento.getScores();
-    this.currentRound?.createRoundFromMememto(memento.getCurrentRound());
+    if(memento.getCurrentRound()){
+      let round = new Round(players,memento.getDealer())
+      round.createRoundFromMememto(memento.getCurrentRound()!)
+      this.currentRound = round
+    }
     this.dealer = memento.getDealer();
-    this.players = memento.getPlayers();
+    this.players = players
   }
 
   public createMementoFromGame(): GameMemento {
+    let playerMementos: PlayerMemento[] = [];
+    for (let player of this.players){
+      playerMementos.push(player.createMementoFromPlayer())
+    }
+
     return new GameMemento(
       this.id,
+      // this.isActive,
       this.scores,
       this.dealer,
-      this.players,
-      this.currentRound
+      playerMementos,
+      this.currentRound ? this.currentRound.createMementoFromRound() : undefined
     );
   }
 }

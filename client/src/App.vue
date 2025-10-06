@@ -1,5 +1,16 @@
 <script setup lang="ts">
+import { onMounted } from 'vue';
+import { usePendingGameStore } from './Stores/PendingGameStore';
+import * as api from './model/api'
 import { RouterLink, RouterView } from 'vue-router'
+
+  const pendingGamesStore = usePendingGameStore()
+
+
+  onMounted(async () => {
+    const pending_games = await api.getPendingGames();
+    pending_games.forEach(pendingGamesStore.upsert);
+  })
 
 </script>
 

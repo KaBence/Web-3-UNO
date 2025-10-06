@@ -1,6 +1,9 @@
 import { GameMemento } from "domain/src/model/GameMemento";
 import { MemoryStore } from "./memoryStore";
 import { Game } from "domain/src/model/Game";
+import { from_memento, to_memento } from "./memento";
+
+
 
 
 export type StoreError = { type: 'Not Found', key: any } | { type: 'DB Error', error: any }
@@ -35,8 +38,13 @@ export class ServerModel {
     return this.store.getAllGames()
   }
 
-  all_pending_games() {
-   return this.store.getPendingGames()
+  async all_pending_games():Promise<Game[]> {
+   let mementos:GameMemento[]= await this.store.getPendingGames()
+   let games:Game[] = []
+   for (let m of mementos){
+    games.push(from_memento(m))
+   }
+   return games
   }
 
 //   game(id: string) {

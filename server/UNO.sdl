@@ -1,94 +1,62 @@
 type Player {
     name: String!
-    unoCalled: Boolean
-    hand: Hand
+    unoCalled: Boolean!
+    hand: Hand!
+    playerName:Int!
 }
 
 type Round {
-    players: [Player!]!
-    drawdeck: [Card!]!
-    topCard: Card!
-    direction: String!
-    winner: Player
-    currentPlayer: playerNames
+    players: [Player]
+    topCard: Card
+    currentDirection: String
+    winner: Int
+    currentPlayer: Int
     statusMessage: String
 }
 
 type Card {
-    type: Type!
+    type: String!
     color: String
     number: Int
 }
 
-type Scores {
-    player: playerNames!
-    score: Int!
-}
-
-type Game {
-    currentRound: Round
-    players: [Player!]!
-    scores: [Scores!]!
-    dealer:Int
-}
-
-type Hand{
+type Deck{
+    type:String
     cards: [Card]!
 }
 
+type Scores {
+    player: Int
+    score: Int
+}
+
+scalar JSON
+
+type Game {
+    currentRound: Round
+    players: [Player]
+    scores: JSON
+    dealer: Int
+    id: Int
+}
+
+type Hand{
+    cards: [Card]
+}
+
 type Query {
-    activeGames: [Game!]!
-    pendingGames: [Game!]!
+    activeGames: [Game]!
+    pendingGames: [Game]!
 }
 
 type Mutation {
     createGame: Game!
-    addPlayer(gameId: ID!, playerName: String!): Game!
-    removePlayer(gameId: ID!, playerName: String!): Game!
-    startRound(gameId: ID!): Game!
-    playCard(gameId: ID!, cardId: Int, chosenColor: Colors): Game!
-    drawCard(gameId: ID!): Game!
-    unoCall(gameId: ID!, playerId: ID!): Game!
-    accuseUno(gameId: ID!, accuser: ID!, accused:ID!): Game!
-    challengeDraw4(gameId: ID!): Game!
-}
-
-enum direction{
-    CLOCKWISE,
-    COUNTERCLOCKWISE
-}
-
-enum playerNames{
-    PLAYER1 
-    PLAYER2 
-    PLAYER3 
-    PLAYER4 
-    PLAYER5
-    PLAYER6 
-    PLAYER7 
-    PLAYER8 
-    PLAYER9 
-    PLAYER10
-}
-
-enum DeckTypes{
-    DISCARD,
-    DRAW,
-}
-
-enum Colors {
-  RED,
-  GREEN,
-  BLUE,
-  YELLOW,
-}
-
-enum Type {
-  SKIP,
-  REVERSE,
-  DRAW,
-  WILD,
-  WILDDRAW,
-  NUMBERED,
-  DUMMY,
+    addPlayer(gameId: Int!, playerName: String!): Game!
+    removePlayer(gameId: Int!, playerId: Int!): Game!
+    startRound(gameId: Int!): Game!
+    playCard(gameId: Int!, cardId: Int!, chosenColor: String): Game!
+    drawCard(gameId: Int!): Game!
+    unoCall(gameId: Int!, playerId: Int!): Game!
+    accuseUno(gameId: Int!, accuser: Int!, accused:Int!): Game!
+    challengeDraw4(gameId: Int!): Game!
 }

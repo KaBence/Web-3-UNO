@@ -10,6 +10,10 @@ export class Hand{
         this.cards.push(card);
     }
 
+    addCards(cards:Card[]):void{
+        this.cards = cards
+    }
+
     removeCard(card: Card): Card | undefined {
         const index = this.cards.indexOf(card);
         return index !== -1 ? this.cards.splice(index,1)[0] : undefined;
