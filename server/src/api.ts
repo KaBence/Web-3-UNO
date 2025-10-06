@@ -5,14 +5,16 @@ import { ApiResponse } from "../src/response"
 import { GameMemento } from "Domain/src/model/GameMemento"
 
 export interface Broadcaster {
-  send: (message: GameMemento) => Promise<void>
+  send: (message: Game) => Promise<void>
 }
 
 export class GameAPI {
   private server: ServerModel
+  private broadcaster:Broadcaster
 
-  constructor(store:GameStore){
+  constructor(broadcaster: Broadcaster,store:GameStore){
     this.server = new ServerModel(store)
+    this.broadcaster = broadcaster
   }
 
   async getPendingGames(): Promise<Game[]> {
@@ -161,12 +163,19 @@ export class GameAPI {
     throw new Error("Method not implemented.");
   }
 
+  async broadcast(game: Game): Promise<void> {
+    this.broadcaster.send(game)
+  }
+
   
 
   async createGame() {
     try {
       // 2️⃣ Persist the snapshot
       const game = await this.server.createGame()
+      let g = new Game(game.getId())
+      g.createGameFromMemento(game)
+      this.broadcast(g)
       // 3️⃣ Return a clean API response
       return game
       // return JSON.parse(JSON.stringify(game));

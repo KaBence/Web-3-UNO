@@ -6,10 +6,19 @@ import { RouterLink, RouterView } from 'vue-router'
 
   const pendingGamesStore = usePendingGameStore()
 
+  function liveUpdateGames() {
+    api.onGame(game => {
+      // ongoingGamesStore.upsert(game);
+      pendingGamesStore.remove(game);
+    });
+    api.onPending(pendingGamesStore.upsert);
+  }
+
 
   onMounted(async () => {
     const pending_games = await api.getPendingGames();
     pending_games.forEach(pendingGamesStore.upsert);
+    liveUpdateGames()
   })
 
 </script>
