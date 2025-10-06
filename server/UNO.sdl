@@ -6,9 +6,9 @@ type Player {
 }
 
 type Round {
-    players: [Player]
-    topCard: Card
-    currentDirection: String
+    players: [Player]!
+    topCard: Card!
+    currentDirection: String!
     winner: Int
     currentPlayer: Int
     statusMessage: String
@@ -20,23 +20,18 @@ type Card {
     number: Int
 }
 
-type Scores {
-    player: Int
-    score: Int
-}
-
 scalar JSON
 
 type Game {
     currentRound: Round
-    players: [Player]
+    players: [Player]!
     scores: JSON
-    dealer: Int
-    id: Int
+    dealer: Int!
+    id: Int!
 }
 
 type Hand{
-    cards: [Card]
+    cards: [Card]!
 }
 
 type Query {
