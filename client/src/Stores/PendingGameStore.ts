@@ -1,15 +1,8 @@
 import { computed, reactive, type Reactive } from "vue";
 import { defineStore } from "pinia";
 import { usePlayerStore } from "./PlayerStore";
+import type { GameSpecs } from "@/model/Specs";
 
-type playerspecs ={
-  name:String
-}
-
-type GameSpecs = {
-  id:number
-  players:playerspecs[]
-}
 
 export const usePendingGameStore = defineStore("pendingGame", ()=>{
   const gameList = reactive<GameSpecs[]>([])

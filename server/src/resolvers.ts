@@ -59,6 +59,15 @@ export class Resolvers {
       return this.api.challengeDraw4(gameId);
     },
   };
+
+  Subscription= {
+      active: {
+        subscribe: () => this.pubsub.asyncIterableIterator(['ACTIVE_UPDATED'])
+      },
+      pending: {
+        subscribe: () => this.pubsub.asyncIterableIterator(['PENDING_UPDATED'])
+      }
+    }
   // public toGraphQLPendingGame(game:GameMemento):PendingGame{
   //     return {
   //         players:game.getPlayers()
@@ -70,7 +79,8 @@ export class Resolvers {
   public getResolverMap() {
     return {
       Query: this.Query,
-      Mutation: this.Mutation
+      Mutation: this.Mutation,
+      Subscription:this.Subscription
     };
   }
 }

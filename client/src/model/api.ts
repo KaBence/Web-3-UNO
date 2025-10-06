@@ -9,6 +9,7 @@ import {
 import { GraphQLWsLink } from "@apollo/client/link/subscriptions";
 import { getMainDefinition } from "@apollo/client/utilities";
 import { createClient } from "graphql-ws";
+import type { GameSpecs } from "@/model/Specs";
 
 const wsLink = new GraphQLWsLink(
   createClient({
@@ -102,7 +103,7 @@ export async function createGame() {
     }
   `;
   try {
-    const { data } = await apolloClient.mutate({ mutation });
+    const { data } = await apolloClient.mutate({ mutation ,fetchPolicy: "network-only",});
 
     // The union will return either PendingGame or ActiveGame
     const game = data.createGame;
@@ -115,54 +116,171 @@ export async function createGame() {
 
 export async function getPendingGames() {
   const query = gql`
-    
-query PendingGames {
-  pendingGames {
-    dealer
-    id
-    scores
-    players {
-      unoCalled
-      name
-      hand {
-        cards {
-          color
-          number
-          type
-        }
-      }
-    }
-    currentRound {
-      winner
-      topCard {
-        type
-        number
-        color
-      }
-      statusMessage
-      players {
-        unoCalled
-        name
-        hand {
-          cards {
-            color
-            number
-            type
+    query PendingGames {
+      pendingGames {
+        dealer
+        id
+        scores
+        players {
+          unoCalled
+          name
+          hand {
+            cards {
+              color
+              number
+              type
+            }
           }
         }
+        currentRound {
+          winner
+          topCard {
+            type
+            number
+            color
+          }
+          statusMessage
+          players {
+            unoCalled
+            name
+            hand {
+              cards {
+                color
+                number
+                type
+              }
+            }
+          }
+          currentPlayer
+          currentDirection
+        }
       }
-      currentPlayer
-      currentDirection
     }
-  }
-}
   `;
   try {
-    const { data } = await apolloClient.query({ query });
+    const { data } = await apolloClient.query({ query,fetchPolicy: "network-only", });
 
     return data.pendingGames;
   } catch (error: any) {
     console.error("Failed to get pending games:", error);
     throw error;
   }
+}
+
+export async function onGame(subscriber: (game: GameSpecs) => any) {
+  const gameSubscriptionQuery = gql`
+    subscription Subscription {
+      active {
+        scores
+        players {
+          unoCalled
+          playerName
+          name
+          hand {
+            cards {
+              color
+              number
+              type
+            }
+          }
+        }
+        id
+        dealer
+        currentRound {
+          winner
+          topCard {
+            type
+            number
+            color
+          }
+          statusMessage
+          players {
+            unoCalled
+            playerName
+            name
+            hand {
+              cards {
+                color
+                number
+                type
+              }
+            }
+          }
+          currentPlayer
+          currentDirection
+        }
+      }
+    }
+  `;
+  const gameObservable = apolloClient.subscribe({
+    query: gameSubscriptionQuery,
+  });
+  gameObservable.subscribe({
+    next({ data }) {
+      const game: GameSpecs = data.active;
+      subscriber(game);
+    },
+    error(err) {
+      console.error(err);
+    },
+  });
+}
+
+export async function onPending(subscriber: (game: GameSpecs) => any) {
+  const gameSubscriptionQuery = gql`
+    subscription Pending {
+      pending {
+        currentRound {
+          currentDirection
+          currentPlayer
+          players {
+            hand {
+              cards {
+                color
+                number
+                type
+              }
+            }
+            name
+            playerName
+            unoCalled
+          }
+          statusMessage
+          topCard {
+            color
+            number
+            type
+          }
+          winner
+        }
+        dealer
+        id
+        players {
+          hand {
+            cards {
+              color
+              number
+              type
+            }
+          }
+          name
+          playerName
+          unoCalled
+        }
+        scores
+      }
+    }
+  `;
+  const gameObservable = apolloClient.subscribe({
+    query: gameSubscriptionQuery,
+  });
+  gameObservable.subscribe({
+    next({ data }) {
+      const pending: GameSpecs = data.pending;
+      subscriber(pending);
+    },
+    error(err) {
+      console.error(err);
+    },
+  });
 }
