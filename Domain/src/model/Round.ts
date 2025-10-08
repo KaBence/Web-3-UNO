@@ -26,7 +26,7 @@ export class Round {
   constructor(players: Player[], dealer: number) {
     this.players = players;
     this.currentDirection = Direction.Clockwise;
-    this.currentPlayer = this.players.length ===0 ? -1 : (dealer + 1) % this.players.length; //should be next player after dealer
+    this.currentPlayer = this.players.length === 0 ? -1 : (dealer + 1) % this.players.length; //should be next player after dealer
     
     this.drawPile = new DrawDeck();
     for (let i = 0; i < this.cardsPerPlayer; i++) {
@@ -64,7 +64,7 @@ export class Round {
   }
 
   getSpecificPlayer(player: PlayerNames): Player {
-    const specificPlayer = this.players.find((p) => p.getID === player.valueOf);
+    const specificPlayer = this.players.find((p) => p.getID() === player);
     if (specificPlayer != undefined) return specificPlayer;
     throw Error("Player not found!");
   }
@@ -94,7 +94,7 @@ export class Round {
   }
 
   getPlayerHand(player: PlayerNames): Hand | undefined{ 
-    let p = this.players.find((p) => p.getID === player.valueOf)
+    let p = this.players.find((p) => p.getID() === player)
     return p ? p.getHand() : undefined
   }
 
@@ -109,7 +109,7 @@ export class Round {
     return this.topCard
   }
 
-  getPlayersCard(player: PlayerNames, card: number): Card| undefined {
+  getPlayersCard(player: PlayerNames, card: number): Card | undefined {
     let hand = this.getPlayerHand(player)
     return hand ? hand.getCards()[card] : undefined
   }
@@ -275,9 +275,9 @@ export class Round {
   getNextPlayer(): PlayerNames {
     let index = 0;
     if (this.getCurrentDirection() === Direction.Clockwise) 
-      index = (this.players.findIndex((p) => p.getID === this.currentPlayer.valueOf) + 1) % this.players.length;
+      index = (this.players.findIndex((p) => p.getID() === this.currentPlayer) + 1) % this.players.length;
     else 
-      index = (this.players.findIndex((p) => p.getID === this.currentPlayer.valueOf) - 1) % this.players.length;
+      index = (this.players.findIndex((p) => p.getID() === this.currentPlayer) - 1) % this.players.length;
 
     return this.players[index].getID();
   }
@@ -285,9 +285,9 @@ export class Round {
   getPreviousPlayer(): PlayerNames {
     let index = 0;
     if (this.getCurrentDirection() === Direction.Clockwise) {
-      index =(this.players.findIndex((p) => p.getID === this.currentPlayer.valueOf) - 1) % this.players.length;
+      index =(this.players.findIndex((p) => p.getID() === this.currentPlayer) - 1) % this.players.length;
     } else {
-      index = (this.players.findIndex((p) => p.getID === this.currentPlayer.valueOf) + 1) % this.players.length;
+      index = (this.players.findIndex((p) => p.getID() === this.currentPlayer) + 1) % this.players.length;
     }
 
     return this.players[index].getID();

@@ -35,7 +35,7 @@ export class Resolvers {
       return this.api.removePlayer(gameId, playerName);
     },
     startRound: async (_: any, { gameId }: { gameId: string }) => {
-      return this.api.startRound(gameId);
+      return await this.api.startRound(parseInt(gameId));
     },
     playCard: async (
       _: any,

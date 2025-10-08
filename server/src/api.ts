@@ -3,20 +3,17 @@ import { GameStore, ServerModel } from "./serverModel"
 import { Game } from "../../Domain/src/model/Game"
 import { from_memento, to_memento } from "./memento";
 
-
-
-
 export interface Broadcaster {
   send: (message: Game) => Promise<void>
 }
 
 export class GameAPI {
-  private server: ServerModel
-  private broadcaster: Broadcaster
+  private server: ServerModel;
+  private broadcaster: Broadcaster;
 
   constructor(broadcaster: Broadcaster, store: GameStore) {
-    this.server = new ServerModel(store)
-    this.broadcaster = broadcaster
+    this.server = new ServerModel(store);
+    this.broadcaster = broadcaster;
   }
 
   async getPendingGames(): Promise<Game[]> {
@@ -40,10 +37,12 @@ export class GameAPI {
   }
 
   /** Start the first round and activate the game */
-  async startRound(gameId: string): Promise<Game> {
-    throw new Error("Method not implemented.");
-
-
+  async startRound(gameId: number): Promise<Game> {
+    const gameMemento = await this.server.startRound(gameId)
+    const game = from_memento(gameMemento)
+   
+    this.broadcast(game);
+    return game
   }
 
   /** Handle playing a card */
@@ -96,25 +95,17 @@ export class GameAPI {
   }
 
   async broadcast(game: Game): Promise<void> {
-    this.broadcaster.send(game)
+    this.broadcaster.send(game);
   }
 
-
-
-  async createGame() {
+  async createGame(): Promise<Game>{
     try {
-      // 2️ Persist the snapshot
-      const game = await this.server.createGame()
-      let g = new Game(game.getId())
-      g.createGameFromMemento(game)
-      this.broadcast(g)
-      // 3️ Return a clean API response
-      return game
-      // return JSON.parse(JSON.stringify(game));
-      // return ApiResponse.ok(game, "Game created successfully")
-    }
+      const game = from_memento(await this.server.createGame());
+      this.broadcast(game);
+      return game;
+    } 
     catch (error: any) {
-      throw new Error(error.message); // GraphQL can handle errors directly
+      throw new Error(error.message);
     }
   }
 }

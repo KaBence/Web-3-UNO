@@ -38,27 +38,6 @@ const apolloClient = new ApolloClient({
   cache: new InMemoryCache(),
 });
 
-async function query(query: DocumentNode, variables?: Object): Promise<any> {
-  const { data } = await apolloClient.query({
-    query,
-    variables,
-    fetchPolicy: "network-only",
-  });
-  return data;
-}
-
-async function mutate(
-  mutation: DocumentNode,
-  variables?: Object
-): Promise<any> {
-  const { data } = await apolloClient.mutate({
-    mutation,
-    variables,
-    fetchPolicy: "network-only",
-  });
-  return data;
-}
-
 export async function createGame() {
   const mutation = gql`
     mutation Mutation {
@@ -220,6 +199,59 @@ export async function getActiveGames() {
   }
 }
 
+export async function startRound(gameId: number) {
+  const mutation = gql`
+    mutation Mutation($gameId: Int!) {
+      startRound(gameId: $gameId) {
+        scores
+        players {
+          unoCalled
+          playerName
+          name
+          hand {
+            cards {
+              color
+              number
+              type
+            }
+          }
+        }
+        id
+        dealer
+        currentRound {
+          winner
+          topCard {
+            type
+            number
+            color
+          }
+          statusMessage
+          players {
+            unoCalled
+            playerName
+            name
+            hand {
+              cards {
+                color
+                number
+                type
+              }
+            }
+          }
+          currentPlayer
+          currentDirection
+        }
+      }
+    }
+  `;
+
+    const { data } = await apolloClient.mutate({
+    mutation,
+    variables: { gameId },
+  });
+
+  return data.unoCall;
+}
 
 export async function sayUno(gameId: number, playerId: number) {
   const mutation = gql`

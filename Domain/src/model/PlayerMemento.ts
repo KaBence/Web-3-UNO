@@ -5,7 +5,7 @@ import { HandMemento } from "./HandMemento";
 
 export class PlayerMemento {
   constructor(
-    private readonly id: PlayerNames,
+    private readonly playerName: PlayerNames,
     private readonly name: string,
     private readonly hand: HandMemento,
     private readonly unoCalled: boolean
@@ -13,7 +13,7 @@ export class PlayerMemento {
 
   // 🧾 Getters — immutable access to snapshot values
   public getId(): PlayerNames {
-    return this.id;
+    return this.playerName;
   }
 
   public getName(): string {

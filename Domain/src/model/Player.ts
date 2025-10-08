@@ -2,13 +2,13 @@ import { Hand } from "./Hand";
 import { PlayerMemento } from "./PlayerMemento";
 
 export class Player {
-  private id: PlayerNames;
+  private playerName: PlayerNames;
   private hand: Hand;
   private unoCalled: boolean;
   private name: string;
 
   constructor(id: PlayerNames, name:string) {
-    this.id = id;
+    this.playerName = id;
     this.hand = new Hand();
     this.unoCalled = false;
     this.name = name;
@@ -19,11 +19,11 @@ export class Player {
   }
 
   getID(): PlayerNames {
-    return this.id;
+    return this.playerName;
   }
 
   setID(id: PlayerNames): void {
-    this.id = id;
+    this.playerName = id;
   }
 
   getHand(): Hand{
@@ -43,14 +43,14 @@ export class Player {
   }
 
   createPlayerFromMemento(memento:PlayerMemento):void{
-    this.id = memento.getId()
+    this.playerName = memento.getId()
     this.name= memento.getName()
     this.hand.createHandFromMemento(memento.getHand())
     this.unoCalled=memento.getUnoCalled()
   }
 
   createMementoFromPlayer():PlayerMemento{
-    return new PlayerMemento(this.id,this.name,this.hand.createMementoFromHand(),this.unoCalled)
+    return new PlayerMemento(this.playerName,this.name,this.hand.createMementoFromHand(),this.unoCalled)
   }
 };
 
