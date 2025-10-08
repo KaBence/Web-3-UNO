@@ -12,7 +12,7 @@ export type ServerError = { type: 'Forbidden' } | StoreError
 
 
 export interface GameStore {
-  getAllGames(): Promise<GameMemento[]>
+  getActiveGames(): Promise<GameMemento[]>
   getGame(id: number): Promise<GameMemento>
   addGame(game: GameMemento):  Promise<GameMemento>
   updateGame(game: GameMemento):  Promise<GameMemento>
@@ -34,9 +34,20 @@ export class ServerModel {
     this.nextId=0
   }
 
-  all_games() {
-    return this.store.getAllGames()
+ // all_games() {
+ //   return this.store.getAllGames()
+ // }
+  async all_active_games(): Promise<Game[]> {
+  const mementos: GameMemento[] = await this.store.getActiveGames();
+  const games: Game[] = [];
+
+  for (const m of mementos) {
+    games.push(from_memento(m));
   }
+
+  return games;
+}
+
 
   async all_pending_games():Promise<Game[]> {
    let mementos:GameMemento[]= await this.store.getPendingGames()
@@ -46,18 +57,32 @@ export class ServerModel {
    }
    return games
   }
+  
+  
+  async getGame(id: number) {
+    return this.store.getGame(id)
+  }
 
-//   game(id: string) {
-//     return this.store.getGame(id)
-//   }
-
-  pending_game(id: string) {
+  async pending_game(id: string) {
     return this.store.getPendingGame(id)
   }
 
-  createGame(){
+  async updateGame(memento: GameMemento): Promise<GameMemento> {
+  return this.store.updateGame(memento);
+ }
+ createGame(){
     this.nextId++
     const game = new Game(this.nextId)
     return this.store.addPendingGame(game.createMementoFromGame())
   }
+
+
+
+
+
+
+
+
+
+
 }

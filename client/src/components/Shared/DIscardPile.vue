@@ -14,7 +14,7 @@
 
 <script setup lang="ts">
 import UnoCard from "./Card.vue"
-import type { Card as GameCardLike } from "../../../../Domain/src/model/Card"
+import type { Card as GameCardLike } from "Domain/src/model/Card"
 
 const props = defineProps<{ cards: GameCardLike[] }>()
 </script>

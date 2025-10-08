@@ -8,14 +8,56 @@ import ChallengeDrawFourPopup from '@/components/Game/Popups/ChallengeDrawFourPo
 import ChooseColorPopup from '@/components/Game/Popups/ChooseColorPopup.vue'
 import Decks from '@/components/Game/Decks.vue';
 import ChallengeResultPopup from '@/components/Game/Popups/ChallengeResultPopup.vue';
+import { computed } from "vue";
+import * as api from "@/model/api";
+import { useActiveGameStore } from "../Stores/OngoingGameStore";
+
+
+const ongoingGameStore = useActiveGameStore();
+
+const currentGameId = computed(() => ongoingGameStore.currentGame?.id);
+const currentPlayerId = computed(() => ongoingGameStore.currentPlayer?.playername);
+
+
+async function onSayUno() {
+  if (currentGameId.value === undefined || currentPlayerId.value === undefined) {
+    alert("Missing game or player ID!");
+    return;
+  }
+  try {
+    await api.sayUno(currentGameId.value, currentPlayerId.value);
+    alert("UNO called successfully!");
+  } catch (err) {
+    console.error(err);
+    alert("Failed to call UNO 😢");
+  }
+}
+
+async function onAccuseUno(accusedId: number) {
+  if (currentGameId.value === undefined || currentPlayerId.value === undefined) {
+    alert("Missing game or player ID!");
+    return;
+  }
+  try {
+    await api.accuseUno(currentGameId.value, currentPlayerId.value, accusedId);
+    alert(`You accused player ${accusedId} of not saying UNO!`);
+  } catch (err) {
+    console.error(err);
+    alert("Failed to send accusation 😢");
+  }
+}
 
 </script>
+
+
+
+
 
 <template>
   <GameStatus />
   <StatusBar />
-  <PlayersBar />
-  <Decks />
+  <PlayersBar @accuse-uno="onAccuseUno" />
+  <Decks  @say-uno="onSayUno" />
   <ChallengeDrawFourPopup/>
   <ChallengeResultPopup/>
   <ChooseColorPopup/>

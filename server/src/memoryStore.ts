@@ -4,28 +4,34 @@ import { GameStore, StoreError } from "./serverModel";
 const not_found = (key: any): StoreError => ({ type: "Not Found", key });
 
 export class MemoryStore implements GameStore {
-  private games: GameMemento[];
+  private activeGames: GameMemento[];
   private pendingGames: GameMemento[];
 
   constructor() {
-    this.games = [];
+    this.activeGames = [];
     this.pendingGames = [];
   }
-  async getAllGames(): Promise<GameMemento[]> {
-    return [...this.games];
+  async getActiveGames(): Promise<GameMemento[]> {
+    return [...this.activeGames];
   }
 
   async getPendingGames() {
     return [...this.pendingGames];
   }
-  getGame(id: number): Promise<GameMemento> {
-    throw new Error("Method not implemented.");
+   async getGame(id: number): Promise<GameMemento> {
+    const game = this.activeGames.find((g) => g.getId() === id);
+    if (!game) throw not_found(id);
+    return game;
   }
+
   addGame(game: GameMemento): Promise<GameMemento> {
     throw new Error("Method not implemented.");
   }
-  updateGame(game: GameMemento): Promise<GameMemento> {
-    throw new Error("Method not implemented.");
+  async updateGame(game: GameMemento): Promise<GameMemento> {
+     const index = this.activeGames.findIndex((g) => g.getId() === game.getId());
+    if (index === -1) throw not_found(game.getId());
+    this.activeGames[index] = game;
+    return game;
   }
   getPendingGame(id: string): Promise<GameMemento> {
     throw new Error("Method not implemented.");
@@ -37,42 +43,11 @@ export class MemoryStore implements GameStore {
     throw new Error("Method not implemented.");
   }
 
-  //   async public getAllGames() {
-  //     return [...this.games];
-  //   }
-
-  //   async public getPendingGames() {
-  //     return [...this.pendingGames];
-  //   }
-
-  //   async public getGame(id: number) {
-  //     let game = this.games.find((g) => g.getId() === id);
-  //     return game ? game : []
-  //   }
-
-  //   public getPendingGame(id: number) {
-  //     let game = this.pendingGames.find((g) => g.getId() === id);
-  //     return game ? ServerResponse.ok(game) : ServerResponse.error(not_found(id));
-  //   }
 
   public async addPendingGame(game: GameMemento) {
     await this.pendingGames.push(game);
     return game;
   }
 
-  //   public addGame(id:number){
-  //     let pendingGame = this.getPendingGame(id)
-  //     if(pendingGame){
-  //         this.deletePendingGame(id)
-  //         this.games.push(pendingGame.)
-  //     }
-  //   }
 
-  //   public updateGame(game: GameMemento) {}
-
-  //   public updatePendingGame(game: GameMemento) {}
-
-  //   public deletePendingGame(id: number) {}
-
-  //   public deleteGame(id: number) {}
 }

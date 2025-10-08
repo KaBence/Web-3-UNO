@@ -46,12 +46,12 @@ export class Resolvers {
     drawCard: async (_: any, { gameId }: { gameId: string }) => {
       return this.api.drawCard(gameId);
     },
-    unoCall: async (_: any, { gameId, playerId }: { gameId: string; playerId: string }) => {
-      return this.api.unoCall(gameId, playerId);
+    unoCall: async (_: any, { gameId, playerId }: { gameId: number; playerId: number }) => {
+      return  await this.api.unoCall(gameId, playerId);
     },
     accuseUno: async (
       _: any,
-      { gameId, accuser, accused }: { gameId: string; accuser: string; accused: string }
+      { gameId, accuser, accused }: { gameId: number; accuser: number; accused: number }
     ) => {
       return this.api.accuseUno(gameId, accuser, accused);
     },

@@ -1,6 +1,5 @@
 import { computed, reactive, type Reactive } from "vue";
 import { defineStore } from "pinia";
-import { usePlayerStore } from "./PlayerStore";
 import type { GameSpecs } from "@/model/Specs";
 
 
