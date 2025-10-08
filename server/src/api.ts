@@ -52,9 +52,12 @@ export class GameAPI {
   }
 
   /** Draw a card */
-  async drawCard(gameId: string): Promise<Game> {
-
-    throw new Error("Method not implemented.");
+  async drawCard(gameId: number): Promise<Game> {
+    const gameMemento = await this.server.drawCard(gameId)
+    const game = from_memento(gameMemento)
+   
+    this.broadcast(game);
+    return game
   }
 
   /** Simple UNO call , the logic should be in the servermodel not here and I should broadcast it */

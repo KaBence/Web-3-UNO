@@ -85,6 +85,16 @@ export class ServerModel {
     
     return this.store.addGame(game.createMementoFromGame());
   }
+
+  async drawCard(gameId: number): Promise<GameMemento> {
+    const memento = await this.store.getGame(gameId)
+    const game = from_memento(memento)
+    let currentPlayer = game.getCurrentRound()?.getCurrentPlayer()
+    game.getCurrentRound()?.draw(1,currentPlayer?.getID()!)
+
+    return this.store.updateGame(game.createMementoFromGame())
+  }
+
 }
 
 

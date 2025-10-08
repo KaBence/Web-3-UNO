@@ -26,7 +26,7 @@ export class Round {
   constructor(players: Player[], dealer: number) {
     this.players = players;
     this.currentDirection = Direction.Clockwise;
-    this.currentPlayer = this.players.length === 0 ? -1 : (dealer + 1) % this.players.length; //should be next player after dealer
+    this.currentPlayer = this.players.length === 0 ? -1 : ((dealer + 1) % this.players.length) + 1; //should be next player after dealer
     
     this.drawPile = new DrawDeck();
     for (let i = 0; i < this.cardsPerPlayer; i++) {
@@ -140,51 +140,48 @@ export class Round {
   //also takes an optional color enum for wildcards
   play(cardID: number, colour?: Colors): void {
     const card = this.getPlayersCard(this.currentPlayer, cardID);
-    if (card == undefined){
+    if (card == undefined) {
       console.log("I tried to take a card that doesn't exist, whoops")
       return;
     }
-    if (!this.canPlay(cardID)) {
-      this.draw(1, this.currentPlayer);
-    } 
-    else {
-      this.getCurrentPlayer().getHand().removeCard(card);
-      this.discardPile.addCard(card);
 
-      //special cards execution
-      switch (card.getType()) {
-        case Type.Skip:
-          this.currentPlayer = this.getNextPlayer();
-          break;
-        case Type.Reverse:
-          this.changeCurrentDirection();
-          break;
-        case Type.Draw:
-          this.draw(2, this.getNextPlayer());
-          this.currentPlayer = this.getNextPlayer();
-          break;
-        case Type.Wild:
-          this.discardPile.addCard(new SpecialColoredCard(Type.Dummy, colour!));
-          break;
-        case Type.Dummy:
-        case Type.WildDrawFour:
-        // we don't do anything here because the GUI has to react with challengeWildDrawFour() if the player wants or after 5 seconds no matter what
-        case Type.Numbered:
-        // we don't do anything because it is covered above the switch
-      }
+    this.getCurrentPlayer().getHand().removeCard(card);
+    this.discardPile.addCard(card);
+
+    //special cards execution
+    switch (card.getType()) {
+      case Type.Skip:
+        this.currentPlayer = this.getNextPlayer();
+        break;
+      case Type.Reverse:
+        this.changeCurrentDirection();
+        break;
+      case Type.Draw:
+        this.draw(2, this.getNextPlayer());
+        this.currentPlayer = this.getNextPlayer();
+        break;
+      case Type.Wild:
+        this.discardPile.addCard(new SpecialColoredCard(Type.Dummy, colour!));
+        break;
+      case Type.Dummy:
+      case Type.WildDrawFour:
+      // we don't do anything here because the GUI has to react with challengeWildDrawFour() if the player wants or after 5 seconds no matter what
+      case Type.Numbered:
+      // we don't do anything because it is covered above the switch
     }
+
     if (this.roundHasEnded()) {
       const winner = this.winner();
       if (winner) {
         this.roundWinner = winner.getID();
-        return; 
+        return;
       }
     }
 
     this.currentPlayer = this.getNextPlayer();
   }
 
-  draw(noCards: number, playedId: PlayerNames): void {
+   draw(noCards: number, playedId: PlayerNames): void {
     for (let i = 0; i < noCards; i++) {
       let card = this.drawPile.deal();
       if (card == undefined) {
