@@ -5,7 +5,7 @@
     <!-- Play area -->
     <div class="play-area">
       <div class="piles">
-        <DrawPile :cards-left="cardsLeft" @draw="drawCard"/>
+        <DrawPile :cards-left="cardsLeft" @draw="$emit('draw')"/>
       </div>
     </div>
     <!-- UNO buttons -->
@@ -21,13 +21,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from "vue"
-import type { Card as GameCard } from "../../../../Domain/src/model/Card"
+import { onMounted, computed } from "vue"
 import { useRoute } from "vue-router";
 import UnoButton from "../Shared/UnoButton.vue"
 import { useActiveGameStore } from "@/Stores/OngoingGameStore"
 import DrawPile from "@/components/Shared/DrawPile.vue"
-import * as api from "@/model/api";
 
 const route = useRoute();
 const queryGameId = route.query.id
@@ -44,20 +42,7 @@ const game = ongoingGameStore.getGame(gameId)
 const cardsLeft = computed(()=>(game.value?.currentRound?.drawDeckSize ?? 0));
 
 
-defineEmits(["say-uno"]);
-
-onMounted(() => {
-  
-})
-
-function drawCard() {
-  api.drawCard(gameId)
-}
-
-function playCard(card: GameCard) {
- 
-}
-
+defineEmits(['say-uno','draw']);
 
 </script>
 

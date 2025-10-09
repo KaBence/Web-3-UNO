@@ -1,5 +1,5 @@
 <template>
-  <div class="pile" @click="onDraw">
+  <div class="pile" @click="$emit('draw')">
     <div v-if="props.cardsLeft > 0" class="card-back">
       <div class="uno-oval"></div>
       <div class="uno-text">UNO</div>
@@ -13,12 +13,8 @@
 import { computed } from "vue"
 
 const props = defineProps<{ cardsLeft: number }>()
-const emit = defineEmits<{ (e: "draw"): void }>()
+defineEmits(['draw']);
 
-
-function onDraw() {
- emit("draw")
-}
 </script>
 
 <style scoped>

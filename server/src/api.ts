@@ -40,7 +40,7 @@ export class GameAPI {
   async startRound(gameId: number): Promise<Game> {
     const gameMemento = await this.server.startRound(gameId)
     const game = from_memento(gameMemento)
-   
+
     this.broadcast(game);
     return game
   }
@@ -55,7 +55,7 @@ export class GameAPI {
   async drawCard(gameId: number): Promise<Game> {
     const gameMemento = await this.server.drawCard(gameId)
     const game = from_memento(gameMemento)
-   
+
     this.broadcast(game);
     return game
   }
@@ -101,12 +101,12 @@ export class GameAPI {
     this.broadcaster.send(game);
   }
 
-  async createGame(): Promise<Game>{
+  async createGame(): Promise<Game> {
     try {
       const game = from_memento(await this.server.createGame());
       this.broadcast(game);
       return game;
-    } 
+    }
     catch (error: any) {
       throw new Error(error.message);
     }
