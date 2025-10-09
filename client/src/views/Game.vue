@@ -11,12 +11,29 @@ import ChallengeResultPopup from '@/components/Game/Popups/ChallengeResultPopup.
 import { computed } from "vue";
 import * as api from "@/model/api";
 import { useActiveGameStore } from "../Stores/OngoingGameStore";
+import { useRoute } from "vue-router";
+import type { RefSymbol } from '@vue/reactivity';
 
 
-const ongoingGameStore = useActiveGameStore();
 
-const currentGameId = computed(() => ongoingGameStore.currentGame?.id);
-const currentPlayerId = computed(() => ongoingGameStore.currentPlayer?.playername);
+const route = useRoute();
+const queryGameId = route.query.id
+let gameId: number = -1;
+if (typeof queryGameId === "string") {
+  gameId = parseInt(queryGameId)
+}
+else {
+  alert("Invalid gameID is used")
+}
+const ongoingGameStore = useActiveGameStore()
+
+const game = ongoingGameStore.getGame(gameId)
+
+
+
+
+const currentGameId = computed(() => game?.value?.id);
+const currentPlayerId = computed(() => game?.value?.currentRound?.currentPlayer);
 
 
 async function onSayUno() {

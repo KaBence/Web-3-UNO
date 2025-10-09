@@ -1,16 +1,14 @@
 import { computed, reactive, ref, type Reactive } from "vue";
 import { defineStore } from "pinia";
 import type { GameSpecs, PlayerSpecs } from "@/model/Specs";
-import * as api from "@/model/api"; 
+
 
 
 export const useActiveGameStore = defineStore("activeGames", ()=>{
   const gameList = reactive<GameSpecs[]>([])
   const games = computed((): Reactive<Readonly<GameSpecs[]>> => gameList)
-  
+  const getGame = (id: number) => computed(() => gameList.find(g => g.id === id))
 
-  const currentGame = ref<GameSpecs | null>(null);
-  const currentPlayer = ref<PlayerSpecs | null>(null);
 
   const update = (game: GameSpecs) => {
     const index = gameList.findIndex(g => g.id === game.id)
@@ -39,10 +37,9 @@ export const useActiveGameStore = defineStore("activeGames", ()=>{
 
   return {
      games,
-     currentGame,
-     currentPlayer,
      update,
      upsert,
      remove,
+     getGame
     }
 });
