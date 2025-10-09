@@ -184,7 +184,6 @@ export class Game {
 
     return new GameMemento(
       this.id,
-      // this.isActive,
       this.scores,
       this.dealer,
       playerMementos,

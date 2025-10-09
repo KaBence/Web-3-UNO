@@ -29,9 +29,6 @@ const ongoingGameStore = useActiveGameStore()
 
 const game = ongoingGameStore.getGame(gameId)
 
-
-
-
 const currentGameId = computed(() => game?.value?.id);
 const currentPlayerId = computed(() => game?.value?.currentRound?.currentPlayer);
 
@@ -64,21 +61,21 @@ async function onAccuseUno(accusedId: number) {
   }
 }
 
+async function drawCard() {
+  await api.drawCard(gameId)
+}
+
 </script>
-
-
-
-
 
 <template>
   <GameStatus />
   <StatusBar />
   <PlayersBar @accuse-uno="onAccuseUno" />
-  <Decks  @say-uno="onSayUno" />
-  <ChallengeDrawFourPopup/>
-  <ChallengeResultPopup/>
-  <ChooseColorPopup/>
-  <PlayAfterDrawPopup/>
+  <Decks @say-uno="onSayUno" @draw="drawCard"/>
+  <ChallengeDrawFourPopup />
+  <ChallengeResultPopup />
+  <ChooseColorPopup />
+  <PlayAfterDrawPopup />
 
 </template>
 

@@ -5,17 +5,17 @@ import { useActiveGameStore } from './Stores/OngoingGameStore';
 import * as api from './model/api'
 import { RouterLink, RouterView } from 'vue-router'
 
-  const pendingGamesStore = usePendingGameStore()
-  const ongoingGamesStore = useActiveGameStore()
+const pendingGamesStore = usePendingGameStore()
+const ongoingGamesStore = useActiveGameStore()
 
 
-  function liveUpdateGames() {
-    api.onGame(game => {
-      ongoingGamesStore.upsert(game);
-      pendingGamesStore.remove(game);
-    });
-    api.onPending(pendingGamesStore.upsert);
-  }
+function liveUpdateGames() {
+  api.onGame(game => {
+    ongoingGamesStore.upsert(game);
+    pendingGamesStore.remove(game);
+  });
+  api.onPending(pendingGamesStore.upsert);
+}
 
 
 onMounted(async () => {

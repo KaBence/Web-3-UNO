@@ -27,7 +27,7 @@
                 <div class="meta">
                   <div class="title">Game {{ g.id }}</div>
                  <div class="sub">
-                    <span v-if="g.players.length === 0">No players yet</span>
+                    <span v-if="g.players!.length === 0">No players yet</span>
                     <template v-else>
                       <span class="player-chip" v-for="p in g.players">{{ p }}</span>
                     </template>
@@ -109,9 +109,8 @@ import { usePendingGameStore } from "@/Stores/PendingGameStore";
     hasCreatedGame.value = true
   }
 
-  const StartGame = (id: number) => {
-    // marking as in progress so it disappears from visibleGames
-    const g = pendingGamesStore.games.find(g=>g.id === id)
+  const StartGame = async (id: number) => {
+    await api.startRound(id)
     router.push({ path: "/Game", query: { id } });
   }
   </script>

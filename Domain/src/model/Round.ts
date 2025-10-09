@@ -21,12 +21,13 @@ export class Round {
   private cardsPerPlayer: number = 7;
   private roundWinner?: PlayerNames;
   private statusMessage: String;
-  private topCard:Card
+  private topCard:Card;
+  private drawDeckSize:number
 
   constructor(players: Player[], dealer: number) {
     this.players = players;
     this.currentDirection = Direction.Clockwise;
-    this.currentPlayer = this.players.length ===0 ? -1 : (dealer + 1) % this.players.length; //should be next player after dealer
+    this.currentPlayer = this.players.length === 0 ? -1 : ((dealer + 1) % this.players.length) + 1; //should be next player after dealer
     
     this.drawPile = new DrawDeck();
     for (let i = 0; i < this.cardsPerPlayer; i++) {
@@ -40,6 +41,7 @@ export class Round {
       this.handleStartRound();
     }
     this.statusMessage = "Round Created"
+    this.drawDeckSize =this.drawPile.getCards().length
   }
   //Getters and Setters
 
@@ -64,7 +66,7 @@ export class Round {
   }
 
   getSpecificPlayer(player: PlayerNames): Player {
-    const specificPlayer = this.players.find((p) => p.getID === player.valueOf);
+    const specificPlayer = this.players.find((p) => p.getID() === player);
     if (specificPlayer != undefined) return specificPlayer;
     throw Error("Player not found!");
   }
@@ -94,7 +96,7 @@ export class Round {
   }
 
   getPlayerHand(player: PlayerNames): Hand | undefined{ 
-    let p = this.players.find((p) => p.getID === player.valueOf)
+    let p = this.players.find((p) => p.getID() === player)
     return p ? p.getHand() : undefined
   }
 
@@ -109,7 +111,7 @@ export class Round {
     return this.topCard
   }
 
-  getPlayersCard(player: PlayerNames, card: number): Card| undefined {
+  getPlayersCard(player: PlayerNames, card: number): Card | undefined {
     let hand = this.getPlayerHand(player)
     return hand ? hand.getCards()[card] : undefined
   }
@@ -140,51 +142,52 @@ export class Round {
   //also takes an optional color enum for wildcards
   play(cardID: number, colour?: Colors): void {
     const card = this.getPlayersCard(this.currentPlayer, cardID);
-    if (card == undefined){
+    if (card == undefined) {
       console.log("I tried to take a card that doesn't exist, whoops")
       return;
     }
     if (!this.canPlay(cardID)) {
-      this.draw(1, this.currentPlayer);
+      return
     } 
-    else {
-      this.getCurrentPlayer().getHand().removeCard(card);
-      this.discardPile.addCard(card);
 
-      //special cards execution
-      switch (card.getType()) {
-        case Type.Skip:
-          this.currentPlayer = this.getNextPlayer();
-          break;
-        case Type.Reverse:
-          this.changeCurrentDirection();
-          break;
-        case Type.Draw:
-          this.draw(2, this.getNextPlayer());
-          this.currentPlayer = this.getNextPlayer();
-          break;
-        case Type.Wild:
-          this.discardPile.addCard(new SpecialColoredCard(Type.Dummy, colour!));
-          break;
-        case Type.Dummy:
-        case Type.WildDrawFour:
-        // we don't do anything here because the GUI has to react with challengeWildDrawFour() if the player wants or after 5 seconds no matter what
-        case Type.Numbered:
-        // we don't do anything because it is covered above the switch
-      }
+    this.getCurrentPlayer().getHand().removeCard(card);
+    this.discardPile.addCard(card);
+    this.currentCard()
+
+    //special cards execution
+    switch (card.getType()) {
+      case Type.Skip:
+        this.currentPlayer = this.getNextPlayer();
+        break;
+      case Type.Reverse:
+        this.changeCurrentDirection();
+        break;
+      case Type.Draw:
+        this.draw(2, this.getNextPlayer());
+        this.currentPlayer = this.getNextPlayer();
+        break;
+      case Type.Wild:
+        this.discardPile.addCard(new SpecialColoredCard(Type.Dummy, colour!));
+        break;
+      case Type.Dummy:
+      case Type.WildDrawFour:
+      // we don't do anything here because the GUI has to react with challengeWildDrawFour() if the player wants or after 5 seconds no matter what
+      case Type.Numbered:
+      // we don't do anything because it is covered above the switch
     }
+
     if (this.roundHasEnded()) {
       const winner = this.winner();
       if (winner) {
         this.roundWinner = winner.getID();
-        return; 
+        return;
       }
     }
 
     this.currentPlayer = this.getNextPlayer();
   }
 
-  draw(noCards: number, playedId: PlayerNames): void {
+   draw(noCards: number, playedId: PlayerNames): void {
     for (let i = 0; i < noCards; i++) {
       let card = this.drawPile.deal();
       if (card == undefined) {
@@ -207,6 +210,7 @@ export class Round {
         console.log("Tried to access a player's hand who doesn't exists")
       }
     }
+    this.drawDeckSize =this.drawPile.getCards().length
   }
 
   //if you forget to say uno and it is already the next person's round, you should still be able to call UNO
@@ -275,9 +279,9 @@ export class Round {
   getNextPlayer(): PlayerNames {
     let index = 0;
     if (this.getCurrentDirection() === Direction.Clockwise) 
-      index = (this.players.findIndex((p) => p.getID === this.currentPlayer.valueOf) + 1) % this.players.length;
+      index = (this.players.findIndex((p) => p.getID() === this.currentPlayer) + 1) % this.players.length;
     else 
-      index = (this.players.findIndex((p) => p.getID === this.currentPlayer.valueOf) - 1) % this.players.length;
+      index = (this.players.findIndex((p) => p.getID() === this.currentPlayer) - 1) % this.players.length;
 
     return this.players[index].getID();
   }
@@ -285,9 +289,9 @@ export class Round {
   getPreviousPlayer(): PlayerNames {
     let index = 0;
     if (this.getCurrentDirection() === Direction.Clockwise) {
-      index =(this.players.findIndex((p) => p.getID === this.currentPlayer.valueOf) - 1) % this.players.length;
+      index =(this.players.findIndex((p) => p.getID() === this.currentPlayer) - 1) % this.players.length;
     } else {
-      index = (this.players.findIndex((p) => p.getID === this.currentPlayer.valueOf) + 1) % this.players.length;
+      index = (this.players.findIndex((p) => p.getID() === this.currentPlayer) + 1) % this.players.length;
     }
 
     return this.players[index].getID();
@@ -362,6 +366,7 @@ export class Round {
     this.drawPile.createDeckFromMemento(memento.getDrawPile());
     this.discardPile.createDeckFromMemento(memento.getDiscardPile())
     this.topCard = this.currentCard()
+    this.drawDeckSize = memento.getDrawDeckSize()
   }
 
   createMementoFromRound():RoundMemento{

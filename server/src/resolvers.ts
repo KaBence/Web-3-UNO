@@ -35,7 +35,7 @@ export class Resolvers {
       return this.api.removePlayer(gameId, playerName);
     },
     startRound: async (_: any, { gameId }: { gameId: string }) => {
-      return this.api.startRound(gameId);
+      return await this.api.startRound(parseInt(gameId));
     },
     playCard: async (
       _: any,
@@ -44,7 +44,7 @@ export class Resolvers {
       return this.api.playCard(gameId, cardId, chosenColor);
     },
     drawCard: async (_: any, { gameId }: { gameId: string }) => {
-      return this.api.drawCard(gameId);
+      return await this.api.drawCard(parseInt(gameId));
     },
     unoCall: async (_: any, { gameId, playerId }: { gameId: number; playerId: number }) => {
       return await this.api.unoCall(gameId, playerId);

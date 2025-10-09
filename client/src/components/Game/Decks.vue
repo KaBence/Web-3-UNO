@@ -5,7 +5,7 @@
     <!-- Play area -->
     <div class="play-area">
       <div class="piles">
-      
+        <DrawPile :cards-left="cardsLeft" @draw="$emit('draw')"/>
       </div>
     </div>
     <!-- UNO buttons -->
@@ -21,37 +21,28 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from "vue"
-import { DrawDeck, DiscardDeck } from "../../../../Domain/src/model/Deck"
-import type { Card as GameCard } from "../../../../Domain/src/model/Card"
+import { onMounted, computed } from "vue"
 import { useRoute } from "vue-router";
 import UnoButton from "../Shared/UnoButton.vue"
-import { useActiveGameStore } from "../../Stores/OngoingGameStore"
+import { useActiveGameStore } from "@/Stores/OngoingGameStore"
+import DrawPile from "@/components/Shared/DrawPile.vue"
 
 const route = useRoute();
+const queryGameId = route.query.id
+let gameId: number = -1;
+if (typeof queryGameId === "string") {
+  gameId = parseInt(queryGameId)
+}
+else {
+  alert("Invalid gameID is used")
+}
 const ongoingGameStore = useActiveGameStore()
 
-const drawDeck = new DrawDeck()
-const discardDeck = new DiscardDeck()
+const game = ongoingGameStore.getGame(gameId)
+const cardsLeft = computed(()=>(game.value?.currentRound?.drawDeckSize ?? 0));
 
-const cardsLeft = ref(drawDeck.size())
-const playerHand = ref<GameCard[]>([])
-const discardPile = ref<GameCard[]>(discardDeck.getCards())
 
-defineEmits(["say-uno"]);
-
-onMounted(() => {
-  
-})
-
-function drawCard() {
-
-  }
-
-function playCard(card: GameCard) {
- 
-}
-
+defineEmits(['say-uno','draw']);
 
 </script>
 

@@ -1,11 +1,11 @@
 <template>
-  <div class="pile" @click="onDraw">
-    <div v-if="cardsLeft > 0" class="card-back">
+  <div class="pile" @click="$emit('draw')">
+    <div v-if="props.cardsLeft > 0" class="card-back">
       <div class="uno-oval"></div>
       <div class="uno-text">UNO</div>
-      <span class="count">{{ cardsLeft }}</span>
+      <span class="count">{{ props.cardsLeft }}</span>
     </div>
-    <span v-else class="empty-text">Empty</span>
+    <div v-else class="empty-text">Empty</div>
   </div>
 </template>
 
@@ -13,13 +13,8 @@
 import { computed } from "vue"
 
 const props = defineProps<{ cardsLeft: number }>()
-const emit = defineEmits<{ (e: "draw"): void }>()
+defineEmits(['draw']);
 
-const cardsLeft = computed(() => props.cardsLeft)
-
-function onDraw() {
-  if (cardsLeft.value > 0) emit("draw")
-}
 </script>
 
 <style scoped>

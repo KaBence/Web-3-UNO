@@ -19,6 +19,7 @@ export type GameSpecs = {
 
 export type RoundSpecs = {
   players:PlayerSpecs[]
+  drawDeckSize: number
   topCard:CardSpecs
   currentDirection:Direction
   winner:PlayerNames
