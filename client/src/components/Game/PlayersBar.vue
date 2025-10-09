@@ -13,11 +13,12 @@
               translateX(${index * 12 - (player.getHand().size() * 12) / 2}px)`
             }"
 
-        ></div>
+        >
       </div>
-      <button class="call-uno-btn" @click="$emit('click')">
-        <slot> UNO Accuse!</slot>
-      </button>
+      </div>
+      <div class="call-uno">
+        <button @click="emit('accuse-uno', player.getID())">UNO Accuse!</button>
+      </div>
     </div>
   </div>
 
@@ -34,7 +35,11 @@
     players.value = await getPlayers();
   });
 
-  defineEmits<{ (e: 'click'): void }>()
+  
+  const emit = defineEmits<{
+  (e: 'accuse-uno', playerId: number): void;
+  }>();
+
 </script>
 
 <style scoped>
@@ -95,28 +100,29 @@
     transition: transform 0.3s ease;
     transform-origin: center;
   }
-.call-uno-btn {
-  background: linear-gradient(135deg, #000000, #ff1a1a); /* black → red */
-  color: #fff;
-  font-weight: 900;
-  text-transform: uppercase;
-  font-size: 0.9rem; /* smaller text */
-  border: none;
-  border-radius: 30px; /* smaller radius for smaller button */
-  padding: 0.5rem 1.5rem; /* less padding */
-  cursor: pointer;
-  letter-spacing: 0.5px; /* tighter spacing */
-  box-shadow: 0 3px 0 #660000;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
-}
 
-.call-uno-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 0 #660000;
-}
+  .call-uno button{
+    background: linear-gradient(135deg, #000000, #ff1a1a); /* black → red */
+    color: #fff;
+    font-weight: 900;
+    text-transform: uppercase;
+    font-size: 0.9rem; /* smaller text */
+    border: none;
+    border-radius: 30px; /* smaller radius for smaller button */
+    padding: 0.5rem 1.5rem; /* less padding */
+    cursor: pointer;
+    letter-spacing: 0.5px; /* tighter spacing */
+    box-shadow: 0 3px 0 #660000;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
 
-.call-uno-btn:active {
-  transform: translateY(2px);
-  box-shadow: 0 1px 0 #660000;
+  .call-uno :hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 0 #660000;
+  }
+
+  .call-uno :active {
+    transform: translateY(2px);
+    box-shadow: 0 1px 0 #660000;
 }
 </style>

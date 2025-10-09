@@ -5,18 +5,17 @@
     <!-- Play area -->
     <div class="play-area">
       <div class="piles">
-        <DrawPile :cardsLeft="cardsLeft" @draw="drawCard" />
-        <DiscardPile :cards="discardPile" />
+      
       </div>
     </div>
     <!-- UNO buttons -->
     <div class="button-row">
-      <UnoButton @click="onUno"></UnoButton>
+      <UnoButton @click="$emit('say-uno')"></UnoButton>
     </div>
 
     <!-- Player hand -->
     <div class="hand-area">
-      <PlayerHand :hand="playerHand" @play="playCard" />
+      
     </div>
   </div>
 </template>
@@ -25,13 +24,12 @@
 import { ref, onMounted } from "vue"
 import { DrawDeck, DiscardDeck } from "../../../../Domain/src/model/Deck"
 import type { Card as GameCard } from "../../../../Domain/src/model/Card"
-
-import DrawPile from "../Shared/DrawPile.vue"
-import DiscardPile from "../Shared/DIscardPile.vue"
-import PlayerHand from "../Shared/PlayerHand.vue"
+import { useRoute } from "vue-router";
 import UnoButton from "../Shared/UnoButton.vue"
-import CallUnoButton from "../Shared/AccuseOfUno.vue"
+import { useActiveGameStore } from "../../Stores/OngoingGameStore"
 
+const route = useRoute();
+const ongoingGameStore = useActiveGameStore()
 
 const drawDeck = new DrawDeck()
 const discardDeck = new DiscardDeck()
@@ -40,35 +38,20 @@ const cardsLeft = ref(drawDeck.size())
 const playerHand = ref<GameCard[]>([])
 const discardPile = ref<GameCard[]>(discardDeck.getCards())
 
+defineEmits(["say-uno"]);
+
 onMounted(() => {
-  for (let i = 0; i < 7; i++) {
-    const card = drawDeck.deal()
-    if (card) playerHand.value.push(card)
-  }
-  cardsLeft.value = drawDeck.size()
+  
 })
 
 function drawCard() {
-  const card = drawDeck.deal()
-  if (card) {
-    playerHand.value.push(card)
-    cardsLeft.value = drawDeck.size()
+
   }
-}
+
 function playCard(card: GameCard) {
-  const i = playerHand.value.indexOf(card)
-  if (i !== -1) playerHand.value.splice(i, 1)
-
-  discardDeck.addCard(card)
-  discardPile.value = [...discardPile.value, card]
-}
-function onUno() {
-  alert("You shouted UNO!");
+ 
 }
 
-function onCallUno() {
-  alert("You accused someone of not saying UNO!");
-}
 
 </script>
 

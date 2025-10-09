@@ -1,25 +1,34 @@
 <script setup lang="ts">
 import { onMounted } from 'vue';
 import { usePendingGameStore } from './Stores/PendingGameStore';
+import { useActiveGameStore } from './Stores/OngoingGameStore';
 import * as api from './model/api'
 import { RouterLink, RouterView } from 'vue-router'
 
   const pendingGamesStore = usePendingGameStore()
+  const ongoingGamesStore = useActiveGameStore()
+
 
   function liveUpdateGames() {
     api.onGame(game => {
-      // ongoingGamesStore.upsert(game);
+      ongoingGamesStore.upsert(game);
       pendingGamesStore.remove(game);
     });
     api.onPending(pendingGamesStore.upsert);
   }
 
 
-  onMounted(async () => {
-    const pending_games = await api.getPendingGames();
-    pending_games.forEach(pendingGamesStore.upsert);
-    liveUpdateGames()
-  })
+onMounted(async () => {
+  liveUpdateGames(); // ✅ subscribe first
+  const [pending_games, ongoing_games] = await Promise.all([
+    api.getPendingGames(),
+    api.getActiveGames()
+  ]);
+
+  pending_games.forEach(pendingGamesStore.upsert);
+  ongoing_games.forEach(ongoingGamesStore.upsert);
+});
+
 
 </script>
 
