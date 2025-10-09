@@ -73,8 +73,34 @@ export class ServerModel {
     return this.store.addPendingGame(game.createMementoFromGame());
   }
 
+  async sayUno(gameId: number, playerId: number): Promise<GameMemento> {
+    const gameMemento = await this.store.getGame(gameId);
+    const game = from_memento(gameMemento);
+    const round = game.getCurrentRound();
+    if (!round) {
+      throw new Error("No active round");
+    }
+    round.sayUno(playerId);
+    const updatedMemento = to_memento(game);
+    await this.store.updateGame(updatedMemento);
+    return updatedMemento;
+  }
+
+  async accuseUno(gameId: number, accuser: number, accused: number): Promise<GameMemento> {
+    const gameMemento = await this.store.getGame(gameId);
+    const game = from_memento(gameMemento);
+    const round = game.getCurrentRound();
+    if (!round) {
+      throw new Error("No active round");
+    }
+    round.catchUnoFailure(accuser, accused);
+    const updatedMemento = to_memento(game);
+    await this.store.updateGame(updatedMemento);
+    return updatedMemento;
+  }
+
   async startRound(id: number): Promise<GameMemento> {
-    const memento =  await this.store.getPendingGame(id)
+    const memento = await this.store.getPendingGame(id)
     const game = from_memento(memento)
     this.store.deletePendingGame(id);
     ///////////////////////////////////////////////
@@ -82,7 +108,7 @@ export class ServerModel {
     game.addPlayer("Hello")
     //////////////////////////////////////////////
     game.createRound()
-    
+
     return this.store.addGame(game.createMementoFromGame());
   }
 
@@ -90,7 +116,7 @@ export class ServerModel {
     const memento = await this.store.getGame(gameId)
     const game = from_memento(memento)
     let currentPlayer = game.getCurrentRound()?.getCurrentPlayer()
-    game.getCurrentRound()?.draw(1,currentPlayer?.getID()!)
+    game.getCurrentRound()?.draw(1, currentPlayer?.getID()!)
 
     return await this.store.updateGame(game.createMementoFromGame())
   }
