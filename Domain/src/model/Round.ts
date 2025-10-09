@@ -146,9 +146,13 @@ export class Round {
       console.log("I tried to take a card that doesn't exist, whoops")
       return;
     }
+    if (!this.canPlay(cardID)) {
+      return
+    } 
 
     this.getCurrentPlayer().getHand().removeCard(card);
     this.discardPile.addCard(card);
+    this.currentCard()
 
     //special cards execution
     switch (card.getType()) {
