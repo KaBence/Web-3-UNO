@@ -550,44 +550,7 @@ export async function play(gameId:number, cardId:number) {
   const mutation = gql`
     mutation PlayCard($gameId: Int!, $cardId: Int!) {
       playCard(gameId: $gameId, cardId: $cardId) {
-        scores
-        players {
-          unoCalled
-          playerName
-          name
-          hand {
-            cards {
-              type
-              number
-              color
-            }
-          }
-        }
         id
-        dealer
-        currentRound {
-          winner
-          topCard {
-            type
-            number
-            color
-          }
-          statusMessage
-          players {
-            unoCalled
-            playerName
-            name
-            hand {
-              cards {
-                type
-                number
-                color
-              }
-            }
-          }
-          currentPlayer
-          currentDirection
-        }
       }
     }
   `;
