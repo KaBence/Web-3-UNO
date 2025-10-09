@@ -70,7 +70,42 @@ export class ServerModel {
   async updateGame(memento: GameMemento): Promise<GameMemento> {
   return this.store.updateGame(memento);
  }
- createGame(){
+
+
+
+  async sayUno (gameId:number, playerId:number):Promise<GameMemento>{
+    const gameMemento = await this.store.getGame(gameId);
+    const game = from_memento(gameMemento);
+    const round = game.getCurrentRound();
+    if (!round) {
+      throw new Error("No active round");
+    }
+    round.sayUno(playerId);
+    const updatedMemento = to_memento(game);
+    await this.store.updateGame(updatedMemento);
+    return updatedMemento;    
+
+  }
+ 
+  async accuseUno(gameId:number, accuser:number, accused:number):Promise<GameMemento>{
+    const gameMemento = await this.store.getGame(gameId);
+    const game = from_memento(gameMemento);
+    const round = game.getCurrentRound(); 
+    if (!round) {
+      throw new Error("No active round");
+    }
+    round.catchUnoFailure(accuser, accused);
+    const updatedMemento = to_memento(game);
+    await this.store.updateGame(updatedMemento);
+    return updatedMemento;    
+  
+  
+  
+  }
+
+ 
+  
+    createGame(){
     this.nextId++
     const game = new Game(this.nextId)
     return this.store.addPendingGame(game.createMementoFromGame())

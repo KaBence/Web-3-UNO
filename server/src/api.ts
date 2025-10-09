@@ -58,31 +58,36 @@ export class GameAPI {
     throw new Error("Method not implemented.");
   }
 
-  /** Simple UNO call */
+  /** Simple UNO call , the logic should be in the servermodel not here and I should broadcast it */  
+
+  
   async unoCall(gameId: number, playerId: number): Promise<Game> {
-   const gameMemento = await this.server.getGame(gameId);
-  const game = from_memento(gameMemento);
-
-  const round = game.getCurrentRound();
-  if (!round) {
-    throw new Error("Current round is undefined.");
-  }
-  round.sayUno(playerId); 
-  await this.server.updateGame(to_memento(game));
-  return game;
-
+    try{
+         await this.server.sayUno(gameId, playerId)
+      const gameMemento = await this.server.getGame(gameId);
+      const game = from_memento(gameMemento);
+      this.broadcast(game)
+      return game
+    }
+    catch(error:any){
+      throw new Error(error.message)
+    }
+    
   }
 
   async accuseUno(gameId: number, accuser: number, accused: number): Promise<Game> {
-    const gameMemento = await this.server.getGame(gameId);
-    const game = from_memento(gameMemento);
-    const round = game.getCurrentRound();
-    if (!round) {
-      throw new Error("Current round is undefined.");
-    } 
-    round.catchUnoFailure(accuser, accused);
-    await this.server.updateGame(to_memento(game));
-    return game;
+    
+    try{
+      await this.server.accuseUno(gameId, accuser, accused)
+      const gameMemento = await this.server.getGame(gameId);
+      const game = from_memento(gameMemento);
+      this.broadcast(game)
+      return game
+    }
+    catch(error:any){
+      throw new Error(error.message)
+    }
+  
   }
 
   async challengeDraw4(gameId: string): Promise<Game> {
