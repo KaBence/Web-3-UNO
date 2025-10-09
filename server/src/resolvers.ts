@@ -55,7 +55,7 @@ export class Resolvers {
     ) => {
       return this.api.accuseUno(gameId, accuser, accused);
     },
-    challengeDraw4: async (_: any, { gameId }: { gameId: string }) => {
+    challengeDraw4: async (_: any, { gameId }: { gameId: number }) => {
       return this.api.challengeDraw4(gameId);
     },
   };

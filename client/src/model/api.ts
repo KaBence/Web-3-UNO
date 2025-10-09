@@ -545,3 +545,90 @@ export async function onPending(subscriber: (game: GameSpecs) => any) {
     },
   });
 }
+
+export async function play(gameId:number, cardId:number) {
+  const mutation = gql`
+    mutation PlayCard($gameId: Int!, $cardId: Int!) {
+      playCard(gameId: $gameId, cardId: $cardId) {
+        scores
+        players {
+          unoCalled
+          playerName
+          name
+          hand {
+            cards {
+              type
+              number
+              color
+            }
+          }
+        }
+        id
+        dealer
+        currentRound {
+          winner
+          topCard {
+            type
+            number
+            color
+          }
+          statusMessage
+          players {
+            unoCalled
+            playerName
+            name
+            hand {
+              cards {
+                type
+                number
+                color
+              }
+            }
+          }
+          currentPlayer
+          currentDirection
+        }
+      }
+    }
+  `;
+  try {
+    const { data } = await apolloClient.mutate({ 
+      mutation,
+      variables: {gameId,cardId},
+      fetchPolicy: "network-only",
+    });
+
+    // The union will return either PendingGame or ActiveGame
+    const game = data.play;
+    console.log(game)
+    return game;
+  } catch (error: any) {
+    console.error("Failed to play:", error);
+    throw error;
+  }
+}
+
+
+export async function challengeDraw4(gameId:number) {
+  const mutation = gql`
+  mutation ChallengeDraw4($gameId: Int!) {
+    challengeDraw4(gameId: $gameId) {
+      id
+    }
+  }
+  `;
+  try {
+    const { data } = await apolloClient.mutate({ 
+      mutation,
+      variables: {gameId},
+      fetchPolicy: "network-only",
+    });
+
+    const game = data.play;
+    console.log(game)
+    return game;
+  } catch (error: any) {
+    console.error("Failed to execute challenge draw 4:", error);
+    throw error;
+  }
+}
