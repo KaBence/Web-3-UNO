@@ -13,6 +13,7 @@ export class RoundMemento {
   private readonly roundWinner?: PlayerNames;
   private readonly statusMessage: String
   private readonly topCard:Card
+  private readonly drawDeckSize:number
 
   constructor(
     players: PlayerMemento[],
@@ -32,6 +33,7 @@ export class RoundMemento {
     this.roundWinner = roundWinner
     this.statusMessage = statusMessage
     this.topCard=topCard
+    this.drawDeckSize = drawPile.getCards().length
   }
   //Getters and Setters
 
@@ -65,5 +67,9 @@ export class RoundMemento {
 
   getWinner(): PlayerNames | undefined {
     return this.roundWinner;
+  }
+
+  getDrawDeckSize():number{
+    return this.drawDeckSize;
   }
 }

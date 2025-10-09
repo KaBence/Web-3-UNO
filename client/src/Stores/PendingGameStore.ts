@@ -6,7 +6,8 @@ import type { GameSpecs } from "@/model/Specs";
 export const usePendingGameStore = defineStore("pendingGame", () => {
   const gameList = reactive<GameSpecs[]>([])
   const games = computed((): Reactive<Readonly<GameSpecs[]>> => gameList)
-
+  const getGame = (id: number): GameSpecs | undefined => gameList.find(g => g.id === id)
+  
   const update = (game: GameSpecs) => {
     const index = gameList.findIndex(g => g.id === game.id)
     if (index > -1) {
@@ -30,5 +31,5 @@ export const usePendingGameStore = defineStore("pendingGame", () => {
     }
   }
 
-  return { games, update, upsert, remove }
+  return { games, update, upsert, remove,getGame }
 });

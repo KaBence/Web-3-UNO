@@ -21,7 +21,8 @@ export class Round {
   private cardsPerPlayer: number = 7;
   private roundWinner?: PlayerNames;
   private statusMessage: String;
-  private topCard:Card
+  private topCard:Card;
+  private drawDeckSize:number
 
   constructor(players: Player[], dealer: number) {
     this.players = players;
@@ -40,6 +41,7 @@ export class Round {
       this.handleStartRound();
     }
     this.statusMessage = "Round Created"
+    this.drawDeckSize =this.drawPile.getCards().length
   }
   //Getters and Setters
 
@@ -204,6 +206,7 @@ export class Round {
         console.log("Tried to access a player's hand who doesn't exists")
       }
     }
+    this.drawDeckSize =this.drawPile.getCards().length
   }
 
   //if you forget to say uno and it is already the next person's round, you should still be able to call UNO
@@ -359,6 +362,7 @@ export class Round {
     this.drawPile.createDeckFromMemento(memento.getDrawPile());
     this.discardPile.createDeckFromMemento(memento.getDiscardPile())
     this.topCard = this.currentCard()
+    this.drawDeckSize = memento.getDrawDeckSize()
   }
 
   createMementoFromRound():RoundMemento{

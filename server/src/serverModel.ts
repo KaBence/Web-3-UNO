@@ -92,7 +92,7 @@ export class ServerModel {
     let currentPlayer = game.getCurrentRound()?.getCurrentPlayer()
     game.getCurrentRound()?.draw(1,currentPlayer?.getID()!)
 
-    return this.store.updateGame(game.createMementoFromGame())
+    return await this.store.updateGame(game.createMementoFromGame())
   }
 
 }
