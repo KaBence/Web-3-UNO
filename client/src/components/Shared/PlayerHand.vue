@@ -2,21 +2,21 @@
   <div class="hand">
     <UnoCard
       v-for="(c, i) in hand" 
-      :key="`${c.getType()}-${c.getNumber() ?? ''}-${i}`"
+      :key="`${c.type}-${c.number ?? ''}-${i}`"
       :card="c"
       class="hand-card"
       :style="cardStyle(i, hand.length)"
-      @play="$emit('play', c)"
+      @click="$emit('play', i)"
     />
   </div>
 </template>
 
 <script setup lang="ts">
 import UnoCard from "./Card.vue"
-import type { Card as GameCardLike } from "../../../../Domain/src/model/Card"
+import type { CardSpecs } from "@/model/Specs";
 
-const props = defineProps<{ hand: GameCardLike[] }>()
-const emit = defineEmits<{ (e: "play", card: GameCardLike): void }>()
+const props = defineProps<{ hand: CardSpecs[] }>()
+const emit = defineEmits<{ (e: "play", card: number): void }>()
 
 // calculate curved spread
 function cardStyle(index: number, total: number) {

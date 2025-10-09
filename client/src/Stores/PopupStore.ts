@@ -12,7 +12,7 @@ export enum Popups {
 export const usePopupStore = defineStore("popup", {
   state: () => ({
     showChallenge: false,
-    showChallengeResult: true,
+    showChallengeResult: false,
     showChangeColor: false,
     showPlay: false,
 

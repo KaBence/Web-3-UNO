@@ -11,6 +11,7 @@ import ChallengeResultPopup from '@/components/Game/Popups/ChallengeResultPopup.
 import { computed } from "vue";
 import * as api from "@/model/api";
 import { useActiveGameStore } from "../Stores/OngoingGameStore";
+import {usePlayerStore} from "@/Stores/PlayerStore"
 import { useRoute } from "vue-router";
 import type { RefSymbol } from '@vue/reactivity';
 
@@ -26,6 +27,8 @@ else {
   alert("Invalid gameID is used")
 }
 const ongoingGameStore = useActiveGameStore()
+
+const player = usePlayerStore()
 
 const game = ongoingGameStore.getGame(gameId)
 
@@ -65,13 +68,21 @@ async function drawCard() {
   await api.drawCard(gameId)
 }
 
+async function playCard(cardId:number) {
+  console.log(player.loggedInPlayer+" -> "+ game.value?.currentRound?.currentPlayer)
+  if (player.loggedInPlayer === game.value?.currentRound?.currentPlayer)
+  {
+    await api.play(gameId,cardId)
+  }
+}
+
 </script>
 
 <template>
   <GameStatus />
   <StatusBar />
   <PlayersBar @accuse-uno="onAccuseUno" />
-  <Decks @say-uno="onSayUno" @draw="drawCard"/>
+  <Decks @say-uno="onSayUno" @draw="drawCard" @play="playCard"/>
   <ChallengeDrawFourPopup />
   <ChallengeResultPopup />
   <ChooseColorPopup />

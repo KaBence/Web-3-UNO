@@ -15,7 +15,7 @@
 
     <!-- Player hand -->
     <div class="hand-area">
-      
+        <PlayerHand :hand="hand" @play="$emit('play')" />
     </div>
   </div>
 </template>
@@ -26,6 +26,8 @@ import { useRoute } from "vue-router";
 import UnoButton from "../Shared/UnoButton.vue"
 import { useActiveGameStore } from "@/Stores/OngoingGameStore"
 import DrawPile from "@/components/Shared/DrawPile.vue"
+import PlayerHand from "@/components/Shared/PlayerHand.vue"
+import type { PlayerSpecs } from "@/model/Specs";
 
 const route = useRoute();
 const queryGameId = route.query.id
@@ -37,12 +39,17 @@ else {
   alert("Invalid gameID is used")
 }
 const ongoingGameStore = useActiveGameStore()
+//const playerStore = use it to get player that is logged in
 
 const game = ongoingGameStore.getGame(gameId)
 const cardsLeft = computed(()=>(game.value?.currentRound?.drawDeckSize ?? 0));
 
+//const player = playerStore.getPlayer() should return player taht isd using this browser
+const player = game.value?.currentRound?.players[0] as PlayerSpecs
+const hand = player.hand.cards
 
-defineEmits(['say-uno','draw']);
+
+defineEmits(['say-uno','draw', 'play']);
 
 </script>
 

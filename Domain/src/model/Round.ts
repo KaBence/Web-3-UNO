@@ -278,6 +278,7 @@ export class Round {
 
   getNextPlayer(): PlayerNames {
     let index = 0;
+    
     if (this.getCurrentDirection() === Direction.Clockwise) 
       index = (this.players.findIndex((p) => p.getID() === this.currentPlayer) + 1) % this.players.length;
     else 

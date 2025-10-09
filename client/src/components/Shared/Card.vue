@@ -1,11 +1,11 @@
 <template>
-  <div class="uno-card" :class="colorClass" @click="handleClick">
+  <div class="uno-card" :class="colorClass">
     <!-- Corners -->
     <span v-if="showCorner" class="corner top-left">{{ cornerLabel }}</span>
     <span v-if="showCorner" class="corner bottom-right">{{ cornerLabel }}</span>
 
-    <span v-if="isWild && card.getType() === Type.WildDrawFour" class="corner top-left">+4</span>
-    <span v-if="isWild && card.getType() === Type.WildDrawFour" class="corner bottom-right">+4</span>
+    <span v-if="isWild && card.type === Type.WildDrawFour" class="corner top-left">+4</span>
+    <span v-if="isWild && card.type === Type.WildDrawFour" class="corner bottom-right">+4</span>
 
     <!-- Oval -->
     <div class="center-oval">
@@ -27,28 +27,27 @@
 
 <script setup lang="ts">
 import { computed } from "vue"
-import type { GameCardLike  as Card} from "../../utils/ui-types" 
+import type { CardSpecs } from "@/model/Specs"; 
 
 //TODO remake to not use domain Card directly
-import {  Type } from "../../../../Domain/src/model/Card";
+import {  Type } from "Domain/src/model/Card";
 
-const props = defineProps<{ card: Card }>()
-const emit = defineEmits<{ (e: "play", payload: Card): void }>()
+const props = defineProps<{ card: CardSpecs }>()
 
 const card = props.card
 
 const isWild = computed(() =>
-  card.getType() === Type.Wild || card.getType() === Type.WildDrawFour
+  card.type === Type.Wild || card.type === Type.WildDrawFour
 )
 
 const isNumberOrDraw = computed(() =>
-  card.getType() === Type.Numbered || card.getType() === Type.Draw
+  card.type === Type.Numbered || card.type === Type.Draw
 )
 
 
 const mainLabel = computed(() => {
-  switch (card.getType()) {
-    case Type.Numbered: return (card.getNumber() ?? "").toString()
+  switch (card.type) {
+    case Type.Numbered: return (card.number ?? "").toString()
     case Type.Draw: return "+2"
     case Type.Skip: return "SKIP"
     case Type.Reverse: return "⇄"
@@ -60,8 +59,8 @@ const mainLabel = computed(() => {
 
 
 const cornerLabel = computed(() => {
-  switch (card.getType()) {
-    case Type.Numbered: return card.getNumber()?.toString() ?? ""
+  switch (card.type) {
+    case Type.Numbered: return card.number?.toString() ?? ""
     case Type.Draw: return "+2"
  
     default: return ""
@@ -70,14 +69,13 @@ const cornerLabel = computed(() => {
 
 // hide corners for reverse & skip (to match official cards)
 const showCorner = computed(() =>
-  card.getType() === Type.Numbered || card.getType() === Type.Draw
+  card.type === Type.Numbered || card.type === Type.Draw
 )
 
 const colorClass = computed(() =>
-  isWild.value ? "card-black" : `card-${(card.getColor() ?? "black").toLowerCase()}`
+  isWild.value ? "card-black" : `card-${(card.color ?? "black").toLowerCase()}`
 )
 
-function handleClick() { emit("play", card) }
 </script>
 
 <style scoped>
