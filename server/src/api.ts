@@ -12,9 +12,9 @@ export interface Broadcaster {
 
 export class GameAPI {
   private server: ServerModel
-  private broadcaster:Broadcaster
+  private broadcaster: Broadcaster
 
-  constructor(broadcaster: Broadcaster,store:GameStore){
+  constructor(broadcaster: Broadcaster, store: GameStore) {
     this.server = new ServerModel(store)
     this.broadcaster = broadcaster
   }
@@ -24,7 +24,7 @@ export class GameAPI {
   }
 
   async getActiveGames(): Promise<Game[]> {
-   return this.server.all_active_games();
+    return this.server.all_active_games();
   }
 
   /** Add a player to a pending game */
@@ -35,14 +35,14 @@ export class GameAPI {
 
   /** Remove a player from a pending game */
   async removePlayer(gameId: string, playerName: string): Promise<Game> {
-  
+
     throw new Error("Method not implemented.");
   }
 
   /** Start the first round and activate the game */
   async startRound(gameId: string): Promise<Game> {
     throw new Error("Method not implemented.");
-   
+
 
   }
 
@@ -54,44 +54,44 @@ export class GameAPI {
 
   /** Draw a card */
   async drawCard(gameId: string): Promise<Game> {
- 
+
     throw new Error("Method not implemented.");
   }
 
-  /** Simple UNO call , the logic should be in the servermodel not here and I should broadcast it */  
+  /** Simple UNO call , the logic should be in the servermodel not here and I should broadcast it */
 
-  
+
   async unoCall(gameId: number, playerId: number): Promise<Game> {
-    try{
-         await this.server.sayUno(gameId, playerId)
+    try {
+      await this.server.sayUno(gameId, playerId)
       const gameMemento = await this.server.getGame(gameId);
       const game = from_memento(gameMemento);
       this.broadcast(game)
       return game
     }
-    catch(error:any){
+    catch (error: any) {
       throw new Error(error.message)
     }
-    
+
   }
 
   async accuseUno(gameId: number, accuser: number, accused: number): Promise<Game> {
-    
-    try{
+
+    try {
       await this.server.accuseUno(gameId, accuser, accused)
       const gameMemento = await this.server.getGame(gameId);
       const game = from_memento(gameMemento);
       this.broadcast(game)
       return game
     }
-    catch(error:any){
+    catch (error: any) {
       throw new Error(error.message)
     }
-  
+
   }
 
   async challengeDraw4(gameId: string): Promise<Game> {
-   
+
     throw new Error("Method not implemented.");
   }
 
@@ -99,7 +99,7 @@ export class GameAPI {
     this.broadcaster.send(game)
   }
 
-  
+
 
   async createGame() {
     try {
@@ -112,7 +112,7 @@ export class GameAPI {
       return game
       // return JSON.parse(JSON.stringify(game));
       // return ApiResponse.ok(game, "Game created successfully")
-    } 
+    }
     catch (error: any) {
       throw new Error(error.message); // GraphQL can handle errors directly
     }

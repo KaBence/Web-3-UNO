@@ -4,7 +4,7 @@ import type { GameSpecs, PlayerSpecs } from "@/model/Specs";
 
 
 
-export const useActiveGameStore = defineStore("activeGames", ()=>{
+export const useActiveGameStore = defineStore("activeGames", () => {
   const gameList = reactive<GameSpecs[]>([])
   const games = computed((): Reactive<Readonly<GameSpecs[]>> => gameList)
   const getGame = (id: number) => computed(() => gameList.find(g => g.id === id))
@@ -26,20 +26,20 @@ export const useActiveGameStore = defineStore("activeGames", ()=>{
     }
   }
 
-  const remove = (game: {id: number}) => {
+  const remove = (game: { id: number }) => {
     const index = gameList.findIndex(g => g.id === game.id)
     if (index > -1) {
       gameList.splice(index, 1)
     }
   }
-  
+
 
 
   return {
-     games,
-     update,
-     upsert,
-     remove,
-     getGame
-    }
+    games,
+    update,
+    upsert,
+    remove,
+    getGame
+  }
 });

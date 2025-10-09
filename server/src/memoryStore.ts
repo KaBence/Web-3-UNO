@@ -18,7 +18,7 @@ export class MemoryStore implements GameStore {
   async getPendingGames() {
     return [...this.pendingGames];
   }
-   async getGame(id: number): Promise<GameMemento> {
+  async getGame(id: number): Promise<GameMemento> {
     const game = this.activeGames.find((g) => g.getId() === id);
     if (!game) throw not_found(id);
     return game;
@@ -28,7 +28,7 @@ export class MemoryStore implements GameStore {
     throw new Error("Method not implemented.");
   }
   async updateGame(game: GameMemento): Promise<GameMemento> {
-     const index = this.activeGames.findIndex((g) => g.getId() === game.getId());
+    const index = this.activeGames.findIndex((g) => g.getId() === game.getId());
     if (index === -1) throw not_found(game.getId());
     this.activeGames[index] = game;
     return game;

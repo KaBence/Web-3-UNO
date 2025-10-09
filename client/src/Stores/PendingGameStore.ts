@@ -3,10 +3,10 @@ import { defineStore } from "pinia";
 import type { GameSpecs } from "@/model/Specs";
 
 
-export const usePendingGameStore = defineStore("pendingGame", ()=>{
+export const usePendingGameStore = defineStore("pendingGame", () => {
   const gameList = reactive<GameSpecs[]>([])
   const games = computed((): Reactive<Readonly<GameSpecs[]>> => gameList)
-  
+
   const update = (game: GameSpecs) => {
     const index = gameList.findIndex(g => g.id === game.id)
     if (index > -1) {
@@ -23,7 +23,7 @@ export const usePendingGameStore = defineStore("pendingGame", ()=>{
     }
   }
 
-  const remove = (game: {id: number}) => {
+  const remove = (game: { id: number }) => {
     const index = gameList.findIndex(g => g.id === game.id)
     if (index > -1) {
       gameList.splice(index, 1)

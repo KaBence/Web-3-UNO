@@ -9,7 +9,7 @@ export class Resolvers {
     this.api = api;
   }
 
-   Query = {
+  Query = {
     activeGames: async () => {
       return await this.api.getActiveGames();
     },
@@ -47,7 +47,7 @@ export class Resolvers {
       return this.api.drawCard(gameId);
     },
     unoCall: async (_: any, { gameId, playerId }: { gameId: number; playerId: number }) => {
-      return  await this.api.unoCall(gameId, playerId);
+      return await this.api.unoCall(gameId, playerId);
     },
     accuseUno: async (
       _: any,
@@ -60,14 +60,14 @@ export class Resolvers {
     },
   };
 
-  Subscription= {
-      active: {
-        subscribe: () => this.pubsub.asyncIterableIterator(['ACTIVE_UPDATED'])
-      },
-      pending: {
-        subscribe: () => this.pubsub.asyncIterableIterator(['PENDING_UPDATED'])
-      }
+  Subscription = {
+    active: {
+      subscribe: () => this.pubsub.asyncIterableIterator(['ACTIVE_UPDATED'])
+    },
+    pending: {
+      subscribe: () => this.pubsub.asyncIterableIterator(['PENDING_UPDATED'])
     }
+  }
   // public toGraphQLPendingGame(game:GameMemento):PendingGame{
   //     return {
   //         players:game.getPlayers()
@@ -80,7 +80,7 @@ export class Resolvers {
     return {
       Query: this.Query,
       Mutation: this.Mutation,
-      Subscription:this.Subscription
+      Subscription: this.Subscription
     };
   }
 }

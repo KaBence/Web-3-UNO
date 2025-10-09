@@ -103,7 +103,7 @@ export async function createGame() {
     }
   `;
   try {
-    const { data } = await apolloClient.mutate({ mutation ,fetchPolicy: "network-only",});
+    const { data } = await apolloClient.mutate({ mutation, fetchPolicy: "network-only", });
 
     // The union will return either PendingGame or ActiveGame
     const game = data.createGame;
@@ -158,7 +158,7 @@ export async function getPendingGames() {
     }
   `;
   try {
-    const { data } = await apolloClient.query({ query,fetchPolicy: "network-only", });
+    const { data } = await apolloClient.query({ query, fetchPolicy: "network-only", });
 
     return data.pendingGames;
   } catch (error: any) {
@@ -211,7 +211,7 @@ export async function getActiveGames() {
     }
   `;
   try {
-    const { data } = await apolloClient.query({ query,fetchPolicy: "network-only", });
+    const { data } = await apolloClient.query({ query, fetchPolicy: "network-only", });
 
     return data.activeGames;
   } catch (error: any) {
@@ -266,9 +266,10 @@ export async function sayUno(gameId: number, playerId: number) {
   }
 }
   `
-    const { data } = await apolloClient.mutate({
+  const { data } = await apolloClient.mutate({
     mutation,
     variables: { gameId, playerId },
+    fetchPolicy: "network-only",
   });
 
   return data.unoCall;
@@ -322,9 +323,12 @@ mutation AccuseUno($gameId: Int!, $accuser: Int!, $accused: Int!) {
   }
 }`
 
-    const { data } = await apolloClient.mutate({
+  const { data } = await apolloClient.mutate({
     mutation,
     variables: { gameId, accuser, accused },
+    fetchPolicy: "network-only",
+
+
   });
   return data.accuseUno;
 }
