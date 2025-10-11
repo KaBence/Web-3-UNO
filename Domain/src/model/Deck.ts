@@ -1,6 +1,5 @@
 import { CardPredicate } from "../../__test__/utils/predicates";
-import { Card ,Type} from "./Card";
-import * as deckFactory from "./DeckFactory";
+import { Card } from "./Card";
 import * as CardFactory from "./CardFactory";
 import * as randomUtils from "../utils/random_utils";
 import { DeckMemento } from "./DeckMemento";
@@ -34,10 +33,6 @@ export abstract class Deck {
 
   createMementoFromDeck(): DeckMemento {
     return new DeckMemento(this.type, this.cards);
-  }
-
-  createDeckFromMemento(memento: DeckMemento): void {
-    this.cards = memento.getCards()
   }
 
   shuffle(shuffler: (cards: Card[]) => void): void {
@@ -78,8 +73,6 @@ export class DrawDeck extends Deck {
     const filteredCards = this.cards.filter((card) => predicate(card));
     return new DrawDeck(filteredCards);
   }
-
-  
 
   peak(): Card | undefined {
     if (this.cards.length === 0) {

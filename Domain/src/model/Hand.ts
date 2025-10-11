@@ -26,10 +26,6 @@ export class Hand{
         return this.cards.length;
     }
 
-    createHandFromMemento(memento:HandMemento):void{
-        this.cards = memento.getCards()
-    }
-
     createMementoFromHand():HandMemento{
         return new HandMemento(this.cards)
     }
