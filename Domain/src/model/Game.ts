@@ -17,7 +17,22 @@ export class Game {
   // private isActive:boolean
   private winner?: PlayerNames;
 
-  constructor(id: number) {
+  constructor(id: number, memento?: GameMemento) {
+    if (memento) {
+      const players: Player[] = []
+      for (let playerMem of memento.getPlayers()) {
+        players.push(new Player(playerMem.getId(), playerMem.getName(), playerMem))
+      }
+      if (memento.getCurrentRound()) {
+        this.currentRound = new Round(players, memento.getDealer(), memento.getCurrentRound())
+      }
+      this.scores = memento.getScores();
+      this.dealer = memento.getDealer();
+      this.players = players
+      this.id = memento.getId()
+      return
+    }
+
     this.players = [];
     this.scores = {} as Record<PlayerNames, number>;
     this.id = id;
@@ -156,19 +171,6 @@ export class Game {
       throw new Error("Invalid playerId");
     }
     this.scores[playerId] += points;
-  }
-
-  public createGameFromMemento(memento: GameMemento): void {
-    const players: Player[] = []
-    for (let playerMem of memento.getPlayers()) {
-      players.push(new Player(playerMem.getId(), playerMem.getName(), playerMem))
-    }
-    if (memento.getCurrentRound()) {
-      this.currentRound = new Round(players,memento.getDealer(),memento.getCurrentRound())
-    }
-    this.scores = memento.getScores();
-    this.dealer = memento.getDealer();
-    this.players = players
   }
 
   public createMementoFromGame(): GameMemento {
