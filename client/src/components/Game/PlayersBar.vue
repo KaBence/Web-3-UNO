@@ -1,23 +1,23 @@
 <template>
   <div class="players-bar">
-    <div v-for="player in players" :key="player.getID()" class="player-column">
-      <div class="player-name">{{ player.getName() }}</div>
+    <div v-for="player in players" :key="player.playername" class="player-column">
+      <div class="player-name">{{ player.name }}</div>
 
       <div class="player-hand">
         <div
-          v-for="(card, index) in player.getHand().size()"
+          v-for="(card, index) in player.hand.cards.length"
           :key="index"
           class="card back"
           :style="{
-              transform: `rotate(${index * 5 - (player.getHand().size() * 2.5)}deg) 
-              translateX(${index * 12 - (player.getHand().size() * 12) / 2}px)`
+              transform: `rotate(${index * 5 - (player.hand.cards.length * 2.5)}deg) 
+              translateX(${index * 12 - (player.hand.cards.length * 12) / 2}px)`
             }"
 
         >
       </div>
       </div>
       <div class="call-uno">
-        <button @click="emit('accuse-uno', player.getID())">UNO Accuse!</button>
+        <button @click="emit('accuse-uno', player.playername)">UNO Accuse!</button>
       </div>
     </div>
   </div>
@@ -25,16 +25,26 @@
 </template>
 
 <script lang="ts" setup>
-  import { ref, onMounted } from "vue";
-  import { getPlayers, getDirection} from "../../services/gameService";
-  import type { Player } from "@/../Domain/src/model/Player";
+  import { computed } from "vue";
+  import { useRoute } from "vue-router";
+  import { useActiveGameStore } from "@/Stores/OngoingGameStore"
+  import { storeToRefs } from "pinia";
 
-  const players = ref<Player[]>([]);
+  const route = useRoute();
+  const queryGameId = route.query.id
+  let gameId: number = -1;
+  if (typeof queryGameId === "string") {
+    gameId = parseInt(queryGameId)
+  }
+  else {
+    alert("Invalid gameID is used")
+  }
 
-  onMounted(async () => {
-    players.value = await getPlayers();
-  });
+  const ongoingGameStore = useActiveGameStore()
+  const { games } = storeToRefs(ongoingGameStore)
 
+  const game = computed(() => games.value.find(g => g.id === gameId))
+  const players = computed(() => game.value?.currentRound?.players)
   
   const emit = defineEmits<{
   (e: 'accuse-uno', playerId: number): void;
