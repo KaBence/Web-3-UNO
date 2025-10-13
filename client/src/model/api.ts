@@ -10,6 +10,7 @@ import { GraphQLWsLink } from "@apollo/client/link/subscriptions";
 import { getMainDefinition } from "@apollo/client/utilities";
 import { createClient } from "graphql-ws";
 import type { GameSpecs } from "@/model/Specs";
+import type { Colors } from "Domain/src/model/Card";
 
 const wsLink = new GraphQLWsLink(
   createClient({
@@ -544,4 +545,92 @@ export async function onPending(subscriber: (game: GameSpecs) => any) {
       console.error(err);
     },
   });
+}
+
+export async function play(gameId:number, cardId:number, chosenColor?:string) {
+  console.log(chosenColor)
+  const mutation = gql`
+  mutation PlayCard($gameId: Int!, $cardId: Int!, $chosenColor: String) {
+    playCard(gameId: $gameId, cardId: $cardId, chosenColor: $chosenColor) {
+      scores
+      players {
+        unoCalled
+        playerName
+        name
+        hand {
+          cards {
+            type
+            number
+            color
+          }
+        }
+      }
+      id
+      dealer
+      currentRound {
+        winner
+        topCard {
+          type
+          number
+          color
+        }
+        statusMessage
+        players {
+          unoCalled
+          playerName
+          name
+          hand {
+            cards {
+              type
+              number
+              color
+            }
+          }
+        }
+        currentPlayer
+        currentDirection
+      }
+    }
+  }
+  `;
+  try {
+    const { data } = await apolloClient.mutate({ 
+      mutation,
+      variables: {gameId,cardId,chosenColor},
+      fetchPolicy: "network-only",
+    });
+
+    // The union will return either PendingGame or ActiveGame
+    const game = data.play;
+    console.log(game)
+    return game;
+  } catch (error: any) {
+    console.error("Failed to play:", error);
+    throw error;
+  }
+}
+
+
+export async function challengeDraw4(gameId:number) {
+  const mutation = gql`
+  mutation ChallengeDraw4($gameId: Int!) {
+    challengeDraw4(gameId: $gameId) {
+      id
+    }
+  }
+  `;
+  try {
+    const { data } = await apolloClient.mutate({ 
+      mutation,
+      variables: {gameId},
+      fetchPolicy: "network-only",
+    });
+
+    const game = data.play;
+    console.log(game)
+    return game;
+  } catch (error: any) {
+    console.error("Failed to execute challenge draw 4:", error);
+    throw error;
+  }
 }

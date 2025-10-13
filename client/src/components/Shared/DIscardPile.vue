@@ -1,22 +1,17 @@
 <template>
   <div class="discard-pile">
-    <div
-      v-for="(c, i) in cards"
-      :key="`${c.getType()}-${c.getNumber() ?? ''}-${i}`"
-      class="card-wrapper"
-      :style="{ zIndex: i }"
-    >
-      <UnoCard :card="c" />
+      <span v-if="topCard === undefined" class="empty-text">Empty</span>
+    <div v-else>
+      <UnoCard :card="topCard" />
     </div>
-    <span v-if="cards.length === 0" class="empty-text">Empty</span>
   </div>
 </template>
 
 <script setup lang="ts">
 import UnoCard from "./Card.vue"
-import type { Card as GameCardLike } from "Domain/src/model/Card"
+import type { CardSpecs } from "@/model/Specs";
 
-const props = defineProps<{ cards: GameCardLike[] }>()
+const props = defineProps<{ topCard: CardSpecs | undefined}>()
 </script>
 
 <style scoped>

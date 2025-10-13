@@ -6,6 +6,10 @@
     <div class="play-area">
       <div class="piles">
         <DrawPile :cards-left="cardsLeft" @draw="$emit('draw')"/>
+        <DiscardPile 
+          :top-card="topCard"
+          :key="`${topCard?.color}-${topCard?.type}-${topCard?.number}`"
+        />
       </div>
     </div>
     <!-- UNO buttons -->
@@ -15,17 +19,20 @@
 
     <!-- Player hand -->
     <div class="hand-area">
-      
+        <PlayerHand :hand="hand" @play="(cardIndex) => $emit('play', cardIndex)" />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { onMounted, computed } from "vue"
+import { computed} from "vue"
+import { storeToRefs } from "pinia";
 import { useRoute } from "vue-router";
 import UnoButton from "../Shared/UnoButton.vue"
 import { useActiveGameStore } from "@/Stores/OngoingGameStore"
 import DrawPile from "@/components/Shared/DrawPile.vue"
+import DiscardPile from "@/components/Shared/DiscardPile.vue"
+import PlayerHand from "@/components/Shared/PlayerHand.vue"
 
 const route = useRoute();
 const queryGameId = route.query.id
@@ -37,12 +44,18 @@ else {
   alert("Invalid gameID is used")
 }
 const ongoingGameStore = useActiveGameStore()
+//const playerStore = use it to get player that is logged in
 
-const game = ongoingGameStore.getGame(gameId)
-const cardsLeft = computed(()=>(game.value?.currentRound?.drawDeckSize ?? 0));
+const { games } = storeToRefs(ongoingGameStore)
+const game = computed(() => games.value.find(g => g.id === gameId))
+
+const cardsLeft = computed(() => game.value?.currentRound?.drawDeckSize ?? 0)
+const player = computed(() => game.value?.currentRound?.players[0])
+const hand = computed(() => player.value?.hand?.cards ?? [])
+const topCard = computed(() => game.value?.currentRound?.topCard);
 
 
-defineEmits(['say-uno','draw']);
+defineEmits(['say-uno','draw', 'play']);
 
 </script>
 

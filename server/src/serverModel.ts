@@ -2,6 +2,8 @@ import { GameMemento } from "domain/src/model/GameMemento";
 import { MemoryStore } from "./memoryStore";
 import { Game } from "domain/src/model/Game";
 import { from_memento, to_memento } from "./memento";
+import { Colors } from "Domain/src/model/Card";
+
 
 
 
@@ -121,6 +123,26 @@ export class ServerModel {
     return await this.store.updateGame(to_memento(game))
   }
 
+  async play(gameId: number, cardId: number, chosenColor?: string) {
+    let memento = await this.store.getGame(gameId); 
+    let game = from_memento(memento);
+    let round = game.getCurrentRound()
+    if(round){
+      round.play(cardId,chosenColor as Colors)
+    }
+
+    return from_memento(await this.store.updateGame(to_memento(game)));
+  }
+
+    async challangeDrawFor(gameId: number) {
+    const memento = await this.store.getGame(gameId); 
+    const game = from_memento(memento);
+    const round = game.getCurrentRound()
+    //add check in gui if its players turn
+    if(round){
+      round.challengeWildDrawFour(true);//i need to pass it from mutation
+    }
+  
+    return await this.store.updateGame(game.createMementoFromGame());
+  }
 }
-
-
