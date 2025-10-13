@@ -2,6 +2,8 @@ import { GameMemento } from "domain/src/model/GameMemento";
 import { MemoryStore } from "./memoryStore";
 import { Game } from "domain/src/model/Game";
 import { from_memento, to_memento } from "./memento";
+import { Colors } from "Domain/src/model/Card";
+
 
 
 
@@ -72,7 +74,7 @@ export class ServerModel {
     this.nextId++;
     const game = new Game(this.nextId);
 
-    return this.store.addPendingGame(game.createMementoFromGame());
+    return await this.store.addPendingGame(to_memento(game));
   }
 
   async sayUno(gameId: number, playerId: number): Promise<GameMemento> {
@@ -111,7 +113,7 @@ export class ServerModel {
     //////////////////////////////////////////////
     game.createRound()
 
-    return this.store.addGame(game.createMementoFromGame());
+    return await this.store.addGame(to_memento(game));
   }
   
   async deleteGame(id: number): Promise<boolean> {
@@ -130,12 +132,29 @@ export class ServerModel {
     let currentPlayer = game.getCurrentRound()?.getCurrentPlayer()
     game.getCurrentRound()?.draw(1, currentPlayer?.getID()!)
 
-    return await this.store.updateGame(game.createMementoFromGame())
+    return await this.store.updateGame(to_memento(game))
   }
 
-  // in play this should be called after every card played
-  //  game.roundFinished();
+  async play(gameId: number, cardId: number, chosenColor?: string) {
+    let memento = await this.store.getGame(gameId); 
+    let game = from_memento(memento);
+    let round = game.getCurrentRound()
+    if(round){
+      round.play(cardId,chosenColor as Colors)
+    }
 
+    return from_memento(await this.store.updateGame(to_memento(game)));
+  }
+
+    async challangeDrawFor(gameId: number) {
+    const memento = await this.store.getGame(gameId); 
+    const game = from_memento(memento);
+    const round = game.getCurrentRound()
+    //add check in gui if its players turn
+    if(round){
+      round.challengeWildDrawFour(true);//i need to pass it from mutation
+    }
+  
+    return await this.store.updateGame(game.createMementoFromGame());
+  }
 }
-
-

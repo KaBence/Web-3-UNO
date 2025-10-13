@@ -18,11 +18,11 @@ export class GameAPI {
   }
 
   async getPendingGames(): Promise<Game[]> {
-    return this.server.all_pending_games();
+    return await this.server.all_pending_games();
   }
 
   async getActiveGames(): Promise<Game[]> {
-    return this.server.all_active_games();
+    return await this.server.all_active_games();
   }
 
   /** Add a player to a pending game */
@@ -62,7 +62,10 @@ async deleteGame(gameId: number): Promise<boolean> {
 
 
   /** Handle playing a card */
-  async playCard(gameId: string, cardId: number, chosenColor?: string): Promise<Game> {
+  async playCard(gameId: number, cardId: number, chosenColor?: string): Promise<Game> {
+    const game = await this.server.play(gameId,cardId,chosenColor)
+    this.broadcast(game)
+    return game;
    
    //  game.roundFinished();
     throw new Error("Method not implemented.");
@@ -112,9 +115,11 @@ async deleteGame(gameId: number): Promise<boolean> {
 
   }
 
-  async challengeDraw4(gameId: string): Promise<Game> {
-
-    throw new Error("Method not implemented.");
+  async challengeDraw4(gameId: number): Promise<Game> {
+    const memento = await this.server.challangeDrawFor(gameId);
+    const game = from_memento(memento);
+    this.broadcast(game);
+    return game
   }
 
   async broadcast(game: Game): Promise<void> {

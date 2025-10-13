@@ -3,8 +3,7 @@ import { Game } from "Domain/src/model/Game";
 
 
 export function from_memento(m: GameMemento): Game {
-  let game = new Game(m.getId());
-  game.createGameFromMemento(m);
+  let game = new Game(m.getId(), m);
   return game;
 }
 

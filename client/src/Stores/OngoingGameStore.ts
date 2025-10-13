@@ -10,12 +10,12 @@ export const useActiveGameStore = defineStore("activeGames", () => {
   const getGame = (id: number) => computed(() => gameList.find(g => g.id === id))
 
 
-  const update = (game: GameSpecs) => {
-    const index = gameList.findIndex(g => g.id === game.id)
-    if (index > -1) {
-      gameList[index] = game
-      return game
-    }
+   const update = (game: GameSpecs) => {
+      const index = gameList.findIndex(g => g.id === game.id)
+      if (index > -1) {
+        gameList[index] = game
+        return game
+      }
   }
 
   const upsert = (game: GameSpecs) => {

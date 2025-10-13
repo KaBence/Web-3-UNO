@@ -24,7 +24,22 @@ export class Round {
   private topCard:Card;
   private drawDeckSize:number
 
-  constructor(players: Player[], dealer: number) {
+  constructor(players: Player[], dealer: number, memento?:RoundMemento) {
+    if (memento) {
+      this.players = []
+      for (let playerMem of memento.getPlayers()) {
+        this.players.push(new Player(playerMem.getId(),playerMem.getName(),playerMem))
+      }
+      this.currentDirection = memento.getCurrentDirection();
+      this.currentPlayer = memento.getCurrentPlayer();
+      this.drawPile = new DrawDeck(memento.getDrawPile().getCards())
+      this.discardPile = new DiscardDeck(memento.getDiscardPile().getCards())
+      this.topCard = this.discardPile.peek()
+      this.drawDeckSize = memento.getDrawDeckSize()
+      this.statusMessage = "Round Restored"
+      return;
+    }
+    
     this.players = players;
     this.currentDirection = Direction.Clockwise;
     this.currentPlayer = this.players.length === 0 ? -1 : ((dealer + 1) % this.players.length) + 1; //should be next player after dealer
@@ -37,11 +52,9 @@ export class Round {
     }
     this.discardPile = new DiscardDeck([this.drawPile.deal()!]);
     this.topCard = this.discardPile.peek()
-    if (dealer>-1) {
-      this.handleStartRound();
-    }
+    this.handleStartRound();
     this.statusMessage = "Round Created"
-    this.drawDeckSize =this.drawPile.getCards().length
+    this.drawDeckSize = this.drawPile.getCards().length
   }
   //Getters and Setters
 
@@ -282,7 +295,7 @@ export class Round {
     if (this.getCurrentDirection() === Direction.Clockwise) 
       index = (this.players.findIndex((p) => p.getID() === this.currentPlayer) + 1) % this.players.length;
     else 
-      index = (this.players.findIndex((p) => p.getID() === this.currentPlayer) - 1) % this.players.length;
+      index = (this.players.findIndex((p) => p.getID() === this.currentPlayer) - 1 + this.players.length) % this.players.length;
 
     return this.players[index].getID();
   }
@@ -290,7 +303,7 @@ export class Round {
   getPreviousPlayer(): PlayerNames {
     let index = 0;
     if (this.getCurrentDirection() === Direction.Clockwise) {
-      index =(this.players.findIndex((p) => p.getID() === this.currentPlayer) - 1) % this.players.length;
+      index =(this.players.findIndex((p) => p.getID() === this.currentPlayer) - 1 + this.players.length) % this.players.length;
     } else {
       index = (this.players.findIndex((p) => p.getID() === this.currentPlayer) + 1) % this.players.length;
     }
@@ -355,19 +368,6 @@ export class Round {
 
   setWildColor(color:Colors) : void{
     this.discardPile.addCard(CreateSpecialColoredCard(Type.Dummy, color))
-  }
-
-   createRoundFromMememto(memento:RoundMemento):void{
-    for (let player of memento.getPlayers()){
-      let p = this.getSpecificPlayer(player.getId())
-      p.createPlayerFromMemento(player)
-    }
-    this.currentDirection = memento.getCurrentDirection();
-    this.currentPlayer = memento.getCurrentPlayer();
-    this.drawPile.createDeckFromMemento(memento.getDrawPile());
-    this.discardPile.createDeckFromMemento(memento.getDiscardPile())
-    this.topCard = this.currentCard()
-    this.drawDeckSize = memento.getDrawDeckSize()
   }
 
   createMementoFromRound():RoundMemento{

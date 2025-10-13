@@ -17,7 +17,22 @@ export class Game {
   // private isActive:boolean
   private winner?: PlayerNames;
 
-  constructor(id: number) {
+  constructor(id: number, memento?: GameMemento) {
+    if (memento) {
+      const players: Player[] = []
+      for (let playerMem of memento.getPlayers()) {
+        players.push(new Player(playerMem.getId(), playerMem.getName(), playerMem))
+      }
+      if (memento.getCurrentRound()) {
+        this.currentRound = new Round(players, memento.getDealer(), memento.getCurrentRound())
+      }
+      this.scores = memento.getScores();
+      this.dealer = memento.getDealer();
+      this.players = players
+      this.id = memento.getId()
+      return
+    }
+
     this.players = [];
     this.scores = {} as Record<PlayerNames, number>;
     this.id = id;
@@ -158,29 +173,17 @@ export class Game {
     this.scores[playerId] += points;
   }
 
-  public createGameFromMemento(memento: GameMemento): void {
-    const players:Player[] = []
-    for(let player of memento.getPlayers()){
-      let p = new Player(player.getId(),player.getName());
-      p.getHand().createHandFromMemento(player.getHand())
-      p.setUno(player.getUnoCalled())
-      players.push(p)
-    }
-    this.scores = memento.getScores();
-    if(memento.getCurrentRound()){
-      let round = new Round(players,memento.getDealer())
-      round.createRoundFromMememto(memento.getCurrentRound()!)
-      this.currentRound = round
-    }
-    this.dealer = memento.getDealer();
-    this.players = players
-  }
- 
-
   public createMementoFromGame(): GameMemento {
     let playerMementos: PlayerMemento[] = [];
-    for (let player of this.players){
-      playerMementos.push(player.createMementoFromPlayer())
+    if (this.currentRound) {
+      for (let player of this.currentRound.getPlayers()) {
+        playerMementos.push(player.createMementoFromPlayer())
+      }
+    }
+    else {
+      for (let player of this.players) {
+        playerMementos.push(player.createMementoFromPlayer())
+      }
     }
     
     return new GameMemento(

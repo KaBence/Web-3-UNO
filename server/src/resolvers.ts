@@ -39,7 +39,7 @@ export class Resolvers {
     },
     playCard: async (
       _: any,
-      { gameId, cardId, chosenColor }: { gameId: string; cardId: number; chosenColor: string }
+      { gameId, cardId, chosenColor }: { gameId: number; cardId: number; chosenColor: string }
     ) => {
       return this.api.playCard(gameId, cardId, chosenColor);
     },
@@ -55,7 +55,7 @@ export class Resolvers {
     ) => {
       return this.api.accuseUno(gameId, accuser, accused);
     },
-    challengeDraw4: async (_: any, { gameId }: { gameId: string }) => {
+    challengeDraw4: async (_: any, { gameId }: { gameId: number }) => {
       return this.api.challengeDraw4(gameId);
     },
     deleteGame: async (_: any, { gameId }: { gameId: number }) => {
