@@ -72,10 +72,10 @@ async function drawCard() {
 }
 
 async function playCard(cardId:number) {
-  console.log(player.loggedInPlayer+" -> "+ game.value?.currentRound?.currentPlayer)
-  if (player.loggedInPlayer === game.value?.currentRound?.currentPlayer) {
+  console.log(player.playerGameId+" -> "+ game.value?.currentRound?.currentPlayer)
+  if (player.playerGameId === game.value?.currentRound?.currentPlayer) {
     let color = undefined;
-    if (game.value?.currentRound?.players[player.loggedInPlayer - 1].hand.cards[cardId].type === Type.Wild) {
+    if (game.value?.currentRound?.players[player.playerGameId - 1].hand.cards[cardId].type === Type.Wild) {
       await popupsStore.openPopup(Popups.ColorChange);
       color = popupsStore.colorSelected
       await api.play(gameId, cardId, color);
