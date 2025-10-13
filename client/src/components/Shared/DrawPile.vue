@@ -1,9 +1,9 @@
 <template>
   <div class="pile" @click="$emit('draw')">
-    <div v-if="props.cardsLeft > 0" class="card-back">
+    <div v-if="cardsLeft > 0" class="card-back">
       <div class="uno-oval"></div>
       <div class="uno-text">UNO</div>
-      <span class="count">{{ props.cardsLeft }}</span>
+      <span class="count">{{ cardsLeft }}</span>
     </div>
     <div v-else class="empty-text">Empty</div>
   </div>
@@ -12,7 +12,7 @@
 <script setup lang="ts">
 import { computed } from "vue"
 
-const props = defineProps<{ cardsLeft: number }>()
+defineProps<{ cardsLeft: number }>()
 defineEmits(['draw']);
 
 </script>

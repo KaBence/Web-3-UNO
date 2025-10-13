@@ -17,27 +17,26 @@ import type { RefSymbol } from '@vue/reactivity';
 import { Type } from 'Domain/src/model/Card';
 import { usePopupStore, Popups } from "@/Stores/PopupStore"
 
-
+const ongoingGameStore = useActiveGameStore()
+const popupsStore = usePopupStore()
+const playerStore = usePlayerStore()
 
 const route = useRoute();
 const queryGameId = route.query.id
 let gameId: number = -1;
+
 if (typeof queryGameId === "string") {
   gameId = parseInt(queryGameId)
 }
 else {
   alert("Invalid gameID is used")
 }
-const ongoingGameStore = useActiveGameStore()
-const popupsStore = usePopupStore()
-const playerStore = usePlayerStore()
-
-const player = usePlayerStore()
 
 const game = ongoingGameStore.getGame(gameId)
 
 const currentGameId = computed(() => game?.value?.id);
 const currentPlayerId = computed(() => game?.value?.currentRound?.currentPlayer);
+const statusMessage = computed(() => game.value?.currentRound?.statusMessage ?? "")
 const loggedInPlayer = computed(()=> game.value?.currentRound?.players.find(p=> p.name===playerStore.player))
 
 
@@ -91,7 +90,7 @@ async function playCard(cardId:number) {
 
 <template>
   <GameStatus />
-  <StatusBar />
+  <StatusBar :message="statusMessage"/>
   <PlayersBar @accuse-uno="onAccuseUno" />
   <Decks @say-uno="onSayUno" @draw="drawCard" @play="playCard"/>
   <ChallengeDrawFourPopup />

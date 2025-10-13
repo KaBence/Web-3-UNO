@@ -1,22 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 
-// Define an enum for status messages
-enum StatusMessages {
-    Skipped = "{0} is skipped!",
-    PointsFromPlayer = "{0} to {1}!",
-    Reverse = "Direction Reversed!",
-    WildColorChange = "Color Changed to {0}",
-    Won = "You won!",
-    Lost = "You lost! {0} won...",
-}
-
-// Function to format messages dynamically
-function formatMessage(template: string, ...args: any[]): string {
-    return template.replace(/{(\d+)}/g, (match, index) => args[index] || '');
-}
-
-const message = ref(formatMessage(StatusMessages.Reverse));
+defineProps<{ message: string }>()
 
 // Example data
 const isYourTurn = ref(true);
@@ -28,7 +13,7 @@ const arrowAngle = ref(180);
     <div class="status-bar">
         <div class="message" v-if="message">{{ message }}</div>
         <div>
-            <img src="../../../public/arrow.ico" alt="Kierunek gry" :style="{ transform: `rotate(${arrowAngle}deg)` }"
+            <img src="../../../public/arrow.ico" alt="" :style="{ transform: `rotate(${arrowAngle}deg)` }"
                 class="arrow" />
         </div>
         <div class="turn-indicator" :class="{ active: isYourTurn }">
