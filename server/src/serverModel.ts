@@ -108,10 +108,7 @@ export class ServerModel {
     const memento = await this.store.getPendingGame(id)
     const game = from_memento(memento)
     this.store.deletePendingGame(id);
-    ///////////////////////////////////////////////
-    game.addPlayer("asd")
-    game.addPlayer("Hello")
-    //////////////////////////////////////////////
+   
     game.createRound()
 
     return await this.store.addGame(to_memento(game));
