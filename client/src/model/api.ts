@@ -201,6 +201,19 @@ export async function getActiveGames() {
     throw error;
   }
 }
+export async function deleteGame(gameId: number) {
+  const mutation = gql`
+    mutation DeleteGame($gameId: Int!) {
+      deleteGame(gameId: $gameId)
+    }
+  `;
+  const { data } = await apolloClient.mutate({
+    mutation,
+    variables: { gameId },
+    fetchPolicy: "network-only",
+  });
+  return data.deleteGame;
+}
 
 export async function startRound(gameId: number) {
   const mutation = gql`
@@ -244,6 +257,7 @@ export async function startRound(gameId: number) {
           currentPlayer
           currentDirection
           drawDeckSize
+          winner
         }
       }
     }

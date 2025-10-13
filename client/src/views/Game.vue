@@ -68,7 +68,7 @@ async function drawCard() {
 </script>
 
 <template>
-  <GameStatus />
+  <GameStatus :gameId="gameId" />
   <StatusBar />
   <PlayersBar @accuse-uno="onAccuseUno" />
   <Decks @say-uno="onSayUno" @draw="drawCard"/>

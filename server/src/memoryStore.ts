@@ -11,6 +11,16 @@ export class MemoryStore implements GameStore {
     this.activeGames = [];
     this.pendingGames = [];
   }
+
+
+  async deleteActiveGame(id: number): Promise<boolean> {
+  const index = this.activeGames.findIndex((g) => g.getId() === id);
+  if (index === -1) return false;
+  this.activeGames.splice(index, 1);
+  return true;
+}
+
+
   
   async getActiveGames(): Promise<GameMemento[]> {
     return [...this.activeGames];

@@ -180,6 +180,7 @@ export class Round {
       const winner = this.winner();
       if (winner) {
         this.roundWinner = winner.getID();
+     
         return;
       }
     }

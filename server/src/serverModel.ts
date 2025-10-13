@@ -22,6 +22,8 @@ export interface GameStore {
   addPendingGame(game: GameMemento): Promise<GameMemento>;
   deletePendingGame(id: number): Promise<void>;
   updatePendingGame(pending: GameMemento): Promise<GameMemento>;
+  deleteActiveGame(id: number): Promise<boolean>;
+
 }
 
 export class ServerModel {
@@ -111,6 +113,16 @@ export class ServerModel {
 
     return this.store.addGame(game.createMementoFromGame());
   }
+  
+  async deleteGame(id: number): Promise<boolean> {
+    try {
+      await this.store.deleteActiveGame(id);
+      return true;
+    } catch (err) {
+      return false;
+    }
+  }
+
 
   async drawCard(gameId: number): Promise<GameMemento> {
     const memento = await this.store.getGame(gameId)
@@ -120,6 +132,9 @@ export class ServerModel {
 
     return await this.store.updateGame(game.createMementoFromGame())
   }
+
+  // in play this should be called after every card played
+  //  game.roundFinished();
 
 }
 

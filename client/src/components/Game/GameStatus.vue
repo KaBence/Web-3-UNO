@@ -1,34 +1,49 @@
 <script setup lang="ts">
-import { ref, computed , onMounted} from 'vue';
-const players = ref([
-    { name: 'Ben', score: 12 },
-    { name: 'Anna', score: 50 },
-]);
+import { ref, computed , onMounted, watch} from 'vue';
+import { useActiveGameStore } from "@/Stores/OngoingGameStore";
+import * as api from "@/model/api";
+import { useRouter } from "vue-router";
 
-const rounds = ref([
-    { winner: "Ben", points: 12 },
-    { winner: "Anna", points: 50 }
-])
+
+const props = defineProps<{ gameId: number }>();
+const ongoingGameStore = useActiveGameStore();
+const game = ongoingGameStore.getGame(props.gameId);
+
+const players = ref<{ name: string; score: number }[]>([]);
+const rounds = ref<{ winner: string; points: number }[]>([]);
+const roundgoing = ref(true);
+const gameWinner = computed(() => game.value?.winner ?? null);
+
+const router = useRouter();
+
+const winner = computed(() => game.value?.currentRound?.winner ?? null);
+const roundEnded = computed(() => !!winner.value); // double bang to convert to boolean
+const gameWinnerName = computed(() => {
+  const winnerId = gameWinner.value;
+  if (!winnerId) return null;
+
+  // Find the actual player's display name
+  const playerName = game.value?.players.find(
+    (p) => String(p.playername) === winnerId
+
+  )?.name;
+
+  return playerName ?? String(winnerId);
+});
 
 const sortedPlayers = computed(() =>
     [...players.value].sort((a, b) => b.score - a.score)
 );
 
-function playAgain() {
-    console.log('Play Again clicked!');
-}
-
-const roundgoing = ref(false);
-
 
 // Timer logic
-const timer = ref(10); // Start with 10 seconds
+const timer = ref(20); // Start with 10 seconds
 const isCritical = ref(false); // Tracks if the timer is in the critical state
 
 function startTimer() {
     const interval = setInterval(() => {
         timer.value--;
-        if (timer.value <= 5) {
+        if (timer.value <= 8) {
             isCritical.value = true; // Change to critical state after 5 seconds
         }
         if (timer.value <= 0) {
@@ -37,9 +52,82 @@ function startTimer() {
     }, 1000); // Decrease timer every second
 }
 
+watch(winner, (newWinner, oldWinner) => {
+  if (!newWinner || newWinner === oldWinner) return;
+
+  //  Resolve human-readable player name
+  const playerName = String(
+    game.value?.currentRound?.players.find(
+      (p) => p.playername === newWinner
+    )?.name ?? newWinner
+  );
+
+  //  Safely extract numeric score (handles objects / strings)
+  const rawPoints = game.value?.scores?.[newWinner];
+  const points =
+    typeof rawPoints === "number"
+      ? rawPoints
+      : typeof rawPoints === "object" && "valueOf" in rawPoints
+      ? rawPoints.valueOf()
+      : Number(rawPoints) || 0;
+
+  // Prevent duplicates (in case of repeated broadcasts)
+  const alreadyLogged = rounds.value.some(
+    (r) => r.winner === playerName && r.points === points
+  );
+  if (!alreadyLogged) {
+    rounds.value.push({ winner: playerName, points });
+  }
+
+  //  Update scoreboard safely
+  let player = players.value.find((p) => p.name === playerName);
+  if (!player) {
+    players.value.push({ name: playerName, score: points });
+  } else {
+    player.score = Number(player.score) + Number(points);
+  }
+
+  //  Mark round as finished
+  roundgoing.value = false;
+
+  console.log(`🏆 Round ended! Winner: ${playerName}, +${points} points`);
+});
+
+// do we want to do it manually or automatically?
+
+async function playAgain() {
+  if (!game.value) return;
+  try {
+    console.log("Starting new round...");
+
+    await api.startRound(game.value.id);
+
+    roundgoing.value = true;
+    startTimer();
+  } catch (err) {
+    console.error("Failed to start new round:", err);
+  }
+}
+
+
+async function playAgainAfterGame() {
+  if (!game.value) return;
+  try {
+    await api.deleteGame(game.value.id);   // add this mutation in api.ts if you don’t have it yet
+    router.push("/lobby");
+  } catch (err) {
+    console.error("Failed to delete game:", err);
+  }
+}
+
 onMounted(() => {
     startTimer(); // Start the timer when the component is mounted
 });
+
+
+
+
+
 </script>
 
 <template>
@@ -48,16 +136,26 @@ onMounted(() => {
             Time Left: {{ timer }}s
         </div>
         <div class="empty"></div>
+       <!-- ROUND HISTORY -->
         <div class="Rounds">
-            <h1>Round History</h1>
-            <div class="round-List">
-                <div v-for="(round, index) in rounds" :key="index" class="player">
-                    <span class="rank">Round {{ index + 1 }}: </span>
-                    <span class="name">{{ round.winner }}</span>
-                    <span class="score">{{ round.points }} Points</span>
-                </div>
+          <h1>Round History</h1>
+          <div class="round-List">
+            <div
+              v-for="(round, index) in rounds"
+              :key="index"
+              class="player"
+              :class="{ current: index === rounds.length - 1 && roundgoing }"
+            >
+              <span class="rank">
+                Round {{ index + 1 }}
+                <span v-if="index === rounds.length - 1 && roundgoing"> (Current)</span>:
+              </span>
+              <span class="name">{{ round.winner }}</span>
+              <span class="score">{{ round.points }} Points</span>
             </div>
+          </div>
         </div>
+
         <div class="empty"></div>
         <h1>Scoreboard</h1>
         <div class="player-list">
@@ -67,7 +165,22 @@ onMounted(() => {
                 <span class="score">{{ player.score }}</span>
             </div>
         </div>
-        <button class="play-again" @click="playAgain" :class="{hidden: roundgoing}">Start new Round</button>
+          <!-- WINNER DISPLAY -->
+    <div v-if="roundEnded" class="winner-banner">
+      🏆  Round Winner: {{ winner }} 🏆
+    </div>
+      <button
+          class="play-again"
+          @click="playAgain"
+          :disabled="!roundEnded">
+          Start new Round
+      </button>
+      <button
+        v-if="gameWinner"
+        class="play-again-final"
+        @click="playAgainAfterGame"> {{ gameWinnerName }} won! Play Again
+      </button>
+
     </div>
 </template>
 
@@ -108,6 +221,14 @@ h1 {
     border-radius: 5px;
     margin-bottom: 10px;
 }
+.player.current {
+  background-color: #4caf50; /* Green highlight */
+  color: white;
+  font-weight: bold;
+  border: 2px solid #81c784; /* Softer green border */
+  transform: scale(1.02);
+  transition: all 0.2s ease-in-out;
+}
 
 .rank {
     font-weight: bold;
@@ -132,13 +253,13 @@ h1 {
     cursor: pointer;
 }
 
-.play-again.hidden{
-    opacity: 0;
-    pointer-events: none;
+.play-again:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
-.play-again:hover {
-    background-color: #0056b3;
+.play-again:hover:enabled {
+  background-color: #0056b3;
 }
 
 .timer {
@@ -171,5 +292,14 @@ h1 {
         transform: scale(1);
         opacity: 1;
     }
+}
+.winner-banner {
+  margin-top: 10px;
+  padding: 10px;
+  border: 2px solid gold;
+  border-radius: 8px;
+  background-color: #333;
+  color: gold;
+  font-weight: bold;
 }
 </style>

@@ -5,6 +5,7 @@ import { from_memento, to_memento } from "./memento";
 
 export interface Broadcaster {
   send: (message: Game) => Promise<void>
+  sendAll?: (activeGames: Game[], pendingGames: Game[]) => Promise<void>
 }
 
 export class GameAPI {
@@ -45,9 +46,28 @@ export class GameAPI {
     return game
   }
 
+async deleteGame(gameId: number): Promise<boolean> {
+  const deleted = await this.server.deleteGame(gameId);
+
+  if (deleted) {
+    const active = await this.getActiveGames();
+    const pending = await this.getPendingGames();
+
+    // ✅ Optional chaining avoids TypeScript errors if sendAll is undefined
+    await this.broadcaster.sendAll?.(active, pending);
+  }
+
+  return deleted;
+}
+
+
   /** Handle playing a card */
   async playCard(gameId: string, cardId: number, chosenColor?: string): Promise<Game> {
+   
+   //  game.roundFinished();
     throw new Error("Method not implemented.");
+  
+
 
   }
 

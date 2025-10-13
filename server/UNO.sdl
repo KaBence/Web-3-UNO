@@ -29,6 +29,7 @@ type Game {
     scores: JSON
     dealer: Int!
     id: Int!
+    winner: Int
 }
 
 type Hand{
@@ -50,9 +51,11 @@ type Mutation {
     unoCall(gameId: Int!, playerId: Int!): Game!
     accuseUno(gameId: Int!, accuser: Int!, accused:Int!): Game!
     challengeDraw4(gameId: Int!): Game!
+    deleteGame(gameId: Int!): Boolean
 }
 
 type Subscription {
   active: Game,
   pending: Game
+  
 }

@@ -58,6 +58,10 @@ export class Resolvers {
     challengeDraw4: async (_: any, { gameId }: { gameId: string }) => {
       return this.api.challengeDraw4(gameId);
     },
+    deleteGame: async (_: any, { gameId }: { gameId: number }) => {
+    return await this.api.deleteGame(gameId);
+    },
+
   };
 
   Subscription = {

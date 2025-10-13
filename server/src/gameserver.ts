@@ -30,6 +30,12 @@ async function startServer(store: GameStore) {
         pubsub.publish("ACTIVE_UPDATED", { active: game });
       }
     },
+    async sendAll(activeGames: Game[], pendingGames: Game[]) {
+      await pubsub.publish("ACTIVE_UPDATED", { active: activeGames });
+      await pubsub.publish("PENDING_UPDATED", { pending: pendingGames });
+      console.log("📡 Broadcasted all active and pending games");
+    },
+
   };
   const api = new GameAPI(broadcaster, store);
 

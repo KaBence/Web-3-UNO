@@ -127,7 +127,7 @@ export class Game {
       this.setWinner();
       if(!this.winner)
       {
-        this.createRound()
+     ///????   this.createRound()
       }
 
     }
@@ -175,19 +175,21 @@ export class Game {
     this.dealer = memento.getDealer();
     this.players = players
   }
+ 
 
   public createMementoFromGame(): GameMemento {
     let playerMementos: PlayerMemento[] = [];
     for (let player of this.players){
       playerMementos.push(player.createMementoFromPlayer())
     }
-
+    
     return new GameMemento(
       this.id,
       this.scores,
       this.dealer,
       playerMementos,
-      this.currentRound ? this.currentRound.createMementoFromRound() : undefined
+      this.currentRound ? this.currentRound.createMementoFromRound() : undefined,
+      this.winner,
     );
   }
 }
