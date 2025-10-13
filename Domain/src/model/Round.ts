@@ -34,7 +34,7 @@ export class Round {
       this.currentPlayer = memento.getCurrentPlayer();
       this.drawPile = new DrawDeck(memento.getDrawPile().getCards())
       this.discardPile = new DiscardDeck(memento.getDiscardPile().getCards())
-      this.topCard = this.currentCard()
+      this.topCard = this.discardPile.peek()
       this.drawDeckSize = memento.getDrawDeckSize()
       this.statusMessage = "Round Restored"
       return;
