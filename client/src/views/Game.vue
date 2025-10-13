@@ -11,8 +11,11 @@ import ChallengeResultPopup from '@/components/Game/Popups/ChallengeResultPopup.
 import { computed } from "vue";
 import * as api from "@/model/api";
 import { useActiveGameStore } from "../Stores/OngoingGameStore";
+import {usePlayerStore} from "@/Stores/PlayerStore"
 import { useRoute } from "vue-router";
 import type { RefSymbol } from '@vue/reactivity';
+import { Type } from 'Domain/src/model/Card';
+import { usePopupStore, Popups } from "@/Stores/PopupStore"
 
 
 
@@ -26,6 +29,9 @@ else {
   alert("Invalid gameID is used")
 }
 const ongoingGameStore = useActiveGameStore()
+const popupsStore = usePopupStore()
+
+const player = usePlayerStore()
 
 const game = ongoingGameStore.getGame(gameId)
 
@@ -65,13 +71,27 @@ async function drawCard() {
   await api.drawCard(gameId)
 }
 
+async function playCard(cardId:number) {
+  console.log(player.loggedInPlayer+" -> "+ game.value?.currentRound?.currentPlayer)
+  if (player.loggedInPlayer === game.value?.currentRound?.currentPlayer) {
+    let color = undefined;
+    if (game.value?.currentRound?.players[player.loggedInPlayer - 1].hand.cards[cardId].type === Type.Wild) {
+      await popupsStore.openPopup(Popups.ColorChange);
+      color = popupsStore.colorSelected
+      await api.play(gameId, cardId, color);
+    } else {
+      await api.play(gameId, cardId);
+    }
+  }
+}
+
 </script>
 
 <template>
   <GameStatus />
   <StatusBar />
   <PlayersBar @accuse-uno="onAccuseUno" />
-  <Decks @say-uno="onSayUno" @draw="drawCard"/>
+  <Decks @say-uno="onSayUno" @draw="drawCard" @play="playCard"/>
   <ChallengeDrawFourPopup />
   <ChallengeResultPopup />
   <ChooseColorPopup />
