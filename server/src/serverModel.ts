@@ -123,18 +123,10 @@ export class ServerModel {
     return await this.store.updateGame(game.createMementoFromGame())
   }
 
-  mockPlay(game:Game){
-    game.addPlayer("test")
-    console.log("Player added mock: "+game.getPlayer(1).getName())
-    //game.createRound()
-  }
-
-  //0 idea if this is fine since games are not implemented and pending games doesnt have round to check the logic
   async play(gameId: number, cardId: number, chosenColor?: string) {
     let memento = await this.store.getGame(gameId); 
     let game = from_memento(memento);
     let round = game.getCurrentRound()
-    //add check in gui if its players turn
     if(round){
       round.play(cardId,chosenColor as Colors)
     }
@@ -148,7 +140,7 @@ export class ServerModel {
     const round = game.getCurrentRound()
     //add check in gui if its players turn
     if(round){
-      round.challengeWildDrawFour(true);
+      round.challengeWildDrawFour(true);//i need to pass it from mutation
     }
   
     return await this.store.updateGame(game.createMementoFromGame());
