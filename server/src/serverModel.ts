@@ -4,6 +4,9 @@ import { Game } from "domain/src/model/Game";
 import { from_memento, to_memento } from "./memento";
 import { Colors } from "Domain/src/model/Card";
 
+import { PlayerNames } from "domain/src/model/Player";
+import { PlayerMemento } from "Domain/src/model/PlayerMemento";
+import { HandMemento } from "Domain/src/model/HandMemento";
 
 
 
@@ -145,4 +148,41 @@ export class ServerModel {
   
     return await this.store.updateGame(game.createMementoFromGame());
   }
+
+ 
+
+  // add a player to a pending game
+  async addPlayer(gameId: number, playerName: string): Promise<GameMemento> {
+    const memento = await this.store.getPendingGame(gameId)
+    const game = from_memento(memento)
+
+      // duplicate name check  
+      const nameTaken = game.getPlayers().some(p => p.getName() === playerName);
+        if (nameTaken) {
+          return Promise.reject(new Error("Player already in game"));
+        }
+        game.addPlayer(playerName)
+        
+      
+      return this.store.updatePendingGame(game.createMementoFromGame());
+  
+  }
+
+  async removePlayer(gameId: number, playerName: number): Promise<GameMemento> {
+    const memento = await this.store.getPendingGame(gameId)
+    const game = from_memento(memento)
+    
+      const player = game.getPlayers().find(p => p.getID() === playerName as PlayerNames);
+      if(!player) // if player is not in the game
+      {
+        return Promise.reject(new Error("Player cannot leave a game, which he is not a part of"))
+      }
+      
+      const playerId: PlayerNames = player.getID();
+      game.removePlayer(playerName)
+
+      return this.store.updatePendingGame(game.createMementoFromGame());
+  }
 }
+
+
