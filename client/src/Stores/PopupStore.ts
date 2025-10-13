@@ -1,12 +1,11 @@
 import { defineStore } from "pinia";
-import {Colors} from "Domain/src/model/Card"
-
+import { Colors } from "Domain/src/model/Card";
 
 export enum Popups {
-    Challenge = "Challenge",
-    ChallengeResult = "ChallengeResult",
-    ColorChange = "ColorChange",
-    Play = "Play",
+  Challenge = "Challenge",
+  ChallengeResult = "ChallengeResult",
+  ColorChange = "ColorChange",
+  Play = "Play",
 }
 
 export const usePopupStore = defineStore("popup", {
@@ -16,82 +15,87 @@ export const usePopupStore = defineStore("popup", {
     showChangeColor: false,
     showPlay: false,
 
-    challengeResult: false
+    challengeResult: false,
+    colorSelected: '',
 
+    _popupResolve: null as null | (() => void),
   }),
+
   actions: {
-    closePopup(popup:Popups){
-        switch (popup) {
-            case Popups.Challenge:
-                this.showChallenge = false;
-                break;
+    openPopup(popup: Popups) {
+      switch (popup) {
+        case Popups.Challenge:
+          this.showChallenge = true;
+          break;
+        case Popups.ChallengeResult:
+          this.showChallengeResult = true;
+          break;
+        case Popups.ColorChange:
+          this.showChangeColor = true;
+          break;
+        case Popups.Play:
+          this.showPlay = true;
+          break;
+      }
 
-            case Popups.ChallengeResult:
-                this.showChallengeResult = false;
-                break;
+      return new Promise<void>((resolve) => {
+        this._popupResolve = resolve;
+      });
+    },
 
-            case Popups.ColorChange:
-                this.showChangeColor = false;
-                break;
+    closePopup(popup: Popups) {
+      switch (popup) {
+        case Popups.Challenge:
+          this.showChallenge = false;
+          break;
+        case Popups.ChallengeResult:
+          this.showChallengeResult = false;
+          break;
+        case Popups.ColorChange:
+          this.showChangeColor = false;
+          break;
+        case Popups.Play:
+          this.showPlay = false;
+          break;
+      }
 
-            case Popups.Play:
-                this.showPlay = false;
-                break;
-            default:
-                break;
-        }
+      if (this._popupResolve) {
+        this._popupResolve();
+        this._popupResolve = null;
+      }
     },
 
     handleChallengeTrue() {
-      console.log("Challenged"); 
+      console.log("Challenged");
       this.closePopup(Popups.Challenge);
       this.showChallengeResult = true;
-      this.handleChallengeResult()
+      this.handleChallengeResult();
     },
 
     handleChallengeFalse() {
       console.log("Not challenged");
       this.closePopup(Popups.Challenge);
-      this.handleChallengeResult()
+      this.handleChallengeResult();
     },
 
     handleChallengeResult() {
-      console.log("ChallengResult"); 
-      this.challengeResult = true //i guess we should away the challengeWildDrawFour() from Round
+      console.log("ChallengeResult");
+      this.challengeResult = true;
     },
 
-    handleChooseColor(color:Colors) { //not sure how we are going to handle it if we need switch or just pass the color
-        switch (color) {
-            case Colors.Red:
-                console.log("Red"); 
-                break;
-        
-            case Colors.Blue:
-                console.log("Blue"); 
-                break;
-
-            case Colors.Yellow:
-                console.log("Yellow"); 
-                break;
-        
-            case Colors.Green:
-                console.log("Green"); 
-                break;
-        
-            default:
-                break;
-        }
-        this.closePopup(Popups.ColorChange)
+    handleChooseColor(color: Colors) {
+      this.colorSelected = color.toString();
+      this.closePopup(Popups.ColorChange);
     },
 
     handlePlay() {
-        console.log("Play")
-        this.closePopup(Popups.Play)
+      console.log("Play");
+      this.closePopup(Popups.Play);
     },
 
     handleDraw() {
-        console.log("Draw")
-        this.closePopup(Popups.Play)
-    }
-  }
+      console.log("Draw");
+      this.closePopup(Popups.Play);
+    },
+  },
 });

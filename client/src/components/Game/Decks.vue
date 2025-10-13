@@ -31,7 +31,7 @@ import { useRoute } from "vue-router";
 import UnoButton from "../Shared/UnoButton.vue"
 import { useActiveGameStore } from "@/Stores/OngoingGameStore"
 import DrawPile from "@/components/Shared/DrawPile.vue"
-import DiscardPile from "@/components/Shared/DIscardPile.vue";
+import DiscardPile from "@/components/Shared/DiscardPile.vue"
 import PlayerHand from "@/components/Shared/PlayerHand.vue"
 
 const route = useRoute();

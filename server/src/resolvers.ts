@@ -39,7 +39,7 @@ export class Resolvers {
     },
     playCard: async (
       _: any,
-      { gameId, cardId, chosenColor }: { gameId: string; cardId: number; chosenColor: string }
+      { gameId, cardId, chosenColor }: { gameId: number; cardId: number; chosenColor: string }
     ) => {
       return this.api.playCard(gameId, cardId, chosenColor);
     },
