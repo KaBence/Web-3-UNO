@@ -1,84 +1,120 @@
-  <template>
-    <div class="lobby-wrapper">
-      <div class="card">
-        <!-- Top bar: who you are -->
-        <div class="topbar">
-          <div class="avatar small">{{ nameFirstLetter }}</div>
-          <div class="who">
-            <div class="label">You are {{ playerName }}</div>
-            <div class="status">Online</div>
-          </div>
-        </div>
-
-
-        <div class="grid">
-          <!-- Profile block -->
-          <aside class="profile">
-            <div class="avatar large">{{ nameFirstLetter }}</div>
-            <div class="name">{{ playerName }}</div>
-            <div class="status pill">Online</div>
-          </aside>
-
-          <!-- Games list -->
-          <section class="games">
-            <h3><b>Games</b></h3>
-            <ul class="game-list">
-              <li class="game-item" v-for="g in visibleGames" :key="g.id">
-                <div class="meta">
-                  <div class="title">Game {{ g.id }}</div>
-                 <div class="sub">
-                    <span v-if="g.players!.length === 0">No players yet</span>
-                    <template v-else>
-                      <span class="player-chip" v-for="p in g.players">{{ p }}</span>
-                    </template>
-                  </div>
-                </div>
-                <div class="buttons-holder">
-                  <button class="btn-join" type="button" @click="joinGame(g.id)"
-                    v-if="hasJoinedGame.joinedGameId == null">Join</button>
-                  <button class="btn-leave" type="button" v-else-if="hasJoinedGame.joinedGameId == g.id"
-                    @click="leaveGame(g.id)">Leave</button>
-                  <button class="btn-start-game" type="button" v-if="hasJoinedGame.joinedGameId == g.id"
-                    @click="StartGame(g.id)">Start Game</button>
-                </div>
-              </li>
-            </ul>
-          </section>
-        </div>
-
-        <div class="actions">
-          <button class="btn-create" type="button" @click="createGame" v-if="hasCreatedGame == false">Create New
-            Game</button>
-          <div v-else>
-            <p class="text-players-in-lobby" style="margin-right: 12px;">Players 0/4</p>// Placeholder, add real player
-            count when implementing multiplayer
-            <button class="btn-create" type="button" @click="hasCreatedGame = false">Close Game</button>
-          </div>
+<template>
+  <div class="lobby-wrapper">
+    <div class="card">
+      <!-- Top bar: who you are -->
+      <div class="topbar">
+        <div class="avatar small">{{ nameFirstLetter }}</div>
+        <div class="who">
+          <div class="label">You are {{ playerName }}</div>
+          <div class="status">Online</div>
         </div>
       </div>
+
+      <div class="grid">
+        <!-- Profile block -->
+        <aside class="profile">
+          <div class="avatar large">{{ nameFirstLetter }}</div>
+          <div class="name">{{ playerName }}</div>
+          <div class="status pill">Online</div>
+        </aside>
+
+        <!-- Games list -->
+        <section class="games">
+          <h3><b>Games</b></h3>
+          <ul class="game-list">
+            <li class="game-item" v-for="g in visibleGames" :key="g.id">
+              <div class="meta">
+                <div class="title">Game {{ g.id }}</div>
+                <div class="sub">
+                  <span v-if="g.players.length === 0">No players yet</span>
+                  <span
+                    v-else
+                    class="player-chip"
+                    v-for="p in g.players"
+                    :key="p.playerName"
+                  >
+                    {{ p.name }}
+                  </span>
+                </div>
+              </div>
+
+              <div class="buttons-holder">
+                <button
+                  class="btn-join"
+                  type="button"
+                  v-if="hasJoinedGame.joinedGameId !== g.id"
+                  @click="joinGame(g.id)"
+                >
+                  Join
+                </button>
+
+                <button
+                  class="btn-leave"
+                  type="button"
+                  v-if="hasJoinedGame.joinedGameId === g.id"
+                  @click="leaveGame(g.id)"
+                >
+                  Leave
+                </button>
+
+                <button
+                  class="btn-start-game"
+                  type="button"
+                  v-if="hasJoinedGame.joinedGameId === g.id"
+                  @click="StartGame(g.id)"
+                >
+                  Start Game
+                </button>
+              </div>
+            </li>
+          </ul>
+        </section>
+      </div>
+
+      <div class="actions">
+        <button
+          class="btn-create"
+          type="button"
+          @click="createGame"
+          v-if="hasCreatedGame == false"
+        >
+          Create New Game
+        </button>
+      </div>
     </div>
-  </template>
+  </div>
+</template>
+
 
   <script lang="ts" setup>
   import { ref, computed } from "vue"; // For game status Used to create reactive values that automatically update when their dependencies change.
   import { useRoute, useRouter } from "vue-router";
   import { usePlayerStore } from "@/Stores/PlayerStore";
- import * as api from '../model/api'
-import { usePendingGameStore } from "@/Stores/PendingGameStore";
+  import * as api from '../model/api'
+  import { usePendingGameStore } from "@/Stores/PendingGameStore";
 
   const playerStore = usePlayerStore();
   const pendingGamesStore = usePendingGameStore()
   const router = useRouter();
   const playerName = playerStore.player ? playerStore.player : "Player";
-  let nameFirstLetter = playerName.split("")[0];
+  const nameFirstLetter = playerName[0] ?? "P";
 
   const visibleGames = pendingGamesStore.games
   const hasJoinedGame = ref({ joinedGameId: null as number | null });
   const hasCreatedGame = ref(false);
 
+
+
   //Join game logic
-  const joinGame = (id: number) => {
-    if (hasJoinedGame.value.joinedGameId === id) {
+  
+  // const joinGame = async (gameId: number) => {
+  //   await api.joinGame(gameId, playerName)
+  //   hasJoinedGame.value.joinedGameId = gameId;
+  //   console.log("Joined game successfully")
+  // };
+
+  const joinGame = async (gameId: number) => {
+    if (hasJoinedGame.value.joinedGameId === gameId) {
       hasJoinedGame.value.joinedGameId = null;
       return;
     } else if (hasJoinedGame.value.joinedGameId) {
@@ -90,22 +126,30 @@ import { usePendingGameStore } from "@/Stores/PendingGameStore";
       console.log("You created a game. Leave it first.");
       return;
     }
-
-    console.log("Joining game", id);
-    hasJoinedGame.value.joinedGameId = id;
+    await api.joinGame(gameId, playerName)
+    playerStore.update(gameId);
+    console.log("Joining game", gameId);
+    hasJoinedGame.value.joinedGameId = gameId;
   }
 
-  const leaveGame = (id: number) => {
-    console.log("Leaving game", id);
-    hasJoinedGame.value.joinedGameId = null;
+  const leaveGame = async (gameId: number) => {
+      const joinedGame = pendingGamesStore.getGame(playerStore.playerGameId);
+      const player = computed(() => joinedGame?.players.find((p) => p.name === playerStore.player));
+      const playerId = player.value?.playerName;
+    await api.leaveGame(gameId, playerId!) //here playerId
+         hasCreatedGame.value = false;
+         hasJoinedGame.value.joinedGameId = null;
+         console.log("Leaving game", gameId);
   }
 
   const createGame = async () => {
 
-    await api.createGame()
+    const newGame = await api.createGame()
+    const gameId = newGame.id;
+    await joinGame(gameId);
+    hasJoinedGame.value.joinedGameId = gameId;  
     console.log("Creating a new game");
     // Implement start game logic here
-
     hasCreatedGame.value = true
   }
 

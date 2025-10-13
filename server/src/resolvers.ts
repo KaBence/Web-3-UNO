@@ -24,15 +24,15 @@ export class Resolvers {
     },
     addPlayer: async (
       _: any,
-      { gameId, playerName }: { gameId: string; playerName: string }
+      { gameId, playerName }: { gameId: number; playerName: string }
     ) => {
       return this.api.addPlayer(gameId, playerName);
     },
     removePlayer: async (
       _: any,
-      { gameId, playerName }: { gameId: string; playerName: string }
+      { gameId, playerId }: { gameId: number; playerId: number }
     ) => {
-      return this.api.removePlayer(gameId, playerName);
+      return this.api.removePlayer(gameId, playerId);
     },
     startRound: async (_: any, { gameId }: { gameId: string }) => {
       return await this.api.startRound(parseInt(gameId));

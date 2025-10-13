@@ -545,3 +545,111 @@ export async function onPending(subscriber: (game: GameSpecs) => any) {
     },
   });
 }
+
+export async function joinGame(gameId: number, playerName: string) {
+  const mutation = gql`
+    mutation AddPlayer($gameId: Int!, $playerName: String!) {
+    addPlayer(gameId: $gameId, playerName: $playerName) {
+      currentRound {
+        currentDirection
+        currentPlayer
+        players {
+          name
+          unoCalled
+          hand {
+            cards {
+              type
+              color
+              number
+            }
+          }
+          playerName
+        }
+        statusMessage
+        topCard {
+          type
+          color
+          number
+        }
+        winner
+      }
+      dealer
+      id
+      players {
+        name
+        unoCalled
+        hand {
+          cards {
+            type
+            color
+            number
+          }
+        }
+        playerName
+      }
+      scores
+    }
+  }
+    `;
+
+    const {data} = await apolloClient.mutate({
+      mutation,
+      variables: {gameId, playerName},
+      fetchPolicy: "network-only",
+    });
+    return data.addPlayer;
+  }
+  
+export async function leaveGame(gameId: number, playerId: number) {
+  const mutation = gql`
+      mutation Mutation($gameId: Int!, $playerId: Int!) {
+      removePlayer(gameId: $gameId, playerId: $playerId) {
+        currentRound {
+          players {
+            name
+            unoCalled
+            hand {
+              cards {
+                type
+                color
+                number
+              }
+            }
+            playerName
+          }
+          drawDeckSize
+          topCard {
+            type
+            color
+            number
+          }
+          currentDirection
+          winner
+          currentPlayer
+          statusMessage
+        }
+        players {
+          name
+          unoCalled
+          hand {
+            cards {
+              type
+              color
+              number
+            }
+          }
+          playerName
+        }
+        scores
+        dealer
+        id
+      }
+    }`;
+
+    const {data} = await apolloClient.mutate({
+      mutation,
+      variables: {gameId, playerId},
+      fetchPolicy: "network-only",
+    });
+    return data.removePlayer;
+  }
