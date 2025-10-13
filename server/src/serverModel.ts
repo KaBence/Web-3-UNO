@@ -70,7 +70,7 @@ export class ServerModel {
     this.nextId++;
     const game = new Game(this.nextId);
 
-    return this.store.addPendingGame(game.createMementoFromGame());
+    return await this.store.addPendingGame(to_memento(game));
   }
 
   async sayUno(gameId: number, playerId: number): Promise<GameMemento> {
@@ -109,7 +109,7 @@ export class ServerModel {
     //////////////////////////////////////////////
     game.createRound()
 
-    return this.store.addGame(game.createMementoFromGame());
+    return await this.store.addGame(to_memento(game));
   }
 
   async drawCard(gameId: number): Promise<GameMemento> {
@@ -118,7 +118,7 @@ export class ServerModel {
     let currentPlayer = game.getCurrentRound()?.getCurrentPlayer()
     game.getCurrentRound()?.draw(1, currentPlayer?.getID()!)
 
-    return await this.store.updateGame(game.createMementoFromGame())
+    return await this.store.updateGame(to_memento(game))
   }
 
 }

@@ -17,11 +17,11 @@ export class GameAPI {
   }
 
   async getPendingGames(): Promise<Game[]> {
-    return this.server.all_pending_games();
+    return await this.server.all_pending_games();
   }
 
   async getActiveGames(): Promise<Game[]> {
-    return this.server.all_active_games();
+    return await this.server.all_active_games();
   }
 
   /** Add a player to a pending game */
