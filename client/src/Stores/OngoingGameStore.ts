@@ -10,13 +10,26 @@ export const useActiveGameStore = defineStore("activeGames", () => {
   const getGame = (id: number) => computed(() => gameList.find(g => g.id === id))
 
 
-   const update = (game: GameSpecs) => {
-      const index = gameList.findIndex(g => g.id === game.id)
-      if (index > -1) {
-        gameList[index] = game
-        return game
-      }
+const update = (game: GameSpecs) => {
+  // Always deep clone to kill shared refs
+  const cloned = structuredClone(game);
+
+  const index = gameList.findIndex(g => g.id === cloned.id);
+
+  if (index > -1) {
+    // replace the entire array reference
+    const newList = [...gameList];
+    newList.splice(index, 1, cloned);
+    // reassign to trigger full reactivity flush
+    Object.assign(gameList, newList);
+  } else {
+    gameList.push(cloned);
   }
+
+  return cloned;
+};
+
+
 
   const upsert = (game: GameSpecs) => {
     if (gameList.some(g => g.id === game.id)) {
@@ -36,6 +49,7 @@ export const useActiveGameStore = defineStore("activeGames", () => {
 
 
   return {
+    gameList,
     games,
     update,
     upsert,

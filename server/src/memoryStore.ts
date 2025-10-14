@@ -1,75 +1,51 @@
-import { GameMemento } from "Domain/src/model/GameMemento";
+import { GameMemento } from "domain/src/model/GameMemento";
 import { GameStore, StoreError } from "./serverModel";
 
+// helper for consistent "not found" errors
 const not_found = (key: any): StoreError => ({ type: "Not Found", key });
 
+/**
+ * ✅ MemoryStore — a simple in-memory implementation of GameStore.
+ * 
+ * This class keeps all games in memory for the lifetime of the server.
+ * It supports create, read, update, delete operations, and is safe
+ * to share between multiple resolvers / players in one Node process.
+ */
 export class MemoryStore implements GameStore {
-  private activeGames: GameMemento[];
-  private pendingGames: GameMemento[];
+  /** A single Map is the unified source of truth for all games. */
+  private games = new Map<number, GameMemento>();
 
-  constructor() {
-    this.activeGames = [];
-    this.pendingGames = [];
-  }
-
-
-  async deleteActiveGame(id: number): Promise<boolean> {
-  const index = this.activeGames.findIndex((g) => g.getId() === id);
-  if (index === -1) return false;
-  this.activeGames.splice(index, 1);
-  return true;
-}
-
-
-  
-  async getActiveGames(): Promise<GameMemento[]> {
-    return [...this.activeGames];
-  }
-
-  async getPendingGames() {
-    return [...this.pendingGames];
-  }
+  /**
+   * Get a specific game by ID.
+   * Throws a typed Not Found error if missing.
+   */
   async getGame(id: number): Promise<GameMemento> {
-    const game = this.activeGames.find((g) => g.getId() === id);
+    const game = this.games.get(id);
     if (!game) throw not_found(id);
     return game;
   }
 
-  async addGame(game: GameMemento): Promise<GameMemento> {
-    this.activeGames.push(game);
-    return game;
-  }
-  
-  async updateGame(game: GameMemento): Promise<GameMemento> {
-    const index = this.activeGames.findIndex((g) => g.getId() === game.getId());
-    if (index === -1) throw not_found(game.getId());
-    this.activeGames[index] = game;
-    return game;
+  /**
+   * Return all games currently stored (pending + active).
+   */
+  async getAllGames(): Promise<GameMemento[]> {
+    return Array.from(this.games.values());
   }
 
-  async getPendingGame(id: number): Promise<GameMemento> {
-    const index = this.pendingGames.findIndex((g) => g.getId() === id);
-    if (index === -1) throw not_found(id);
-    return this.pendingGames[index];
-  }
-
-  async deletePendingGame(id: number): Promise<void> {
-    const index = this.pendingGames.findIndex((g) => g.getId() === id);
-    if (index === -1) throw not_found(id);
-    this.pendingGames.splice(index,1);
-  }
-
-  async updatePendingGame(pending: GameMemento): Promise<GameMemento> {
-    const index = this.pendingGames.findIndex((g) => g.getId() === pending.getId());
-    if (index === -1) throw not_found(pending.getId());
-    this.pendingGames[index] = pending;
-    return pending;
-  }
-
-  async addPendingGame(game: GameMemento): Promise<GameMemento> {
-    this.pendingGames.push(game);
+  /**
+   * Save or update a game.
+   * If it already exists, overwrite; otherwise, insert.
+   */
+  async saveGame(game: GameMemento): Promise<GameMemento> {
+    this.games.set(game.getId(), game);
     return game;
   }
 
-
+  /**
+   * Delete a game by its ID.
+   * Returns true if the game existed and was deleted.
+   */
+  async deleteGame(id: number): Promise<boolean> {
+    return this.games.delete(id);
+  }
 }

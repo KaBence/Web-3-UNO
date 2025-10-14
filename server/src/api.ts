@@ -3,9 +3,10 @@ import { GameStore, ServerModel } from "./serverModel"
 import { Game } from "../../Domain/src/model/Game"
 import { from_memento, to_memento } from "./memento";
 
-export interface Broadcaster {
-  send: (message: Game) => Promise<void>
-  sendAll?: (activeGames: Game[], pendingGames: Game[]) => Promise<void>
+interface Broadcaster {
+  gameAdded(game: Game): void;
+  gameUpdated(game: Game): void;
+  gameRemoved(gameId: number, from: 'pending' | 'active'): void;
 }
 
 export class GameAPI {
@@ -27,57 +28,65 @@ export class GameAPI {
 
   /** Add a player to a pending game */
   async addPlayer(gameId: number, playerName: string) {
-    const updated = await this.server.addPlayer(gameId, playerName); // validations handled in server
-    const game = new Game(updated.getId(), updated); //converths gameMemento to a  into Game domain object
+    const updated = await this.server.addPlayer(gameId, playerName); 
+    const game = new Game(updated.getId(), updated); 
     
-    await this.broadcast(game); //Broadcast the new Game state to all connected clients.
-    return updated; //Return the updated GameMemento. This is what GraphQL sends back to the client
-  }
+    await this.broadcaster.gameUpdated(game);
+    return updated;
+   }
 
   /** Remove a player from a pending game */
-  async removePlayer(gameId: number, playerName: number) {
-    const updated = await this.server.removePlayer(gameId, playerName);
-    const game = new Game(updated.getId(), updated);
-   
-    await this.broadcast(game);
-    return updated;
-  }
+/**
+ * Orchestrates removing a player from any game (pending or active).
+ */
+  async removePlayer(gameId: number, playerId: number): Promise<Game | null> {
+    // Step 1: Get the game's state *before* it's potentially deleted.
+    // This is crucial for broadcasting to the correct feed later.
+    const gameBefore = from_memento(await this.server.getGame(gameId));
+    if (!gameBefore) {
+      // If the game doesn't exist, we can't do anything.
+      return null;
+    }
+    const isPending = gameBefore.getCurrentRound() === undefined;
 
+    // Step 2: Call the server model. It will handle all the complex logic
+    // and will return null if the game was deleted.
+    const updatedMemento = await this.server.removePlayer(gameId, playerId);
+
+    // Step 3: Broadcast the result of the operation.
+    if (updatedMemento === null) {
+      // The ServerModel told us the game was deleted.
+      // We use the 'isPending' flag we saved earlier to broadcast to the correct feed.
+      this.broadcaster.gameRemoved(gameId, isPending ? 'pending' : 'active');
+      return null;
+    } else {
+      // The ServerModel gave us an updated game state.
+      const gameAfter = from_memento(updatedMemento);
+      this.broadcaster.gameUpdated(gameAfter);
+      return gameAfter;
+    }
+  }
   /** Start the first round and activate the game */
   async startRound(gameId: number): Promise<Game> {
     const gameMemento = await this.server.startRound(gameId)
     const game = from_memento(gameMemento)
 
-    this.broadcast(game);
+   this.broadcaster.gameRemoved(gameId, 'pending');
+    // 2. The game is ADDED to the active list.
+    this.broadcaster.gameAdded(game);
     return game
   }
 
-async deleteGame(gameId: number): Promise<boolean> {
-  const deleted = await this.server.deleteGame(gameId);
-
-  if (deleted) {
-    const active = await this.getActiveGames();
-    const pending = await this.getPendingGames();
-
-    // ✅ Optional chaining avoids TypeScript errors if sendAll is undefined
-    await this.broadcaster.sendAll?.(active, pending);
-  }
-
-  return deleted;
-}
 
 
   /** Handle playing a card */
   async playCard(gameId: number, cardId: number, chosenColor?: string): Promise<Game> {
-    const game = await this.server.play(gameId,cardId,chosenColor)
-    this.broadcast(game)
+    const memento = await this.server.play(gameId,cardId,chosenColor)
+    const game = from_memento(memento)
+    this.broadcaster.gameUpdated(game);
     return game;
    
    //  game.roundFinished();
-    throw new Error("Method not implemented.");
-  
-
-
   }
 
   /** Draw a card */
@@ -85,7 +94,7 @@ async deleteGame(gameId: number): Promise<boolean> {
     const gameMemento = await this.server.drawCard(gameId)
     const game = from_memento(gameMemento)
 
-    this.broadcast(game);
+    this.broadcaster.gameUpdated(game);
     return game
   }
 
@@ -97,7 +106,7 @@ async deleteGame(gameId: number): Promise<boolean> {
       await this.server.sayUno(gameId, playerId)
       const gameMemento = await this.server.getGame(gameId);
       const game = from_memento(gameMemento);
-      this.broadcast(game)
+      this.broadcaster.gameUpdated(game);
       return game
     }
     catch (error: any) {
@@ -112,7 +121,7 @@ async deleteGame(gameId: number): Promise<boolean> {
       await this.server.accuseUno(gameId, accuser, accused)
       const gameMemento = await this.server.getGame(gameId);
       const game = from_memento(gameMemento);
-      this.broadcast(game)
+      this.broadcaster.gameUpdated(game);
       return game
     }
     catch (error: any) {
@@ -124,18 +133,15 @@ async deleteGame(gameId: number): Promise<boolean> {
   async challengeDraw4(gameId: number): Promise<Game> {
     const memento = await this.server.challangeDrawFor(gameId);
     const game = from_memento(memento);
-    this.broadcast(game);
+    this.broadcaster.gameUpdated(game);
     return game
   }
 
-  async broadcast(game: Game): Promise<void> {
-    this.broadcaster.send(game);
-  }
-
+ 
   async createGame(): Promise<Game> {
     try {
       const game = from_memento(await this.server.createGame());
-      this.broadcast(game);
+      this.broadcaster.gameAdded(game) ;
       return game;
     }
     catch (error: any) {

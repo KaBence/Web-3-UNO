@@ -9,24 +9,32 @@ const pendingGamesStore = usePendingGameStore()
 const ongoingGamesStore = useActiveGameStore()
 
 
-function liveUpdateGames() {
-  api.onGame(game => {
-    ongoingGamesStore.upsert(game);
-    pendingGamesStore.remove(game);
-  });
-  api.onPending(pendingGamesStore.upsert);
-}
-
-
 onMounted(async () => {
-  liveUpdateGames(); // ✅ subscribe first
-  const [pending_games, ongoing_games] = await Promise.all([
-    api.getPendingGames(),
-    api.getActiveGames()
-  ]);
+  // ✅ Call the new, unified subscription handler ONCE.
+  // This will listen for all ADDED, UPDATED, and REMOVED events.
+  
 
-  pending_games.forEach(pendingGamesStore.upsert);
-  ongoing_games.forEach(ongoingGamesStore.upsert);
+  // Fetch the initial state of the game lists
+  try {
+    const [pending_games, ongoing_games] = await Promise.all([
+      api.getPendingGames(),
+      api.getActiveGames()
+    ]);
+
+    // Populate the stores with the initial data
+    pending_games.forEach(pendingGamesStore.upsert);
+    ongoing_games.forEach(ongoingGamesStore.upsert);
+    
+    console.log("✅ Initial game lists loaded:", {
+      pending: pending_games.length,
+      active: ongoing_games.length,
+    });
+
+    api.initializeGameSubscriptions();
+    
+  } catch (error) {
+    console.error("Failed to fetch initial game lists:", error);
+  }
 });
 
 

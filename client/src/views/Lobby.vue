@@ -133,14 +133,31 @@
   }
 
   const leaveGame = async (gameId: number) => {
-      const joinedGame = pendingGamesStore.getGame(playerStore.playerGameId);
-      const player = computed(() => joinedGame?.players.find((p) => p.name === playerStore.player));
-      const playerId = player.value?.playerName;
-    await api.leaveGame(gameId, playerId!) //here playerId
-         hasCreatedGame.value = false;
-         hasJoinedGame.value.joinedGameId = null;
-         console.log("Leaving game", gameId);
+  // 1. Find the game directly from the store.
+  const game = pendingGamesStore.getGame(gameId);
+  if (!game) {
+    console.error(`Could not find game ${gameId} to leave.`);
+    return;
   }
+
+  // 2. Find the current player in that game's player list.
+  const me = game.players.find(p => p.name === playerName);
+  if (!me) {
+    console.error(`Could not find player ${playerName} in game ${gameId}.`);
+    return;
+  }
+
+  // 3. Get the correct numeric ID from the 'playerName' property.
+  const myPlayerId = me.playerName;
+
+  // 4. Call the API with the correct IDs.
+  await api.removePlayer(gameId, myPlayerId);
+
+  // 5. Reset the local component state.
+  hasJoinedGame.value.joinedGameId = null;
+  hasCreatedGame.value = false;
+  playerStore.update(0); // Clear the player's global state
+};
 
   const createGame = async () => {
 

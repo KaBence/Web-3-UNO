@@ -1,35 +1,19 @@
 import { GameMemento } from "domain/src/model/GameMemento";
-import { MemoryStore } from "./memoryStore";
 import { Game } from "domain/src/model/Game";
 import { from_memento, to_memento } from "./memento";
 import { Colors } from "Domain/src/model/Card";
-
 import { PlayerNames } from "domain/src/model/Player";
-import { PlayerMemento } from "Domain/src/model/PlayerMemento";
-import { HandMemento } from "Domain/src/model/HandMemento";
 
-
-
-
-export type StoreError = { type: 'Not Found', key: any } | { type: 'DB Error', error: any }
-
-export type ServerError = { type: 'Forbidden' } | StoreError
-
-
+// --- Step 1: Define the new, simpler GameStore interface ---
 export interface GameStore {
-  getActiveGames(): Promise<GameMemento[]>;
   getGame(id: number): Promise<GameMemento>;
-  addGame(game: GameMemento): Promise<GameMemento>;
-  updateGame(game: GameMemento): Promise<GameMemento>;
-
-  getPendingGames(): Promise<GameMemento[]>;
-  getPendingGame(id: number): Promise<GameMemento>;
-  addPendingGame(game: GameMemento): Promise<GameMemento>;
-  deletePendingGame(id: number): Promise<void>;
-  updatePendingGame(pending: GameMemento): Promise<GameMemento>;
-  deleteActiveGame(id: number): Promise<boolean>;
-
+  getAllGames(): Promise<GameMemento[]>;
+  saveGame(game: GameMemento): Promise<GameMemento>;
+  deleteGame(id: number): Promise<boolean>;
 }
+
+export type StoreError = { type: 'Not Found', key: any } | { type: 'DB Error', error: any };
+export type ServerError = { type: 'Forbidden' } | StoreError;
 
 export class ServerModel {
   private store: GameStore;
@@ -40,158 +24,134 @@ export class ServerModel {
     this.nextId = 0;
   }
 
+  // --- Methods for getting games are now simple filters ---
   async all_active_games(): Promise<Game[]> {
-    const mementos: GameMemento[] = await this.store.getActiveGames();
-    const games: Game[] = [];
-
-    for (const m of mementos) {
-      games.push(from_memento(m));
-    }
-
-    return games;
+    const mementos = await this.store.getAllGames();
+    return mementos
+      .filter((m) => m.getCurrentRound() !== null)
+      .map((m) => from_memento(m));
   }
-
 
   async all_pending_games(): Promise<Game[]> {
-    let mementos: GameMemento[] = await this.store.getPendingGames();
-    let games: Game[] = [];
-    for (let m of mementos) {
-      games.push(from_memento(m));
-    }
-    return games;
+    const mementos = await this.store.getAllGames();
+     console.log("🧠 all_pending_games called – total:", mementos.length);
+    return mementos
+      .filter((m) => m.getCurrentRound() === null)
+      .map((m) => from_memento(m));
   }
-
+  
   async getGame(id: number): Promise<GameMemento> {
     return this.store.getGame(id);
   }
 
-  async getPendingGame(id: number): Promise<GameMemento> {
-    return this.store.getPendingGame(id);
-  }
-
-  async updateGame(memento: GameMemento): Promise<GameMemento> {
-    return this.store.updateGame(memento);
-  }
-
+  // --- Core Game Logic Methods ---
   async createGame(): Promise<GameMemento> {
     this.nextId++;
     const game = new Game(this.nextId);
+    return await this.store.saveGame(to_memento(game));
+  }
+  
+  async addPlayer(gameId: number, playerName: string): Promise<GameMemento> {
+    const memento = await this.store.getGame(gameId);
+    const game = from_memento(memento);
 
-    return await this.store.addPendingGame(to_memento(game));
+    const nameTaken = game.getPlayers().some((p) => p.getName() === playerName);
+    if (nameTaken) {
+      throw new Error("Player already in game");
+    }
+    game.addPlayer(playerName);
+    return this.store.saveGame(game.createMementoFromGame());
+  }
+
+  // This method is now simple and robust, with no race condition.
+ // Located inside your ServerModel class
+
+// Located inside your ServerModel class
+
+async removePlayer(gameId: number, playerId: number): Promise<GameMemento | null> {
+  // 1. Fetch the raw data object (memento).
+  const memento = await this.store.getGame(gameId);
+  if (!memento) {
+    return null; // The game doesn't exist.
+  }
+
+  // 2. Convert the memento into a rich 'Game' object to safely perform logic.
+  const game = from_memento(memento);
+
+  // 3. Use the 'Game' object's public methods to do the work.
+  const playerExists = game.getPlayers().some(p => p.getID() === playerId);
+  if (!playerExists) {
+    return memento; // Player not in the game, return unchanged state.
+  }
+  
+  // This call should modify the 'game' object's internal player list.
+  game.removePlayer(playerId);
+
+  // 4. Check the state of the 'game' object.
+  if (game.getPlayers().length === 0) {
+    // If the game is now empty, delete it.
+    await this.store.deleteGame(gameId);
+    return null; // Signal that the game was deleted.
+  } else {
+    // 5. If players remain, create a new memento from the modified game and save it.
+    const updatedMemento = game.createMementoFromGame(); // or to_memento(game)
+    return await this.store.saveGame(updatedMemento);
+  }
+}
+  // `startRound` is now a safe UPDATE, not a risky "move" operation.
+  async startRound(id: number): Promise<GameMemento> {
+    const memento = await this.store.getGame(id);
+    const game = from_memento(memento);
+
+    if (!game.getPlayers() || game.getPlayers().length < 1) {
+      throw new Error("Cannot start a round with zero players.");
+    }
+
+    game.createRound();
+    return await this.store.saveGame(to_memento(game));
+  }
+
+  async deleteGame(id: number): Promise<boolean> {
+      return this.store.deleteGame(id);
+  }
+
+  // --- Game Action Methods ---
+  async play(gameId: number, cardId: number, chosenColor?: string): Promise<GameMemento> {
+    const memento = await this.store.getGame(gameId);
+    const game = from_memento(memento);
+    const round = game.getCurrentRound();
+    if (round) {
+      round.play(cardId, chosenColor as Colors);
+    }
+    return await this.store.saveGame(to_memento(game));
+  }
+  
+  async drawCard(gameId: number): Promise<GameMemento> {
+    const memento = await this.store.getGame(gameId);
+    const game = from_memento(memento);
+    const currentPlayer = game.getCurrentRound()?.getCurrentPlayer();
+    game.getCurrentRound()?.draw(1, currentPlayer?.getID()!);
+    return await this.store.saveGame(to_memento(game));
   }
 
   async sayUno(gameId: number, playerId: number): Promise<GameMemento> {
-    const gameMemento = await this.store.getGame(gameId);
-    const game = from_memento(gameMemento);
-    const round = game.getCurrentRound();
-    if (!round) {
-      throw new Error("No active round");
-    }
-    round.sayUno(playerId);
-    const updatedMemento = to_memento(game);
-    await this.store.updateGame(updatedMemento);
-    return updatedMemento;
+    const memento = await this.store.getGame(gameId);
+    const game = from_memento(memento);
+    game.getCurrentRound()?.sayUno(playerId);
+    return await this.store.saveGame(to_memento(game));
   }
 
   async accuseUno(gameId: number, accuser: number, accused: number): Promise<GameMemento> {
-    const gameMemento = await this.store.getGame(gameId);
-    const game = from_memento(gameMemento);
-    const round = game.getCurrentRound();
-    if (!round) {
-      throw new Error("No active round");
-    }
-    round.catchUnoFailure(accuser, accused);
-    const updatedMemento = to_memento(game);
-    await this.store.updateGame(updatedMemento);
-    return updatedMemento;
-  }
-
-  async startRound(id: number): Promise<GameMemento> {
-    const memento = await this.store.getPendingGame(id)
-    const game = from_memento(memento)
-    this.store.deletePendingGame(id);
-   
-    game.createRound()
-
-    return await this.store.addGame(to_memento(game));
-  }
-  
-  async deleteGame(id: number): Promise<boolean> {
-    try {
-      await this.store.deleteActiveGame(id);
-      return true;
-    } catch (err) {
-      return false;
-    }
-  }
-
-
-  async drawCard(gameId: number): Promise<GameMemento> {
-    const memento = await this.store.getGame(gameId)
-    const game = from_memento(memento)
-    let currentPlayer = game.getCurrentRound()?.getCurrentPlayer()
-    game.getCurrentRound()?.draw(1, currentPlayer?.getID()!)
-
-    return await this.store.updateGame(to_memento(game))
-  }
-
-  async play(gameId: number, cardId: number, chosenColor?: string) {
-    let memento = await this.store.getGame(gameId); 
-    let game = from_memento(memento);
-    let round = game.getCurrentRound()
-    if(round){
-      round.play(cardId,chosenColor as Colors)
-    }
-
-    return from_memento(await this.store.updateGame(to_memento(game)));
-  }
-
-    async challangeDrawFor(gameId: number) {
-    const memento = await this.store.getGame(gameId); 
+    const memento = await this.store.getGame(gameId);
     const game = from_memento(memento);
-    const round = game.getCurrentRound()
-    //add check in gui if its players turn
-    if(round){
-      round.challengeWildDrawFour(true);//i need to pass it from mutation
-    }
-  
-    return await this.store.updateGame(game.createMementoFromGame());
+    game.getCurrentRound()?.catchUnoFailure(accuser, accused);
+    return await this.store.saveGame(to_memento(game));
   }
 
- 
-
-  // add a player to a pending game
-  async addPlayer(gameId: number, playerName: string): Promise<GameMemento> {
-    const memento = await this.store.getPendingGame(gameId)
-    const game = from_memento(memento)
-
-      // duplicate name check  
-      const nameTaken = game.getPlayers().some(p => p.getName() === playerName);
-        if (nameTaken) {
-          return Promise.reject(new Error("Player already in game"));
-        }
-        game.addPlayer(playerName)
-        
-      
-      return this.store.updatePendingGame(game.createMementoFromGame());
-  
-  }
-
-  async removePlayer(gameId: number, playerName: number): Promise<GameMemento> {
-    const memento = await this.store.getPendingGame(gameId)
-    const game = from_memento(memento)
-    
-      const player = game.getPlayers().find(p => p.getID() === playerName as PlayerNames);
-      if(!player) // if player is not in the game
-      {
-        return Promise.reject(new Error("Player cannot leave a game, which he is not a part of"))
-      }
-      
-      const playerId: PlayerNames = player.getID();
-      game.removePlayer(playerName)
-
-      return this.store.updatePendingGame(game.createMementoFromGame());
+  async challangeDrawFor(gameId: number): Promise<GameMemento> {
+    const memento = await this.store.getGame(gameId);
+    const game = from_memento(memento);
+    game.getCurrentRound()?.challengeWildDrawFour(true); // Assumes challenge is successful
+    return await this.store.saveGame(game.createMementoFromGame());
   }
 }
-
-

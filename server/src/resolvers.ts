@@ -11,10 +11,10 @@ export class Resolvers {
 
   Query = {
     activeGames: async () => {
-      return await this.api.getActiveGames();
+     return  await this.api.getActiveGames();
     },
     pendingGames: async () => {
-      return await this.api.getPendingGames();
+    return  await this.api.getPendingGames();
     },
   };
 
@@ -58,27 +58,19 @@ export class Resolvers {
     challengeDraw4: async (_: any, { gameId }: { gameId: number }) => {
       return this.api.challengeDraw4(gameId);
     },
-    deleteGame: async (_: any, { gameId }: { gameId: number }) => {
-    return await this.api.deleteGame(gameId);
-    },
+  
 
   };
 
-  Subscription = {
-    active: {
-      subscribe: () => this.pubsub.asyncIterableIterator(['ACTIVE_UPDATED'])
-    },
-    pending: {
-      subscribe: () => this.pubsub.asyncIterableIterator(['PENDING_UPDATED'])
-    }
+ Subscription = {
+  pendingGamesFeed: {
+    subscribe: () => this.pubsub.asyncIterableIterator(['pendingGamesFeed'])
+  },
+
+  activeGamesFeed: {
+    subscribe: () => this.pubsub.asyncIterableIterator(['activeGamesFeed'])
   }
-  // public toGraphQLPendingGame(game:GameMemento):PendingGame{
-  //     return {
-  //         players:game.getPlayers()
-  //         scores: game.getScores()
-  //         dealer: game.getDealer()\
-  //     }
-  // }
+}
 
   public getResolverMap() {
     return {

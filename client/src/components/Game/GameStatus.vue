@@ -1,135 +1,115 @@
 <script setup lang="ts">
-import { ref, computed , onMounted, watch} from 'vue';
-import { useActiveGameStore } from "@/Stores/OngoingGameStore";
-import * as api from "@/model/api";
+import { ref, computed, onMounted, watch } from 'vue';
 import { useRouter } from "vue-router";
+import type { GameSpecs } from '@/model/Specs';
+import type { PropType } from 'vue';
 
+// --- FIX #1: Define the events this component will emit to its parent ---
+const emit = defineEmits(['playAgain', 'endGame']);
 
-const props = defineProps<{ gameId: number }>();
-const ongoingGameStore = useActiveGameStore();
-const game = ongoingGameStore.getGame(props.gameId);
-
-const players = ref<{ name: string; score: number }[]>([]);
-const rounds = ref<{ winner: string; points: number }[]>([]);
-const roundgoing = ref(true);
-const gameWinner = computed(() => game.value?.winner ?? null);
+const props = defineProps({
+  game: {
+    type: Object as PropType<GameSpecs | undefined>,
+    required: true,
+  },
+});
 
 const router = useRouter();
 
-const winner = computed(() => game.value?.currentRound?.winner ?? null);
-const roundEnded = computed(() => !!winner.value); // double bang to convert to boolean
+// Local UI state
+const rounds = ref<{ winner: string; points: number }[]>([]);
+const lastScores = ref<Record<number, number>>({});
+
+const timer = ref(20);
+const isCritical = ref(false);
+
+// --- FIX #2: Correctly define all computed properties for the template ---
+const roundEnded = computed(() => !!props.game?.currentRound?.winner);
+const roundgoing = computed(() => !roundEnded.value); // The opposite of roundEnded
+const gameWinnerId = computed(() => props.game?.winner ?? null);
+
+// This finds the name of the winner for the CURRENT round
+const roundWinnerName = computed(() => {
+  const winnerId = props.game?.currentRound?.winner;
+  if (!winnerId || !props.game?.currentRound?.players) return null;
+  const player = props.game.currentRound.players.find(p => p.playerName === winnerId);
+  return player?.name ?? `Player ${winnerId}`;
+});
+
+// This finds the name of the winner for the ENTIRE game
 const gameWinnerName = computed(() => {
-  const winnerId = gameWinner.value;
-  if (!winnerId) return null;
-
-  // Find the actual player's display name
-  const playerName = game.value?.players.find(
-    (p) => String(p.playername) === winnerId
-
-  )?.name;
-
-  return playerName ?? String(winnerId);
+  if (!gameWinnerId.value || !props.game?.players) return null;
+  const player = props.game.players.find(p => p.playerName === Number(gameWinnerId.value));
+  return player?.name ?? `Player ${gameWinnerId.value}`;
 });
 
-const sortedPlayers = computed(() =>
-    [...players.value].sort((a, b) => b.score - a.score)
-);
+// This computes the scoreboard safely
+const sortedPlayers = computed(() => {
+  if (!props.game?.scores || !props.game?.players) return [];
+  return Object.entries(props.game.scores)
+    .map(([playerId, score]) => {
+      const player = props.game?.players.find(p => p.playerName === Number(playerId));
+      return {
+        name: player?.name ?? `Player ${playerId}`,
+        score: score,
+      };
+    })
+    .sort((a, b) => Number(b.score) - Number(a.score));
+});
 
-
-// Timer logic
-const timer = ref(20); // Start with 10 seconds
-const isCritical = ref(false); // Tracks if the timer is in the critical state
-
-function startTimer() {
-    const interval = setInterval(() => {
-        timer.value--;
-        if (timer.value <= 8) {
-            isCritical.value = true; // Change to critical state after 5 seconds
-        }
-        if (timer.value <= 0) {
-            clearInterval(interval); // Stop the timer when it reaches 0
-        }
-    }, 1000); // Decrease timer every second
+// Timer logic remains the same
+let timerInterval: number | undefined;
+function startOrResetTimer() {
+  clearInterval(timerInterval);
+  timer.value = 20;
+  isCritical.value = false;
+  timerInterval = setInterval(() => {
+    timer.value--;
+    if (timer.value <= 8) isCritical.value = true;
+    if (timer.value <= 0) clearInterval(timerInterval);
+  }, 1000);
 }
 
-watch(winner, (newWinner, oldWinner) => {
-  if (!newWinner || newWinner === oldWinner) return;
+watch(() => props.game?.currentRound?.currentPlayer, () => {
+  if (roundgoing.value) { // Use the computed property
+    startOrResetTimer();
+  }
+}, { immediate: true });
 
-  //  Resolve human-readable player name
-  const playerName = String(
-    game.value?.currentRound?.players.find(
-      (p) => p.playername === newWinner
-    )?.name ?? newWinner
+watch(() => props.game?.currentRound?.winner, (newWinnerId) => {
+  if (!newWinnerId || !props.game?.currentRound || !props.game?.scores) return;
+
+  // find winner info
+  const winnerPlayer = props.game.players.find(p => p.playerName === newWinnerId);
+  if (!winnerPlayer) return;
+
+  // compute points won THIS round
+  const currentScores = props.game.scores;
+  const prevScore = Number(lastScores.value[newWinnerId] ?? 0);
+  const currentScore = Number(currentScores[newWinnerId] ?? 0);
+  const pointsWon = currentScore - prevScore;
+
+  // record this round in the round history
+  rounds.value.push({ winner: `${winnerPlayer.name}`, points: pointsWon });
+
+  // update last scores snapshot
+  lastScores.value = Object.fromEntries(
+    Object.entries(currentScores).map(([k, v]) => [Number(k), Number(v)])
   );
-
-  //  Safely extract numeric score (handles objects / strings)
-  const rawPoints = game.value?.scores?.[newWinner];
-  const points =
-    typeof rawPoints === "number"
-      ? rawPoints
-      : typeof rawPoints === "object" && "valueOf" in rawPoints
-      ? rawPoints.valueOf()
-      : Number(rawPoints) || 0;
-
-  // Prevent duplicates (in case of repeated broadcasts)
-  const alreadyLogged = rounds.value.some(
-    (r) => r.winner === playerName && r.points === points
-  );
-  if (!alreadyLogged) {
-    rounds.value.push({ winner: playerName, points });
-  }
-
-  //  Update scoreboard safely
-  let player = players.value.find((p) => p.name === playerName);
-  if (!player) {
-    players.value.push({ name: playerName, score: points });
-  } else {
-    player.score = Number(player.score) + Number(points);
-  }
-
-  //  Mark round as finished
-  roundgoing.value = false;
-
-  console.log(`🏆 Round ended! Winner: ${playerName}, +${points} points`);
-});
-
-// do we want to do it manually or automatically?
-
-async function playAgain() {
-  if (!game.value) return;
-  try {
-    console.log("Starting new round...");
-
-    await api.startRound(game.value.id);
-
-    roundgoing.value = true;
-    startTimer();
-  } catch (err) {
-    console.error("Failed to start new round:", err);
-  }
-}
-
-
-async function playAgainAfterGame() {
-  if (!game.value) return;
-  try {
-    await api.deleteGame(game.value.id);   // add this mutation in api.ts if you don’t have it yet
-    router.push("/lobby");
-  } catch (err) {
-    console.error("Failed to delete game:", err);
-  }
-}
-
-onMounted(() => {
-    startTimer(); // Start the timer when the component is mounted
 });
 
 
 
+function playAgain() {
+ 
+  emit('playAgain');
+}
 
-
+function playAgainAfterGame() {
+ 
+  emit('endGame');
+}
 </script>
-
 <template>
     <div class="gamestatus">
         <div class="timer" :class="{ critical: isCritical }">
@@ -140,19 +120,19 @@ onMounted(() => {
         <div class="Rounds">
           <h1>Round History</h1>
           <div class="round-List">
-            <div
-              v-for="(round, index) in rounds"
-              :key="index"
-              class="player"
-              :class="{ current: index === rounds.length - 1 && roundgoing }"
-            >
-              <span class="rank">
-                Round {{ index + 1 }}
-                <span v-if="index === rounds.length - 1 && roundgoing"> (Current)</span>:
-              </span>
-              <span class="name">{{ round.winner }}</span>
-              <span class="score">{{ round.points }} Points</span>
-            </div>
+     <div
+  v-for="(round, index) in rounds"
+  :key="index"
+  class="player"
+  :class="{ current: index === rounds.length - 1 }"
+>
+  <span class="rank">
+    Round {{ index + 1 }}:
+  </span>
+  <span class="name">{{ round.winner }}</span>
+  <span class="score">{{ round.points }} Points</span>
+</div>
+
           </div>
         </div>
 
@@ -166,20 +146,21 @@ onMounted(() => {
             </div>
         </div>
           <!-- WINNER DISPLAY -->
-    <div v-if="roundEnded" class="winner-banner">
-      🏆  Round Winner: {{ winner }} 🏆
-    </div>
-      <button
-          class="play-again"
-          @click="playAgain"
-          :disabled="!roundEnded">
-          Start new Round
-      </button>
-      <button
-        v-if="gameWinner"
-        class="play-again-final"
-        @click="playAgainAfterGame"> {{ gameWinnerName }} won! Play Again
-      </button>
+    <div class="winner-section" v-if="roundEnded">
+  <div class="winner-banner">
+    🏆  Round Winner: {{ roundWinnerName }} 🏆
+  </div>
+  <button class="play-again" @click="playAgain">
+    Start New Round
+  </button>
+</div>
+
+     <button
+  v-if="gameWinnerId"
+  class="play-again-final"
+  @click="playAgainAfterGame">
+  {{ gameWinnerName }} won! Play Again
+</button>
 
     </div>
 </template>
@@ -222,10 +203,10 @@ h1 {
     margin-bottom: 10px;
 }
 .player.current {
-  background-color: #4caf50; /* Green highlight */
+  background-color: #2196f3; /* blue highlight */
   color: white;
   font-weight: bold;
-  border: 2px solid #81c784; /* Softer green border */
+  border: 2px solid #64b5f6;
   transform: scale(1.02);
   transition: all 0.2s ease-in-out;
 }
@@ -245,12 +226,15 @@ h1 {
 }
 
 .play-again {
-    background-color: #007bff;
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 5px;
-    cursor: pointer;
+  background: linear-gradient(135deg, #00b4d8, #0077b6);
+  color: white;
+  font-weight: 600;
+  padding: 10px 24px;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  transition: 0.2s ease;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.25);
 }
 
 .play-again:disabled {
@@ -259,7 +243,8 @@ h1 {
 }
 
 .play-again:hover:enabled {
-  background-color: #0056b3;
+  background: linear-gradient(135deg, #0096c7, #023e8a);
+  transform: translateY(-2px);
 }
 
 .timer {
@@ -302,4 +287,31 @@ h1 {
   color: gold;
   font-weight: bold;
 }
+
+.winner-section {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px; /* spacing between banner and button */
+}
+
+.play-again-final {
+  background: linear-gradient(135deg, #00b09b, #96c93d);
+  color: white;
+  font-weight: 600;
+  padding: 12px 28px;
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.25);
+  transition: all 0.2s ease;
+  margin-top: 25px;
+}
+
+.play-again-final:hover {
+  background: linear-gradient(135deg, #00a86b, #7bb02d);
+  transform: translateY(-2px);
+}
+
 </style>

@@ -371,10 +371,18 @@ export class Round {
   }
 
   createMementoFromRound():RoundMemento{
+    const winnerObject = this.winner();
     let playerMementos: PlayerMemento[] = [];
     for (let player of this.players){
       playerMementos.push(player.createMementoFromPlayer())
     }
-    return new RoundMemento(playerMementos,this.drawPile.createMementoFromDeck(),this.discardPile.createMementoFromDeck(),this.currentPlayer,this.currentDirection,this.statusMessage,this.topCard,this.getWinner())
+    return new RoundMemento(playerMementos,this.drawPile.createMementoFromDeck(),this.discardPile.createMementoFromDeck(),this.currentPlayer,this.currentDirection,this.statusMessage,this.topCard, winnerObject ? winnerObject.getID() : this.roundWinner
+  );
+  }
+  // In your Round class (Round.ts)
+
+  public removePlayer(playerId: number): void {
+    // Filter the round's internal players list.
+    this.players = this.players.filter(p => p.getID() !== playerId);
   }
 }

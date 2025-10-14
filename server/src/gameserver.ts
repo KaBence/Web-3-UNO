@@ -19,24 +19,53 @@ import { GameAPI } from "./api";
 import { Resolvers } from "./resolvers";
 import { GameMemento } from "Domain/src/model/GameMemento";
 import { Game } from "Domain/src/model/Game";
-
+const sharedStore = new MemoryStore();
 async function startServer(store: GameStore) {
   const pubsub: PubSub = new PubSub();
-  const broadcaster = {
-    async send(game: Game) {
-      if (game.getCurrentRound() == undefined) {
-        pubsub.publish("PENDING_UPDATED", { pending: game });
-      } else {
-        pubsub.publish("ACTIVE_UPDATED", { active: game });
-      }
-    },
-    async sendAll(activeGames: Game[], pendingGames: Game[]) {
-      await pubsub.publish("ACTIVE_UPDATED", { active: activeGames });
-      await pubsub.publish("PENDING_UPDATED", { pending: pendingGames });
-      console.log("📡 Broadcasted all active and pending games");
-    },
 
-  };
+
+ // NEW and IMPROVED broadcaster
+
+const PENDING_GAMES_FEED = "pendingGamesFeed";
+const ACTIVE_GAMES_FEED = "activeGamesFeed";
+
+const broadcaster = {
+  // Call this when a new game is created
+  gameAdded(game: Game) {
+    const topic = game.getCurrentRound() ? ACTIVE_GAMES_FEED : PENDING_GAMES_FEED;
+    pubsub.publish(topic, {
+      [topic]: { 
+        action: 'ADDED',
+        gameId: game.getId(),
+        game: game
+      }
+    });
+  },
+
+  // Call this when a game state changes (e.g., a player plays a card)
+  gameUpdated(game: Game) {
+    const topic = game.getCurrentRound() ? ACTIVE_GAMES_FEED : PENDING_GAMES_FEED;
+    pubsub.publish(topic, {
+      [topic]: {
+        action: 'UPDATED',
+        gameId: game.getId(),
+        game: game
+      }
+    });
+  },
+
+  // Call this when a game is deleted or moves from one list to another
+  gameRemoved(gameId: number, from: 'pending' | 'active') {
+    const topic = from === 'pending' ? PENDING_GAMES_FEED : ACTIVE_GAMES_FEED;
+    pubsub.publish(topic, {
+      [topic]: {
+        action: 'REMOVED',
+        gameId: gameId,
+        game: null // The game object is null, as required
+      }
+    });
+  }
+};
   const api = new GameAPI(broadcaster, store);
 
   try {
@@ -96,7 +125,7 @@ async function startServer(store: GameStore) {
 }
 
 function configAndStart() {
-  startServer(new MemoryStore());
+  startServer(sharedStore);
 }
 
 configAndStart();
