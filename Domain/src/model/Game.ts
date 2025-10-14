@@ -1,6 +1,6 @@
 // Game.ts
 import { Player, PlayerNames } from "./Player";
-import { Round } from "./round";
+import { Round } from "./Round";
 import { DrawDeck } from "./Deck";
 import { GameMemento } from "./GameMemento";
 import { PlayerMemento } from "./PlayerMemento";
