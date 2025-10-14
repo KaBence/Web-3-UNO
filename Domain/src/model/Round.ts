@@ -144,7 +144,8 @@ export class Round {
   //catchUnoFailuere)() this is responsible for a situation when an accuser player says that the accused has not said uno. if that is true so if the accussed has one card the accussed has to draw 4 cards if the accuser was wrong then they have to draw 6 cards from the draw deck
 
   catchUnoFailure(accuser: PlayerNames, accused: PlayerNames): void {
-    if (!this.getSpecificPlayer(accused).hasUno()) {
+    let accusedPlayer = this.getSpecificPlayer(accused)
+    if (!accusedPlayer.hasUno() && accusedPlayer.getHand().getCards().length === 1) {
       this.draw(4, accused);
     } else {
       // Accuser is wrong → accuser draws 6
