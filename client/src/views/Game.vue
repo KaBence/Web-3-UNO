@@ -30,6 +30,7 @@ else {
 }
 const ongoingGameStore = useActiveGameStore()
 const popupsStore = usePopupStore()
+const playerStore = usePlayerStore()
 
 const player = usePlayerStore()
 
@@ -37,15 +38,16 @@ const game = ongoingGameStore.getGame(gameId)
 
 const currentGameId = computed(() => game?.value?.id);
 const currentPlayerId = computed(() => game?.value?.currentRound?.currentPlayer);
+const loggedInPlayer = computed(()=> game.value?.currentRound?.players.find(p=> p.name===playerStore.player))
 
 
 async function onSayUno() {
-  if (currentGameId.value === undefined || currentPlayerId.value === undefined) {
+  if (currentGameId.value === undefined || loggedInPlayer?.value?.playerName === undefined) {
     alert("Missing game or player ID!");
     return;
   }
   try {
-    await api.sayUno(currentGameId.value, currentPlayerId.value);
+    await api.sayUno(currentGameId.value, loggedInPlayer?.value?.playerName);
     alert("UNO called successfully!");
   } catch (err) {
     console.error(err);
@@ -54,12 +56,12 @@ async function onSayUno() {
 }
 
 async function onAccuseUno(accusedId: number) {
-  if (currentGameId.value === undefined || currentPlayerId.value === undefined) {
+  if (currentGameId.value === undefined || loggedInPlayer?.value?.playerName === undefined) {
     alert("Missing game or player ID!");
     return;
   }
   try {
-    await api.accuseUno(currentGameId.value, currentPlayerId.value, accusedId);
+    await api.accuseUno(currentGameId.value, loggedInPlayer.value?.playerName, accusedId);
     alert(`You accused player ${accusedId} of not saying UNO!`);
   } catch (err) {
     console.error(err);

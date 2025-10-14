@@ -103,6 +103,7 @@ export async function getPendingGames() {
         id
         scores
         players {
+          playerName
           unoCalled
           name
           hand {
@@ -122,6 +123,7 @@ export async function getPendingGames() {
           }
           statusMessage
           players {
+            playerName
             unoCalled
             name
             hand {
@@ -159,6 +161,7 @@ export async function getActiveGames() {
         players {
           unoCalled
           name
+          playerName
           hand {
             cards {
               color
@@ -178,6 +181,7 @@ export async function getActiveGames() {
           players {
             unoCalled
             name
+            playerName
             hand {
               cards {
                 color
@@ -474,6 +478,7 @@ export async function onGame(subscriber: (game: GameSpecs) => any) {
   `;
   const gameObservable = apolloClient.subscribe({
     query: gameSubscriptionQuery,
+    fetchPolicy: "network-only",
   });
   gameObservable.subscribe({
     next({ data }) {
@@ -535,6 +540,7 @@ export async function onPending(subscriber: (game: GameSpecs) => any) {
   `;
   const gameObservable = apolloClient.subscribe({
     query: gameSubscriptionQuery,
+    fetchPolicy: "network-only",
   });
   gameObservable.subscribe({
     next({ data }) {
