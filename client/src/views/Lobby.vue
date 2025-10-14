@@ -87,14 +87,16 @@
 
 
   <script lang="ts" setup>
-  import { ref, computed } from "vue"; // For game status Used to create reactive values that automatically update when their dependencies change.
+  import { ref, computed, watch } from "vue"; // For game status Used to create reactive values that automatically update when their dependencies change.
   import { useRoute, useRouter } from "vue-router";
   import { usePlayerStore } from "@/Stores/PlayerStore";
   import * as api from '../model/api'
   import { usePendingGameStore } from "@/Stores/PendingGameStore";
+  import { useActiveGameStore } from "@/Stores/OngoingGameStore";
 
   const playerStore = usePlayerStore();
   const pendingGamesStore = usePendingGameStore()
+  const ongoingGamesStore = useActiveGameStore()
   const router = useRouter();
   const playerName = playerStore.player ? playerStore.player : "Player";
   const nameFirstLetter = playerName[0] ?? "P";
@@ -155,8 +157,19 @@
 
   const StartGame = async (id: number) => {
     await api.startRound(id)
-    router.push({ path: "/Game", query: { id } });
   }
+
+  watch(() => pendingGamesStore.getGame(playerStore.playerGameId),async g => {
+    if (!g) {
+      const activeGame = ongoingGamesStore.getGame(playerStore.playerGameId)
+      if (activeGame.value){
+        const id = playerStore.playerGameId.toString()
+        router.push({ path: "/Game", query: { id } });
+      }
+      else
+        router.replace('/')
+    }
+  })
   </script>
 
   <style scoped>
