@@ -26,15 +26,21 @@ export class GameAPI {
   }
 
   /** Add a player to a pending game */
-  async addPlayer(gameId: string, playerName: string): Promise<Game> {
-
-    throw new Error("Method not implemented.");
+  async addPlayer(gameId: number, playerName: string) {
+    const updated = await this.server.addPlayer(gameId, playerName); // validations handled in server
+    const game = new Game(updated.getId(), updated); //converths gameMemento to a  into Game domain object
+    
+    await this.broadcast(game); //Broadcast the new Game state to all connected clients.
+    return updated; //Return the updated GameMemento. This is what GraphQL sends back to the client
   }
 
   /** Remove a player from a pending game */
-  async removePlayer(gameId: string, playerName: string): Promise<Game> {
-
-    throw new Error("Method not implemented.");
+  async removePlayer(gameId: number, playerName: number) {
+    const updated = await this.server.removePlayer(gameId, playerName);
+    const game = new Game(updated.getId(), updated);
+   
+    await this.broadcast(game);
+    return updated;
   }
 
   /** Start the first round and activate the game */

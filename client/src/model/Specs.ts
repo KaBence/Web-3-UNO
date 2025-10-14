@@ -6,7 +6,7 @@ export type PlayerSpecs = {
   name:String
   unoCalled:Boolean
   hand:HandSpecs
-  playername:PlayerNames
+  playerName:PlayerNames
 }
 
 export type GameSpecs = {

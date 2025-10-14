@@ -62,7 +62,7 @@ export class MemoryStore implements GameStore {
   async updatePendingGame(pending: GameMemento): Promise<GameMemento> {
     const index = this.pendingGames.findIndex((g) => g.getId() === pending.getId());
     if (index === -1) throw not_found(pending.getId());
-    this.activeGames[index] = pending;
+    this.pendingGames[index] = pending;
     return pending;
   }
 
@@ -70,4 +70,6 @@ export class MemoryStore implements GameStore {
     this.pendingGames.push(game);
     return game;
   }
+
+
 }
