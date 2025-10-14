@@ -19,7 +19,8 @@ import { GameAPI } from "./api";
 import { Resolvers } from "./resolvers";
 import { GameMemento } from "Domain/src/model/GameMemento";
 import { Game } from "Domain/src/model/Game";
-const sharedStore = new MemoryStore();
+import { getMemoryStore } from "./memoryStoreSingleton";
+
 async function startServer(store: GameStore) {
   const pubsub: PubSub = new PubSub();
 
@@ -96,6 +97,7 @@ const broadcaster = {
 
     const wsServer = new WebSocketServer({
       server: httpServer,
+      path: "/graphql",
     });
 
     const subscriptionServer = useServer({ schema }, wsServer);
@@ -125,7 +127,7 @@ const broadcaster = {
 }
 
 function configAndStart() {
-  startServer(sharedStore);
+  startServer(getMemoryStore());
 }
 
 configAndStart();

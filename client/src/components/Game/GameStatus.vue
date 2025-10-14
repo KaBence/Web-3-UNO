@@ -27,6 +27,11 @@ const isCritical = ref(false);
 const roundEnded = computed(() => !!props.game?.currentRound?.winner);
 const roundgoing = computed(() => !roundEnded.value); // The opposite of roundEnded
 const gameWinnerId = computed(() => props.game?.winner ?? null);
+// Show "Play Again" only when the entire game has a winner
+const showPlayAgainAfterGame = computed(() => {
+  return !!props.game?.winner;
+});
+
 
 // This finds the name of the winner for the CURRENT round
 const roundWinnerName = computed(() => {
@@ -155,12 +160,14 @@ function playAgainAfterGame() {
   </button>
 </div>
 
-     <button
-  v-if="gameWinnerId"
+   <!-- Only show this if the entire game has a winner -->
+<button
+  v-if="showPlayAgainAfterGame"
   class="play-again-final"
   @click="playAgainAfterGame">
   {{ gameWinnerName }} won! Play Again
 </button>
+
 
     </div>
 </template>

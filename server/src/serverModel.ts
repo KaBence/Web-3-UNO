@@ -32,13 +32,12 @@ export class ServerModel {
       .map((m) => from_memento(m));
   }
 
-  async all_pending_games(): Promise<Game[]> {
-    const mementos = await this.store.getAllGames();
-     console.log("🧠 all_pending_games called – total:", mementos.length);
-    return mementos
-      .filter((m) => m.getCurrentRound() === null)
-      .map((m) => from_memento(m));
-  }
+async all_pending_games(): Promise<Game[]> {
+  const mementos = await this.store.getAllGames();
+  return mementos
+    .filter(m => !m.getCurrentRound())     // pending = no round yet (null/undefined)
+    .map(from_memento);
+}
   
   async getGame(id: number): Promise<GameMemento> {
     return this.store.getGame(id);
