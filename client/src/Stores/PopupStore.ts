@@ -1,5 +1,7 @@
 import { defineStore } from "pinia";
-import { Colors } from "Domain/src/model/Card";
+import { Colors, Type } from "Domain/src/model/Card";
+import * as api from "@/model/api";
+import type { CardSpecs } from "@/model/Specs";
 
 export enum Popups {
   Challenge = "Challenge",
@@ -14,20 +16,21 @@ export const usePopupStore = defineStore("popup", {
     showChallengeResult: false,
     showChangeColor: false,
     showPlay: false,
-
     challengeResult: false,
-    colorSelected: '',
-
+    colorSelected: "",
     _popupResolve: null as null | (() => void),
   }),
 
   actions: {
-    openPopup(popup: Popups) {
+    openPopup(popup: Popups, result?: boolean) {
       switch (popup) {
         case Popups.Challenge:
           this.showChallenge = true;
           break;
         case Popups.ChallengeResult:
+          if (typeof result === 'boolean') {
+            this.challengeResult = result;
+          }
           this.showChallengeResult = true;
           break;
         case Popups.ColorChange:
@@ -65,36 +68,42 @@ export const usePopupStore = defineStore("popup", {
       }
     },
 
-    handleChallengeTrue() {
-      console.log("Challenged");
+    async handleChallengeTrue(gameId: number) {
+      if (gameId === -1) return;
+      const result = await api.challengeDraw4(gameId, true);
       this.closePopup(Popups.Challenge);
-      this.showChallengeResult = true;
-      this.handleChallengeResult();
+      this.openPopup(Popups.ChallengeResult, result);
     },
 
-    handleChallengeFalse() {
-      console.log("Not challenged");
+    async handleChallengeFalse(gameId: number) {
+      if (gameId === -1) return;
+      await api.challengeDraw4(gameId, false);
       this.closePopup(Popups.Challenge);
-      this.handleChallengeResult();
     },
 
-    handleChallengeResult() {
-      console.log("ChallengeResult");
-      this.challengeResult = true;
-    },
-
-    handleChooseColor(color: Colors) {
+    handleChooseColor(gameId: number, color: Colors) {
+      if (gameId === -1) return;
       this.colorSelected = color.toString();
       this.closePopup(Popups.ColorChange);
     },
 
-    handlePlay() {
-      console.log("Play");
+    async handlePlay(gameId: number,card: CardSpecs, cardIndex: number) {
+      if (gameId === -1) return;
       this.closePopup(Popups.Play);
+      if(card.type === Type.Wild || card.type === Type.WildDrawFour)
+      {
+        await this.openPopup(Popups.ColorChange)
+        await api.play(gameId,cardIndex,this.colorSelected)
+      }
+      else
+      {
+        await api.play(gameId, cardIndex);
+      }
     },
 
-    handleDraw() {
-      console.log("Draw");
+    async handleDraw(gameId: number) {
+      if (gameId === -1) return;
+      await api.play(gameId,-1);
       this.closePopup(Popups.Play);
     },
   },

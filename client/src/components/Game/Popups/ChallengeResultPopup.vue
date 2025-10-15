@@ -1,41 +1,66 @@
 <script setup lang="ts">
-import { computed, ref, onMounted } from "vue";
+import { computed } from "vue";
+import { useRoute } from "vue-router";
 import Popup from "@/components/Game/Popups/Popup.vue";
-import PlayerHand from "../../Shared/PlayerHand.vue" 
-import {Card} from "Domain/src/model/Card"
+import PlayerHand from "../../Shared/PlayerHand.vue";
+import type { HandSpecs } from "@/model/Specs"; // Use your own defined types
 import { Popups, usePopupStore } from "../../../Stores/PopupStore";
+import { useActiveGameStore } from "@/Stores/OngoingGameStore";
 
+const route = useRoute();
 const popupStore = usePopupStore();
-const playerHand = ref<Card[]>([])
-const result = computed(() => popupStore.challengeResult)
+const ongoingGameStore = useActiveGameStore();
 
-//tyhis part should be changed to get specificPlayers hand
-import { DrawDeck } from "../../../../../Domain/src/model/Deck"
-const drawDeck = new DrawDeck()
-const cardsLeft = ref(drawDeck.size())
+const gameId = computed(() => {
+  const id = route.query.id;
+  return typeof id === "string" && !isNaN(parseInt(id)) ? parseInt(id) : -1;
+});
 
-onMounted(() => {
-  for (let i = 0; i < 5; i++) {
-    const card = drawDeck.deal()
-    if (card) playerHand.value.push(card)
+const game = computed(() => ongoingGameStore.getGame(gameId.value)?.value);
+
+const challengeHand = computed((): HandSpecs => {
+  const round = game.value?.currentRound;
+  
+  if (!round || !round.players || round.players.length === 0) {
+    return { cards: [] };
   }
-  cardsLeft.value = drawDeck.size()
-})
 
+  const { players, currentPlayer, currentDirection } = round;
+  const currentPlayerIndex = players.findIndex((p) => p.playerName === currentPlayer);
+
+  if (currentPlayerIndex === -1) {
+    return { cards: [] };
+  }
+
+  let challengedPlayerIndex;
+  if (currentDirection as String === "Clockwise") {
+    challengedPlayerIndex = (currentPlayerIndex + 1) % players.length;
+  } else {
+    challengedPlayerIndex = (currentPlayerIndex - 1 + players.length) % players.length;
+  }
+
+  return players[challengedPlayerIndex]?.hand ?? { cards: [] };
+});
+
+const handStyle = computed(() => {
+  return {
+    '--num-cards': challengeHand.value.cards.length
+  };
+});
 </script>
 
 <template>
   <Popup
     :visible="popupStore.showChallengeResult"
-    :title="result ? 'Challenge was successful!' : 'Challenge was unsuccessful!\nDraw 6!'"
+    :title = '"Challenge Result:"'
     :actions="[
       { label: 'Ok', onClick: () => popupStore.closePopup(Popups.ChallengeResult) },
     ]"
   >
     <PlayerHand 
-      :hand="playerHand" 
+      :hand="challengeHand.cards" 
       class="popup-hand-wrapper"
-      :style="{'--num-cards': playerHand.length}"
+      :style="handStyle"
     />
   </Popup>
 </template>
@@ -50,4 +75,3 @@ onMounted(() => {
     gap: 1px;
   }
 </style>
-

@@ -2,6 +2,17 @@
 import Popup from "@/components/Game/Popups/Popup.vue";
 import {Colors} from "Domain/src/model/Card"
 import { usePopupStore } from "../../../Stores/PopupStore";
+import { useRoute } from "vue-router";
+
+const route = useRoute();
+const queryGameId = route.query.id
+let gameId: number = -1;
+if (typeof queryGameId === "string") {
+  gameId = parseInt(queryGameId)
+}
+else {
+  alert("Invalid gameID is used")
+}
 
 const popupStore = usePopupStore();
 </script>
@@ -10,10 +21,10 @@ const popupStore = usePopupStore();
   <Popup :visible="popupStore.showChangeColor" title="Choose color:">
     <template #footer>
       <div class="color-grid">
-        <button class="red" @click="popupStore.handleChooseColor(Colors.Red)">Red</button>
-        <button class="blue" @click="popupStore.handleChooseColor(Colors.Blue)">Blue</button>
-        <button class="yellow" @click="popupStore.handleChooseColor(Colors.Yellow)">Yellow</button>
-        <button class="green" @click="popupStore.handleChooseColor(Colors.Green)">Green</button>
+        <button class="red" @click="popupStore.handleChooseColor(gameId,Colors.Red)">Red</button>
+        <button class="blue" @click="popupStore.handleChooseColor(gameId,Colors.Blue)">Blue</button>
+        <button class="yellow" @click="popupStore.handleChooseColor(gameId,Colors.Yellow)">Yellow</button>
+        <button class="green" @click="popupStore.handleChooseColor(gameId,Colors.Green)">Green</button>
       </div>
     </template>
   </Popup>

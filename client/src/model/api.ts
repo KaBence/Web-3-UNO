@@ -483,7 +483,6 @@ export async function onGame(subscriber: (game: GameSpecs) => any) {
   gameObservable.subscribe({
     next({ data }) {
       const game: GameSpecs = data.active;
-      console.log("onGameSub happened")
       subscriber(game);
     },
     error(err) {
@@ -554,7 +553,6 @@ export async function onPending(subscriber: (game: GameSpecs) => any) {
 }
 
 export async function play(gameId:number, cardId:number, chosenColor?:string) {
-  console.log(chosenColor)
   const mutation = gql`
   mutation PlayCard($gameId: Int!, $cardId: Int!, $chosenColor: String) {
     playCard(gameId: $gameId, cardId: $cardId, chosenColor: $chosenColor) {
@@ -616,29 +614,84 @@ export async function play(gameId:number, cardId:number, chosenColor?:string) {
   }
 }
 
-
-
-
-
-
-
-export async function challengeDraw4(gameId:number) {
+export async function canPlay(gameId:number, cardId:number) {
   const mutation = gql`
-  mutation ChallengeDraw4($gameId: Int!) {
-    challengeDraw4(gameId: $gameId) {
+  mutation CanPlay($gameId: Int!, $cardId: Int!) {
+    canPlay(gameId: $gameId, cardId: $cardId)
+  }
+  `;
+  try {
+    const { data } = await apolloClient.mutate({ 
+      mutation,
+      variables: {gameId,cardId},
+      fetchPolicy: "network-only",
+    });
+
+    // The union will return either PendingGame or ActiveGame
+    const flag = data.canPlay;
+    console.log(flag)
+    return flag;
+  } catch (error: any) {
+    console.error("Failed when checking if can play:", error);
+    throw error;
+  }
+}
+
+
+export async function challengeDraw4(gameId:number, response: boolean) { //get the challngeStatus from mutation - to be added
+  const mutation = gql`
+  mutation ChallengeDraw4($gameId: Int!, $response: Boolean!) {
+    challengeDraw4(gameId: $gameId, response: $response) {
+      scores
+      players {
+        unoCalled
+        playerName
+        name
+        hand {
+          cards {
+            type
+            color
+            number
+          }
+        }
+      }
       id
+      dealer
+      currentRound {
+        winner
+        topCard {
+          type
+          color
+          number
+        }
+        statusMessage
+        players {
+          name
+          unoCalled
+          hand {
+            cards {
+              type
+              color
+              number
+            }
+          }
+          playerName
+        }
+        drawDeckSize
+        currentPlayer
+        currentDirection
+      }
     }
   }
   `;
   try {
     const { data } = await apolloClient.mutate({ 
       mutation,
-      variables: {gameId},
+      variables: {gameId, response},
       fetchPolicy: "network-only",
     });
 
     const game = data.play;
-    console.log(game)
     return game;
   } catch (error: any) {
     console.error("Failed to execute challenge draw 4:", error);

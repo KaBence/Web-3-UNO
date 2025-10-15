@@ -160,6 +160,10 @@ export class Round {
 
   //also takes an optional color enum for wildcards
   play(cardID: number, colour?: Colors): void {
+    if(cardID === -1){
+      this.currentPlayer = this.getNextPlayer();
+      return
+    }
     const card = this.getPlayersCard(this.currentPlayer, cardID);
     if (card == undefined) {
       console.log("I tried to take a card that doesn't exist, whoops")
@@ -188,8 +192,10 @@ export class Round {
       case Type.Wild:
         this.discardPile.addCard(new SpecialColoredCard(Type.Dummy, colour!));
         break;
-      case Type.Dummy:
       case Type.WildDrawFour:
+        this.discardPile.addCard(new SpecialColoredCard(Type.DummyDraw4, colour!));
+        break;
+      case Type.Dummy:
       // we don't do anything here because the GUI has to react with challengeWildDrawFour() if the player wants or after 5 seconds no matter what
       case Type.Numbered:
       // we don't do anything because it is covered above the switch
@@ -274,12 +280,13 @@ export class Round {
         return true;
 
       case Type.Numbered:
-        if (this.currentCard().getType() === card.getType() || this.currentCard().getColor() === card.getColor()){
+        if (this.currentCard().getNumber() === card.getNumber() || this.currentCard().getColor() === card.getColor()){
             return true;
         }
         return false;
       
       case Type.Dummy:
+      case Type.DummyDraw4:
         return false
     }
   }

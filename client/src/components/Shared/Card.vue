@@ -7,6 +7,9 @@
     <span v-if="isWild && card.type === Type.WildDrawFour" class="corner top-left">+4</span>
     <span v-if="isWild && card.type === Type.WildDrawFour" class="corner bottom-right">+4</span>
 
+    <span v-if="card.type === Type.DummyDraw4" class="corner top-left">+4</span>
+    <span v-if="card.type === Type.DummyDraw4" class="corner bottom-right">+4</span>
+
     <!-- Oval -->
     <div class="center-oval">
      
@@ -16,6 +19,14 @@
 
       <!-- Wild -->
       <div v-if="isWild" class="wild-symbol">
+        <div class="wild-square red"></div>
+        <div class="wild-square yellow"></div>
+        <div class="wild-square green"></div>
+        <div class="wild-square blue"></div>
+      </div>
+
+      <!-- Dummy -->
+      <div v-if="isDummy" class="wild-symbol">
         <div class="wild-square red"></div>
         <div class="wild-square yellow"></div>
         <div class="wild-square green"></div>
@@ -40,6 +51,10 @@ const isWild = computed(() =>
   card.type === Type.Wild || card.type === Type.WildDrawFour
 )
 
+const isDummy = computed(() =>
+  card.type === Type.Dummy || card.type === Type.DummyDraw4
+)
+
 const isNumberOrDraw = computed(() =>
   card.type === Type.Numbered || card.type === Type.Draw
 )
@@ -51,8 +66,7 @@ const mainLabel = computed(() => {
     case Type.Draw: return "+2"
     case Type.Skip: return "SKIP"
     case Type.Reverse: return "⇄"
-    case Type.Wild: return ""
-    case Type.WildDrawFour: return ""
+    
     default: return ""
   }
 })
