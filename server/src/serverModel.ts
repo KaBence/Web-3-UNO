@@ -129,8 +129,10 @@ export class ServerModel {
     let round = game.getCurrentRound()
     if(round){
       round.play(cardId,chosenColor as Colors)
+      if(round.roundHasEnded()){
+        round.winner()
+      }
     }
-    round?.roundHasEnded //? I dont remeber why Michaela asked me to do it
     return from_memento(await this.store.updateGame(to_memento(game)));
   }
 

@@ -23,9 +23,9 @@ const ongoingGameStore = useActiveGameStore()
 const game = ongoingGameStore.getGame(gameId)
 const currentPlayerId = computed(() => game?.value?.currentRound?.currentPlayer);
 
-const playerHnad = computed(() => game.value?.currentRound?.players[currentPlayerId.value!-1].hand)
-const index = computed(() => playerHnad.value?.cards.length! - 1) 
-const card = computed(() => playerHnad.value?.cards[index.value])
+const playerHand = computed(() => game.value?.currentRound?.players[currentPlayerId.value!-1].hand)
+const index = computed(() => playerHand.value?.cards.length! - 1) 
+const card = computed(() => playerHand.value?.cards[index.value])
 
 
 </script>

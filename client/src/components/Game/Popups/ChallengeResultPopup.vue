@@ -34,9 +34,9 @@ const challengeHand = computed((): HandSpecs => {
 
   let challengedPlayerIndex;
   if (currentDirection as String === "Clockwise") {
-    challengedPlayerIndex = (currentPlayerIndex + 1) % players.length;
-  } else {
     challengedPlayerIndex = (currentPlayerIndex - 1 + players.length) % players.length;
+  } else {
+    challengedPlayerIndex = (currentPlayerIndex + 1) % players.length;
   }
 
   return players[challengedPlayerIndex]?.hand ?? { cards: [] };

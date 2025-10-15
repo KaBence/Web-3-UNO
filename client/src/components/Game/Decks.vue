@@ -66,7 +66,6 @@ watch(
     const cardWasJustPlayed = oldTopCard?.type !== Type.DummyDraw4;
 
     if (isMyTurn && isChallengeCard && cardWasJustPlayed) {
-      console.log("WATCH TRIGGERED: A challengeable card was just played, and it is now my turn.");
       emit('challenge');
     }
   },

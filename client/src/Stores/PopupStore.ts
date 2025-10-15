@@ -28,9 +28,7 @@ export const usePopupStore = defineStore("popup", {
           this.showChallenge = true;
           break;
         case Popups.ChallengeResult:
-          if (typeof result === 'boolean') {
-            this.challengeResult = result;
-          }
+          this.challengeResult = result!;
           this.showChallengeResult = true;
           break;
         case Popups.ColorChange:
