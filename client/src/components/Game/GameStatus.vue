@@ -105,15 +105,13 @@ watch(() => props.game?.currentRound?.winner, (newWinnerId) => {
 
 
 
-function playAgain() {
- 
-  emit('playAgain');
-}
 
-function playAgainAfterGame() {
  
-  emit('endGame');
-}
+
+
+
+ 
+
 </script>
 <template>
     <div class="gamestatus">
@@ -155,7 +153,7 @@ function playAgainAfterGame() {
   <div class="winner-banner">
     🏆  Round Winner: {{ roundWinnerName }} 🏆
   </div>
-  <button class="play-again" @click="playAgain">
+  <button class="play-again" @click="emit('playAgain');">
     Start New Round
   </button>
 </div>
@@ -164,7 +162,8 @@ function playAgainAfterGame() {
 <button
   v-if="showPlayAgainAfterGame"
   class="play-again-final"
-  @click="playAgainAfterGame">
+  @click="
+  emit('endGame');">
   {{ gameWinnerName }} won! Play Again
 </button>
 

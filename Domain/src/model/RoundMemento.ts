@@ -8,7 +8,7 @@ export class RoundMemento {
   private readonly drawPile: DeckMemento;
   private readonly discardPile: DeckMemento;
   private readonly players: PlayerMemento[];
-  private readonly currentPlayer: PlayerNames;
+  private readonly currentPlayer: PlayerNames ;
   private readonly currentDirection: Direction;
   private readonly roundWinner?: PlayerNames;
   private readonly statusMessage: String
@@ -19,7 +19,7 @@ export class RoundMemento {
     players: PlayerMemento[],
     drawPile: DeckMemento,
     discardPile: DeckMemento,
-    currentPlayer: PlayerNames,
+    currentPlayer: PlayerNames ,
     currentDirection: Direction,
     statusMessage:String,
     topCard:Card,

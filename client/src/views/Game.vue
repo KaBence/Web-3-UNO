@@ -150,6 +150,7 @@ async function playCard(cardId:number) {
     }
   }
 }
+
 async function startNewRound() {
   if (!game.value) return;
 
@@ -162,7 +163,7 @@ async function startNewRound() {
     const clonedGame = structuredClone(updatedGame);
 
     // Replace the old game in your Pinia store with the new one
-    ongoingGameStore.update(updatedGame);
+    ongoingGameStore.update(clonedGame);
 
     console.log("✅ New round loaded.");
   } catch (err) {

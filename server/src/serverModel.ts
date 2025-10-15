@@ -102,8 +102,8 @@ async removePlayer(gameId: number, playerId: number): Promise<GameMemento | null
     const memento = await this.store.getGame(id);
     const game = from_memento(memento);
 
-    if (!game.getPlayers() || game.getPlayers().length < 1) {
-      throw new Error("Cannot start a round with zero players.");
+    if (!game.getPlayers() || game.getPlayers().length < 2) {
+      throw new Error("Cannot start a round with one or no players.");
     }
 
     game.createRound();

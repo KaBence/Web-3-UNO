@@ -21,14 +21,14 @@ export class Round {
   private cardsPerPlayer: number = 7;
   private roundWinner?: PlayerNames;
   private statusMessage: String;
-  private topCard:Card;
-  private drawDeckSize:number
+  private topCard: Card;
+  private drawDeckSize: number
 
-  constructor(players: Player[], dealer: number, memento?:RoundMemento) {
+  constructor(players: Player[], dealer: number, memento?: RoundMemento) {
     if (memento) {
       this.players = []
       for (let playerMem of memento.getPlayers()) {
-        this.players.push(new Player(playerMem.getId(),playerMem.getName(),playerMem))
+        this.players.push(new Player(playerMem.getId(), playerMem.getName(), playerMem))
       }
       this.currentDirection = memento.getCurrentDirection();
       this.currentPlayer = memento.getCurrentPlayer();
@@ -39,15 +39,15 @@ export class Round {
       this.statusMessage = "Round Restored"
       return;
     }
-    
+
     this.players = players;
     this.currentDirection = Direction.Clockwise;
     this.currentPlayer = this.players.length === 0 ? -1 : ((dealer + 1) % this.players.length) + 1; //should be next player after dealer
-    
+
     this.drawPile = new DrawDeck();
     for (let i = 0; i < this.cardsPerPlayer; i++) {
       for (const player of this.players) {
-        this.draw(1,player.getID())
+        this.draw(1, player.getID())
       }
     }
     this.discardPile = new DiscardDeck([this.drawPile.deal()!]);
@@ -88,10 +88,10 @@ export class Round {
     this.players = players;
   }
 
-  getCurrentPlayer(): Player {
-    return this.getSpecificPlayer(this.currentPlayer);
-  }
-
+ getCurrentPlayer(): Player | undefined {
+  // .find() is naturally safe and returns the object or undefined.
+  return this.players.find((p) => p.getID() === this.currentPlayer);
+}
   setCurrentPlayer(player: number): void {
     this.currentPlayer = player;
   }
@@ -104,11 +104,11 @@ export class Round {
     return this.cardsPerPlayer;
   }
 
-  getStatusMessage():String{
+  getStatusMessage(): String {
     return this.statusMessage
   }
 
-  getPlayerHand(player: PlayerNames): Hand | undefined{ 
+  getPlayerHand(player: PlayerNames): Hand | undefined {
     let p = this.players.find((p) => p.getID() === player)
     return p ? p.getHand() : undefined
   }
@@ -161,9 +161,9 @@ export class Round {
     }
     if (!this.canPlay(cardID)) {
       return
-    } 
+    }
 
-    this.getCurrentPlayer().getHand().removeCard(card);
+    this.getCurrentPlayer()?.getHand().removeCard(card);
     this.discardPile.addCard(card);
     this.currentCard()
 
@@ -193,7 +193,7 @@ export class Round {
       const winner = this.winner();
       if (winner) {
         this.roundWinner = winner.getID();
-     
+
         return;
       }
     }
@@ -201,7 +201,7 @@ export class Round {
     this.currentPlayer = this.getNextPlayer();
   }
 
-   draw(noCards: number, playedId: PlayerNames): void {
+  draw(noCards: number, playedId: PlayerNames): void {
     for (let i = 0; i < noCards; i++) {
       let card = this.drawPile.deal();
       if (card == undefined) {
@@ -217,14 +217,14 @@ export class Round {
         this.getSpecificPlayer(playedId).setUno(false);
       }
       let hand = this.getPlayerHand(playedId)
-      if (hand){
+      if (hand) {
         hand.addCard(card);
       }
-      else{
+      else {
         console.log("Tried to access a player's hand who doesn't exists")
       }
     }
-    this.drawDeckSize =this.drawPile.getCards().length
+    this.drawDeckSize = this.drawPile.getCards().length
   }
 
   //if you forget to say uno and it is already the next person's round, you should still be able to call UNO
@@ -235,7 +235,7 @@ export class Round {
       if (this.canPlay(0) || this.canPlay(1)) {
         specificPlayer.setUno(true);
       }
-      else{
+      else {
         this.draw(4, player);
       }
       return;
@@ -252,22 +252,22 @@ export class Round {
     switch (card.getType()) {
       case Type.Reverse:
       case Type.Draw:
-      case Type.Skip :
+      case Type.Skip:
         if (this.currentCard().getType() === card.getType() || this.currentCard().getColor() === card.getColor()) {
           return true;
         }
         return false;
 
-      case Type.Wild :
+      case Type.Wild:
       case Type.WildDrawFour:
         return true;
 
       case Type.Numbered:
-        if (this.currentCard().getType() === card.getType() || this.currentCard().getColor() === card.getColor()){
-            return true;
+        if (this.currentCard().getType() === card.getType() || this.currentCard().getColor() === card.getColor()) {
+          return true;
         }
         return false;
-      
+
       case Type.Dummy:
         return false
     }
@@ -283,18 +283,18 @@ export class Round {
     this.couldPlayInsteadofDrawFour()
       ? this.draw(4, this.getPreviousPlayer())
       : (() => {
-          this.draw(6, this.currentPlayer);
-          this.currentPlayer = this.getNextPlayer();
-        })();
+        this.draw(6, this.currentPlayer);
+        this.currentPlayer = this.getNextPlayer();
+      })();
   }
 
   //Helper functions
 
   getNextPlayer(): PlayerNames {
     let index = 0;
-    if (this.getCurrentDirection() === Direction.Clockwise) 
+    if (this.getCurrentDirection() === Direction.Clockwise)
       index = (this.players.findIndex((p) => p.getID() === this.currentPlayer) + 1) % this.players.length;
-    else 
+    else
       index = (this.players.findIndex((p) => p.getID() === this.currentPlayer) - 1 + this.players.length) % this.players.length;
 
     return this.players[index].getID();
@@ -303,7 +303,7 @@ export class Round {
   getPreviousPlayer(): PlayerNames {
     let index = 0;
     if (this.getCurrentDirection() === Direction.Clockwise) {
-      index =(this.players.findIndex((p) => p.getID() === this.currentPlayer) - 1 + this.players.length) % this.players.length;
+      index = (this.players.findIndex((p) => p.getID() === this.currentPlayer) - 1 + this.players.length) % this.players.length;
     } else {
       index = (this.players.findIndex((p) => p.getID() === this.currentPlayer) + 1) % this.players.length;
     }
@@ -319,7 +319,7 @@ export class Round {
         case Type.Reverse:
         case Type.Draw:
         case Type.Skip:
-          if (this.currentCard().getType() === hand[i].getType() || this.currentCard().getColor() === hand[i].getColor()){
+          if (this.currentCard().getType() === hand[i].getType() || this.currentCard().getColor() === hand[i].getColor()) {
             return true;
           }
           break;
@@ -327,7 +327,7 @@ export class Round {
         case Type.WildDrawFour:
           break;
         case Type.Numbered:
-          if (this.currentCard().getNumber() === hand[i].getNumber() || this.currentCard().getColor() === hand[i].getColor()){
+          if (this.currentCard().getNumber() === hand[i].getNumber() || this.currentCard().getColor() === hand[i].getColor()) {
             return true;
           }
         case Type.Dummy:
@@ -349,7 +349,7 @@ export class Round {
         this.currentPlayer = this.getNextPlayer()
         return;
       case Type.Draw:
-        this.draw(2,this.currentPlayer)
+        this.draw(2, this.currentPlayer)
         this.currentPlayer = this.getNextPlayer()
         return;
       case Type.WildDrawFour:
@@ -359,30 +359,43 @@ export class Round {
         this.discardPile.addCard(this.drawPile.deal()!);
         this.handleStartRound();
       case Type.Wild:
-        // not doing anything in this case, cause the GUI has to notice the wild card and the logic will happen there and calling different function in Round
+      // not doing anything in this case, cause the GUI has to notice the wild card and the logic will happen there and calling different function in Round
       case Type.Numbered:
       case Type.Dummy:
         return;
     }
   }
 
-  setWildColor(color:Colors) : void{
+  setWildColor(color: Colors): void {
     this.discardPile.addCard(CreateSpecialColoredCard(Type.Dummy, color))
   }
 
-  createMementoFromRound():RoundMemento{
-    const winnerObject = this.winner();
+  createMementoFromRound(): RoundMemento {
+    ;
     let playerMementos: PlayerMemento[] = [];
-    for (let player of this.players){
+    for (let player of this.players) {
       playerMementos.push(player.createMementoFromPlayer())
     }
-    return new RoundMemento(playerMementos,this.drawPile.createMementoFromDeck(),this.discardPile.createMementoFromDeck(),this.currentPlayer,this.currentDirection,this.statusMessage,this.topCard, winnerObject ? winnerObject.getID() : this.roundWinner
-  );
+    const roundWinnerObject = this.winner()
+    const currentPlayerObject = this.getCurrentPlayer();
+
+    return new RoundMemento(
+      playerMementos,
+      this.drawPile.createMementoFromDeck(),
+      this.discardPile.createMementoFromDeck(),
+//THIS CREATES A PROBLEM BUT LETS DISCUSS IT TOGETHER
+        currentPlayerObject ? currentPlayerObject.getID() : this.currentPlayer,
+
+      this.currentDirection,
+      this.statusMessage,
+      this.topCard,
+      roundWinnerObject ? roundWinnerObject.getID() : undefined
+    );
   }
-  // In your Round class (Round.ts)
+
 
   public removePlayer(playerId: number): void {
-    // Filter the round's internal players list.
+
     this.players = this.players.filter(p => p.getID() !== playerId);
   }
 }

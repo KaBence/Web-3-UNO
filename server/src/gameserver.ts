@@ -19,54 +19,53 @@ import { GameAPI } from "./api";
 import { Resolvers } from "./resolvers";
 import { GameMemento } from "Domain/src/model/GameMemento";
 import { Game } from "Domain/src/model/Game";
-import { getMemoryStore } from "./memoryStoreSingleton";
 
 async function startServer(store: GameStore) {
   const pubsub: PubSub = new PubSub();
 
 
- // NEW and IMPROVED broadcaster
+  // NEW and IMPROVED broadcaster
 
-const PENDING_GAMES_FEED = "pendingGamesFeed";
-const ACTIVE_GAMES_FEED = "activeGamesFeed";
+  const PENDING_GAMES_FEED = "pendingGamesFeed";
+  const ACTIVE_GAMES_FEED = "activeGamesFeed";
 
-const broadcaster = {
-  // Call this when a new game is created
-  gameAdded(game: Game) {
-    const topic = game.getCurrentRound() ? ACTIVE_GAMES_FEED : PENDING_GAMES_FEED;
-    pubsub.publish(topic, {
-      [topic]: { 
-        action: 'ADDED',
-        gameId: game.getId(),
-        game: game
-      }
-    });
-  },
+  const broadcaster = {
+    // Call this when a new game is created
+    gameAdded(game: Game) {
+      const topic = game.getCurrentRound() ? ACTIVE_GAMES_FEED : PENDING_GAMES_FEED;
+      pubsub.publish(topic, {
+        [topic]: {
+          action: 'ADDED',
+          gameId: game.getId(),
+          game: game
+        }
+      });
+    },
 
-  // Call this when a game state changes (e.g., a player plays a card)
-  gameUpdated(game: Game) {
-    const topic = game.getCurrentRound() ? ACTIVE_GAMES_FEED : PENDING_GAMES_FEED;
-    pubsub.publish(topic, {
-      [topic]: {
-        action: 'UPDATED',
-        gameId: game.getId(),
-        game: game
-      }
-    });
-  },
+    // Call this when a game state changes (e.g., a player plays a card)
+    gameUpdated(game: Game) {
+      const topic = game.getCurrentRound() ? ACTIVE_GAMES_FEED : PENDING_GAMES_FEED;
+      pubsub.publish(topic, {
+        [topic]: {
+          action: 'UPDATED',
+          gameId: game.getId(),
+          game: game
+        }
+      });
+    },
 
-  // Call this when a game is deleted or moves from one list to another
-  gameRemoved(gameId: number, from: 'pending' | 'active') {
-    const topic = from === 'pending' ? PENDING_GAMES_FEED : ACTIVE_GAMES_FEED;
-    pubsub.publish(topic, {
-      [topic]: {
-        action: 'REMOVED',
-        gameId: gameId,
-        game: null // The game object is null, as required
-      }
-    });
-  }
-};
+    // Call this when a game is deleted or moves from one list to another
+    gameRemoved(gameId: number, from: 'pending' | 'active') {
+      const topic = from === 'pending' ? PENDING_GAMES_FEED : ACTIVE_GAMES_FEED;
+      pubsub.publish(topic, {
+        [topic]: {
+          action: 'REMOVED',
+          gameId: gameId,
+          game: null // The game object is null, as required
+        }
+      });
+    }
+  };
   const api = new GameAPI(broadcaster, store);
 
   try {
@@ -127,7 +126,7 @@ const broadcaster = {
 }
 
 function configAndStart() {
-  startServer(getMemoryStore());
+  startServer(new MemoryStore);
 }
 
 configAndStart();

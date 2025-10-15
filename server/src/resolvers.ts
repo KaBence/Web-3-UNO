@@ -11,10 +11,10 @@ export class Resolvers {
 
   Query = {
     activeGames: async () => {
-     return  await this.api.getActiveGames();
+      return await this.api.getActiveGames();
     },
     pendingGames: async () => {
-    return  await this.api.getPendingGames();
+      return await this.api.getPendingGames();
     },
   };
 
@@ -58,19 +58,19 @@ export class Resolvers {
     challengeDraw4: async (_: any, { gameId }: { gameId: number }) => {
       return this.api.challengeDraw4(gameId);
     },
-  
+
 
   };
 
- Subscription = {
-  pendingGamesFeed: {
-    subscribe: () => this.pubsub.asyncIterableIterator(['pendingGamesFeed'])
-  },
+  Subscription = {
+    pendingGamesFeed: {
+      subscribe: () => this.pubsub.asyncIterableIterator(['pendingGamesFeed'])
+    },
 
-  activeGamesFeed: {
-    subscribe: () => this.pubsub.asyncIterableIterator(['activeGamesFeed'])
+    activeGamesFeed: {
+      subscribe: () => this.pubsub.asyncIterableIterator(['activeGamesFeed'])
+    }
   }
-}
 
   public getResolverMap() {
     return {

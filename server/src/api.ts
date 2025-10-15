@@ -28,17 +28,17 @@ export class GameAPI {
 
   /** Add a player to a pending game */
   async addPlayer(gameId: number, playerName: string) {
-    const updated = await this.server.addPlayer(gameId, playerName); 
-    const game = new Game(updated.getId(), updated); 
-    
+    const updated = await this.server.addPlayer(gameId, playerName);
+    const game = new Game(updated.getId(), updated);
+
     await this.broadcaster.gameUpdated(game);
     return updated;
-   }
+  }
 
   /** Remove a player from a pending game */
-/**
- * Orchestrates removing a player from any game (pending or active).
- */
+  /**
+   * Orchestrates removing a player from any game (pending or active).
+   */
   async removePlayer(gameId: number, playerId: number): Promise<Game | null> {
     // Step 1: Get the game's state *before* it's potentially deleted.
     // This is crucial for broadcasting to the correct feed later.
@@ -70,10 +70,10 @@ export class GameAPI {
   async startRound(gameId: number): Promise<Game> {
     const gameMemento = await this.server.startRound(gameId)
     const game = from_memento(gameMemento)
-
-   this.broadcaster.gameRemoved(gameId, 'pending');
-    // 2. The game is ADDED to the active list.
     this.broadcaster.gameAdded(game);
+    this.broadcaster.gameRemoved(gameId, 'pending');
+
+
     return game
   }
 
@@ -81,12 +81,12 @@ export class GameAPI {
 
   /** Handle playing a card */
   async playCard(gameId: number, cardId: number, chosenColor?: string): Promise<Game> {
-    const memento = await this.server.play(gameId,cardId,chosenColor)
+    const memento = await this.server.play(gameId, cardId, chosenColor)
     const game = from_memento(memento)
     this.broadcaster.gameUpdated(game);
     return game;
-   
-   //  game.roundFinished();
+
+    //  game.roundFinished();
   }
 
   /** Draw a card */
@@ -137,11 +137,11 @@ export class GameAPI {
     return game
   }
 
- 
+
   async createGame(): Promise<Game> {
     try {
       const game = from_memento(await this.server.createGame());
-      this.broadcaster.gameAdded(game) ;
+      this.broadcaster.gameAdded(game);
       return game;
     }
     catch (error: any) {

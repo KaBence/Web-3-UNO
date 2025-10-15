@@ -17,11 +17,8 @@ const update = (game: GameSpecs) => {
   const index = gameList.findIndex(g => g.id === cloned.id);
 
   if (index > -1) {
-    // replace the entire array reference
-    const newList = [...gameList];
-    newList.splice(index, 1, cloned);
-    // reassign to trigger full reactivity flush
-    Object.assign(gameList, newList);
+     gameList[index] = cloned;
+  
   } else {
     gameList.push(cloned);
   }

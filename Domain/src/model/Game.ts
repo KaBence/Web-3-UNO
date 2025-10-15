@@ -54,26 +54,26 @@ export class Game {
     this.scores[id as PlayerNames] = 0;
   }
 
- // In your Game class (Game.ts)
+  // In your Game class (Game.ts)
 
-public removePlayer(playerId: number): void {
-  const initialPlayerCount = this.players.length;
+  public removePlayer(playerId: number): void {
+    const initialPlayerCount = this.players.length;
 
-  // First, filter the main players list.
-  this.players = this.players.filter(p => p.getID() !== playerId);
+    // First, filter the main players list.
+    this.players = this.players.filter(p => p.getID() !== playerId);
 
-  // If no player was removed, do nothing further.
-  if (this.players.length === initialPlayerCount) {
-    console.warn(`Attempted to remove player ${playerId}, but they were not found.`);
-    return;
+    // If no player was removed, do nothing further.
+    if (this.players.length === initialPlayerCount) {
+      console.warn(`Attempted to remove player ${playerId}, but they were not found.`);
+      return;
+    }
+
+    // --- THIS IS THE FIX ---
+    // If there is an active round, you MUST also remove the player from the round's list.
+    if (this.currentRound) {
+      this.currentRound.removePlayer(playerId);
+    }
   }
-
-  // --- THIS IS THE FIX ---
-  // If there is an active round, you MUST also remove the player from the round's list.
-  if (this.currentRound) {
-    this.currentRound.removePlayer(playerId);
-  }
-}
 
   public getPlayers(): Player[] {
     // return shallow copy to protect encapsulation
@@ -92,7 +92,7 @@ public removePlayer(playerId: number): void {
     return { ...this.scores };
   }
 
-  public getId(){
+  public getId() {
     return this.id
   }
 
@@ -118,24 +118,24 @@ public removePlayer(playerId: number): void {
     this.dealer = this.selectDealer();
   }
 
- public createRound(): Round {
-  // Choose dealer
-  if (this.dealer === -1) {
-    this.setInitialDealer();
-  } else {
-    this.dealer = (this.dealer + 1) % this.players.length;
+  public createRound(): Round {
+    // Choose dealer
+    if (this.dealer === -1) {
+      this.setInitialDealer();
+    } else {
+      this.dealer = (this.dealer + 1) % this.players.length;
+    }
+
+    // Recreate players with fresh hands
+    const freshPlayers = this.players.map(
+      (p) => new Player(p.getID(), p.getName())
+    );
+
+    // Start new round with clean state
+    this.currentRound = new Round(freshPlayers, this.dealer);
+
+    return this.currentRound;
   }
-
-  // Recreate players with fresh hands
-  const freshPlayers = this.players.map(
-    (p) => new Player(p.getID(), p.getName())
-  );
-
-  // Start new round with clean state
-  this.currentRound = new Round(freshPlayers, this.dealer);
-
-  return this.currentRound;
-}
 
   public getCurrentRound(): Round | undefined {
     return this.currentRound;
@@ -158,13 +158,11 @@ public removePlayer(playerId: number): void {
   }
 
   public roundFinished(): void {
-    if (this.currentRound?.getWinner())
-    {
+    if (this.currentRound?.getWinner()) {
       this.calculateRoundScores()
       this.setWinner();
-      if(!this.winner)
-      {
-     ///????   this.createRound()
+      if (!this.winner) {
+        ///????   this.createRound()
       }
 
     }
@@ -196,18 +194,11 @@ public removePlayer(playerId: number): void {
   }
 
   public createMementoFromGame(): GameMemento {
-    let playerMementos: PlayerMemento[] = [];
-    if (this.currentRound) {
-      for (let player of this.currentRound.getPlayers()) {
-        playerMementos.push(player.createMementoFromPlayer())
-      }
-    }
-    else {
-      for (let player of this.players) {
-        playerMementos.push(player.createMementoFromPlayer())
-      }
-    }
-    
+    const sourcePlayers = this.currentRound ? this.currentRound.getPlayers() : this.players;
+    const playerMementos = sourcePlayers.map(player => player.createMementoFromPlayer());
+
+
+
     return new GameMemento(
       this.id,
       this.scores,
