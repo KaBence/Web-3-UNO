@@ -101,11 +101,14 @@ export class GameAPI {
 
   }
 
-  async challengeDraw4(gameId: number, response: boolean): Promise<Game> {
-    const memento = await this.server.challangeDrawFor(gameId,response);
+  async challengeDraw4(gameId: number, response: boolean): Promise<boolean> {
+    const serverResp = await this.server.challangeDrawFor(gameId,response)
+    const result = serverResp.result;
+    const memento = serverResp.updated;
     const game = from_memento(memento);
     this.broadcast(game);
-    return game
+        
+    return result
   }
 
   async canPlay(gameId: number, cardId: number): Promise<Boolean> {

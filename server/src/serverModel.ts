@@ -140,11 +140,12 @@ export class ServerModel {
     const memento = await this.store.getGame(gameId); 
     const game = from_memento(memento);
     const round = game.getCurrentRound()
+    let result = false
     if(round){
-      round.challengeWildDrawFour(response);
+      result = round.challengeWildDrawFour(response);
     }
-  
-    return await this.store.updateGame(game.createMementoFromGame());
+    const updated = await this.store.updateGame(game.createMementoFromGame())
+    return {updated, result};
   }
 
   async canPlay(gameId: number, cardId: number) {

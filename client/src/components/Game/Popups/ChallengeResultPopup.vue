@@ -17,6 +17,7 @@ const gameId = computed(() => {
 });
 
 const game = computed(() => ongoingGameStore.getGame(gameId.value)?.value);
+const result = computed(() => popupStore.challengeResult)
 
 const challengeHand = computed((): HandSpecs => {
   const round = game.value?.currentRound;
@@ -47,12 +48,13 @@ const handStyle = computed(() => {
     '--num-cards': challengeHand.value.cards.length
   };
 });
+
 </script>
 
 <template>
   <Popup
     :visible="popupStore.showChallengeResult"
-    :title = '"Challenge Result:"'
+    :title = "result ? 'Challenge was successful!' : 'Challenge was unsuccessful!\nDraw 6!'"
     :actions="[
       { label: 'Ok', onClick: () => popupStore.closePopup(Popups.ChallengeResult) },
     ]"

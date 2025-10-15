@@ -629,7 +629,6 @@ export async function canPlay(gameId:number, cardId:number) {
 
     // The union will return either PendingGame or ActiveGame
     const flag = data.canPlay;
-    console.log(flag)
     return flag;
   } catch (error: any) {
     console.error("Failed when checking if can play:", error);
@@ -641,47 +640,7 @@ export async function canPlay(gameId:number, cardId:number) {
 export async function challengeDraw4(gameId:number, response: boolean) { //get the challngeStatus from mutation - to be added
   const mutation = gql`
   mutation ChallengeDraw4($gameId: Int!, $response: Boolean!) {
-    challengeDraw4(gameId: $gameId, response: $response) {
-      scores
-      players {
-        unoCalled
-        playerName
-        name
-        hand {
-          cards {
-            type
-            color
-            number
-          }
-        }
-      }
-      id
-      dealer
-      currentRound {
-        winner
-        topCard {
-          type
-          color
-          number
-        }
-        statusMessage
-        players {
-          name
-          unoCalled
-          hand {
-            cards {
-              type
-              color
-              number
-            }
-          }
-          playerName
-        }
-        drawDeckSize
-        currentPlayer
-        currentDirection
-      }
-    }
+    challengeDraw4(gameId: $gameId, response: $response)
   }
   `;
   try {
@@ -690,9 +649,8 @@ export async function challengeDraw4(gameId:number, response: boolean) { //get t
       variables: {gameId, response},
       fetchPolicy: "network-only",
     });
-
-    const game = data.play;
-    return game;
+    const result = data.challengeDraw4;
+    return result;
   } catch (error: any) {
     console.error("Failed to execute challenge draw 4:", error);
     throw error;

@@ -14,6 +14,7 @@ else {
   alert("Invalid gameID is used")
 }
 
+
 const popupStore = usePopupStore();
 </script>
 

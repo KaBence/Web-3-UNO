@@ -291,23 +291,23 @@ export class Round {
     }
   }
 
-  challengeWildDrawFour(isChallenged: boolean): void {
+  challengeWildDrawFour(isChallenged: boolean): boolean {
     if (!isChallenged) {
       this.draw(4, this.currentPlayer);
       this.statusMessage = this.getSpecificPlayer(this.currentPlayer).getName() + " did not challenge"
       this.currentPlayer = this.getNextPlayer();
-      return;
+      return false;
     }
 
     if (this.couldPlayInsteadofDrawFour()){
       this.draw(4, this.getPreviousPlayer())
       this.statusMessage = this.getSpecificPlayer(this.currentPlayer).getName() + "challenged successfully"
+      return true
     }
-    else {
-      this.draw(6, this.currentPlayer);
-      this.statusMessage = this.getSpecificPlayer(this.currentPlayer).getName() + "challenged but failed"
-      this.currentPlayer = this.getNextPlayer();
-    }
+    this.draw(6, this.currentPlayer);
+    this.statusMessage = this.getSpecificPlayer(this.currentPlayer).getName() + "challenged but failed"
+    this.currentPlayer = this.getNextPlayer();
+    return false
   }
 
   //Helper functions
