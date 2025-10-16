@@ -87,7 +87,7 @@
 
 
   <script lang="ts" setup>
-  import { ref, computed } from "vue"; // For game status Used to create reactive values that automatically update when their dependencies change.
+  import { ref, computed } from "vue"; 
   import { useRoute, useRouter } from "vue-router";
   import { usePlayerStore } from "@/Stores/PlayerStore";
   import * as api from '../model/api'
@@ -133,30 +133,27 @@
   }
 
   const leaveGame = async (gameId: number) => {
-  // 1. Find the game directly from the store.
+
   const game = pendingGamesStore.getGame(gameId);
   if (!game) {
     console.error(`Could not find game ${gameId} to leave.`);
     return;
   }
 
-  // 2. Find the current player in that game's player list.
+  
   const me = game.players.find(p => p.name === playerName);
   if (!me) {
     console.error(`Could not find player ${playerName} in game ${gameId}.`);
     return;
   }
 
-  // 3. Get the correct numeric ID from the 'playerName' property.
   const myPlayerId = me.playerName;
-
-  // 4. Call the API with the correct IDs.
   await api.removePlayer(gameId, myPlayerId);
 
-  // 5. Reset the local component state.
+ 
   hasJoinedGame.value.joinedGameId = null;
   hasCreatedGame.value = false;
-  playerStore.update(0); // Clear the player's global state
+  playerStore.update(0); 
 };
 
   const createGame = async () => {
@@ -166,7 +163,7 @@
     await joinGame(gameId);
     hasJoinedGame.value.joinedGameId = gameId;  
     console.log("Creating a new game");
-    // Implement start game logic here
+    
     hasCreatedGame.value = true
   }
 
@@ -187,18 +184,18 @@
   }
 
   .card {
-    /* fill available height and layout vertically */
+   
     width: 740px;
     max-width: calc(100vw - 40px);
-    height: 100%;                /* key: take all of wrapper's height */
-    max-height: calc(100dvh - 48px); /* avoid overflow past wrapper padding */
+    height: 100%;               
+    max-height: calc(100dvh - 48px); 
     background: #fff;
     border-radius: 18px;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
     padding: 20px;
     display: flex;
     flex-direction: column;
-    overflow: hidden;            /* keep internal scrolling tidy */
+    overflow: hidden;           
   }
 
   .topbar {

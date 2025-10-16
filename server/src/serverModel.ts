@@ -24,7 +24,7 @@ export class ServerModel {
     this.nextId = 0;
   }
 
-  // --- Methods for getting games are now simple filters ---
+
   async all_active_games(): Promise<Game[]> {
     const mementos = await this.store.getAllGames();
     return mementos
@@ -35,7 +35,7 @@ export class ServerModel {
 async all_pending_games(): Promise<Game[]> {
   const mementos = await this.store.getAllGames();
   return mementos
-    .filter(m => !m.getCurrentRound())     // pending = no round yet (null/undefined)
+    .filter(m => !m.getCurrentRound())     
     .map(from_memento);
 }
   
@@ -43,7 +43,7 @@ async all_pending_games(): Promise<Game[]> {
     return this.store.getGame(id);
   }
 
-  // --- Core Game Logic Methods ---
+ 
   async createGame(): Promise<GameMemento> {
     this.nextId++;
     const game = new Game(this.nextId);
@@ -62,43 +62,34 @@ async all_pending_games(): Promise<Game[]> {
     return this.store.saveGame(game.createMementoFromGame());
   }
 
-  // This method is now simple and robust, with no race condition.
- // Located inside your ServerModel class
-
-// Located inside your ServerModel class
 
 async removePlayer(gameId: number, playerId: number): Promise<GameMemento | null> {
-  // 1. Fetch the raw data object (memento).
+
   const memento = await this.store.getGame(gameId);
   if (!memento) {
     return null; // The game doesn't exist.
   }
 
-  // 2. Convert the memento into a rich 'Game' object to safely perform logic.
   const game = from_memento(memento);
 
-  // 3. Use the 'Game' object's public methods to do the work.
-  const playerExists = game.getPlayers().some(p => p.getID() === playerId);
+const playerExists = game.getPlayers().some(p => p.getID() === playerId);
   if (!playerExists) {
     return memento; // Player not in the game, return unchanged state.
   }
   
-  // This call should modify the 'game' object's internal player list.
-  game.removePlayer(playerId);
+ game.removePlayer(playerId);
 
-  // 4. Check the state of the 'game' object.
+
   if (game.getPlayers().length === 0) {
-    // If the game is now empty, delete it.
+    
     await this.store.deleteGame(gameId);
     return null; // Signal that the game was deleted.
   } else {
-    // 5. If players remain, create a new memento from the modified game and save it.
     const updatedMemento = game.createMementoFromGame(); // or to_memento(game)
     return await this.store.saveGame(updatedMemento);
   }
 }
-  // `startRound` is now a safe UPDATE, not a risky "move" operation.
-  async startRound(id: number): Promise<GameMemento> {
+ async startRound(id: number): Promise<GameMemento> {
     const memento = await this.store.getGame(id);
     const game = from_memento(memento);
 

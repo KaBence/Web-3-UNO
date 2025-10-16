@@ -11,6 +11,7 @@ export const useActiveGameStore = defineStore("activeGames", () => {
 
 
 const update = (game: GameSpecs) => {
+  
   // Always deep clone to kill shared refs
   const cloned = structuredClone(game);
 

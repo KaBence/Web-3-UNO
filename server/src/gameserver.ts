@@ -24,13 +24,13 @@ async function startServer(store: GameStore) {
   const pubsub: PubSub = new PubSub();
 
 
-  // NEW and IMPROVED broadcaster
+
 
   const PENDING_GAMES_FEED = "pendingGamesFeed";
   const ACTIVE_GAMES_FEED = "activeGamesFeed";
 
   const broadcaster = {
-    // Call this when a new game is created
+    
     gameAdded(game: Game) {
       const topic = game.getCurrentRound() ? ACTIVE_GAMES_FEED : PENDING_GAMES_FEED;
       pubsub.publish(topic, {
@@ -42,8 +42,7 @@ async function startServer(store: GameStore) {
       });
     },
 
-    // Call this when a game state changes (e.g., a player plays a card)
-    gameUpdated(game: Game) {
+      gameUpdated(game: Game) {
       const topic = game.getCurrentRound() ? ACTIVE_GAMES_FEED : PENDING_GAMES_FEED;
       pubsub.publish(topic, {
         [topic]: {
@@ -54,8 +53,7 @@ async function startServer(store: GameStore) {
       });
     },
 
-    // Call this when a game is deleted or moves from one list to another
-    gameRemoved(gameId: number, from: 'pending' | 'active') {
+     gameRemoved(gameId: number, from: 'pending' | 'active') {
       const topic = from === 'pending' ? PENDING_GAMES_FEED : ACTIVE_GAMES_FEED;
       pubsub.publish(topic, {
         [topic]: {

@@ -8,7 +8,7 @@ export class GameMemento {
   private readonly currentRound?: RoundMemento;
   private readonly scores: Record<PlayerNames, number>;
   private readonly dealer: number;
-  // private readonly isActive: boolean
+ 
   private readonly winner?:PlayerNames
 
   constructor(id:number,scores:Record<PlayerNames,number>,dealer:number,players: PlayerMemento[], round?:RoundMemento,winner?:PlayerNames) {
@@ -18,7 +18,7 @@ export class GameMemento {
     this.currentRound = round 
     this.winner = winner;
     this.id=id;
-    // this.isActive=isActive;
+   
   }
 
   public getPlayers(): PlayerMemento[] {
@@ -42,9 +42,7 @@ export class GameMemento {
     return this.id;
   }
 
-  // public getIsActive(){
-  //   return this.isActive
-  // }
+ 
 
   public getWinner(){
     return this.winner

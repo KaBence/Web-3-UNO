@@ -54,21 +54,20 @@ export class Game {
     this.scores[id as PlayerNames] = 0;
   }
 
-  // In your Game class (Game.ts)
 
   public removePlayer(playerId: number): void {
     const initialPlayerCount = this.players.length;
 
-    // First, filter the main players list.
+   
     this.players = this.players.filter(p => p.getID() !== playerId);
 
-    // If no player was removed, do nothing further.
+
     if (this.players.length === initialPlayerCount) {
       console.warn(`Attempted to remove player ${playerId}, but they were not found.`);
       return;
     }
 
-    // --- THIS IS THE FIX ---
+   
     // If there is an active round, you MUST also remove the player from the round's list.
     if (this.currentRound) {
       this.currentRound.removePlayer(playerId);
@@ -119,7 +118,7 @@ export class Game {
   }
 
   public createRound(): Round {
-    // Choose dealer
+    
     if (this.dealer === -1) {
       this.setInitialDealer();
     } else {

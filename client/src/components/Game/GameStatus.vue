@@ -4,7 +4,7 @@ import { useRouter } from "vue-router";
 import type { GameSpecs } from '@/model/Specs';
 import type { PropType } from 'vue';
 
-// --- FIX #1: Define the events this component will emit to its parent ---
+
 const emit = defineEmits(['playAgain', 'endGame']);
 
 const props = defineProps({
@@ -23,11 +23,9 @@ const lastScores = ref<Record<number, number>>({});
 const timer = ref(20);
 const isCritical = ref(false);
 
-// --- FIX #2: Correctly define all computed properties for the template ---
 const roundEnded = computed(() => !!props.game?.currentRound?.winner);
-const roundgoing = computed(() => !roundEnded.value); // The opposite of roundEnded
+const roundgoing = computed(() => !roundEnded.value); 
 const gameWinnerId = computed(() => props.game?.winner ?? null);
-// Show "Play Again" only when the entire game has a winner
 const showPlayAgainAfterGame = computed(() => {
   return !!props.game?.winner;
 });
@@ -62,7 +60,7 @@ const sortedPlayers = computed(() => {
     .sort((a, b) => Number(b.score) - Number(a.score));
 });
 
-// Timer logic remains the same
+
 let timerInterval: number | undefined;
 function startOrResetTimer() {
   clearInterval(timerInterval);
@@ -76,7 +74,7 @@ function startOrResetTimer() {
 }
 
 watch(() => props.game?.currentRound?.currentPlayer, () => {
-  if (roundgoing.value) { // Use the computed property
+  if (roundgoing.value) { 
     startOrResetTimer();
   }
 }, { immediate: true });
