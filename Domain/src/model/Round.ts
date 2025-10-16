@@ -36,7 +36,7 @@ export class Round {
       this.discardPile = new DiscardDeck(memento.getDiscardPile().getCards())
       this.topCard = this.discardPile.peek()
       this.drawDeckSize = memento.getDrawDeckSize()
-      this.statusMessage = "Round Restored"
+      this.statusMessage = memento.getStatusMessage()
       return;
     }
     
@@ -136,6 +136,9 @@ export class Round {
   //should it be called every time a move has been ma
   winner(): Player | undefined {
     const winner = this.players.find((p) => p.getHand().size() === 0);
+    if(winner){
+      this.statusMessage = winner.getName() + " Won the round!"
+    }
     return winner;
   }
   getWinner(): PlayerNames | undefined {
@@ -147,9 +150,11 @@ export class Round {
     let accusedPlayer = this.getSpecificPlayer(accused)
     if (!accusedPlayer.hasUno() && accusedPlayer.getHand().getCards().length === 1) {
       this.draw(4, accused);
+      this.statusMessage = this.getSpecificPlayer(accuser).getName() + " accused" + this.getSpecificPlayer(accused).getName() + " rightfully"
     } else {
       // Accuser is wrong → accuser draws 6
       this.draw(6, accuser);
+      this.statusMessage = this.getSpecificPlayer(accuser).getName() + " accused" + this.getSpecificPlayer(accused).getName() + " wrongly"
     }
   }
 
@@ -164,7 +169,7 @@ export class Round {
       return
     } 
 
-    this.getCurrentPlayer().getHand().removeCard(card);
+    let playedCard = this.getCurrentPlayer().getHand().removeCard(card)!;
     this.discardPile.addCard(card);
     this.currentCard()
 
@@ -197,7 +202,7 @@ export class Round {
         return;
       }
     }
-
+    this.statusMessage = "Played: "+ playedCard.toString()
     this.currentPlayer = this.getNextPlayer();
   }
 
@@ -223,6 +228,8 @@ export class Round {
         console.log("Tried to access a player's hand who doesn't exists")
       }
     }
+
+    this.statusMessage = this.getSpecificPlayer(playedId).getName() + " drew a card"
     this.drawDeckSize = this.drawPile.getCards().length
   }
 
@@ -233,16 +240,21 @@ export class Round {
     if (hand.size() === 2) {
       if (this.canPlay(0) || this.canPlay(1)) {
         specificPlayer.setUno(true);
+        this.statusMessage = this.getSpecificPlayer(player).getName() + " called UNO!"
       }
-      else{
+      else {
         this.draw(4, player);
+        this.statusMessage = this.getSpecificPlayer(player).getName() + " called UNO and failed!"
       }
       return;
     }
     if (hand.size() != 1) {
       this.draw(4, player);
+      this.statusMessage = this.getSpecificPlayer(player).getName() + " called UNO and failed!"
       return;
     }
+    this.statusMessage = this.getSpecificPlayer(player).getName() + " called UNO!"
+
     specificPlayer.setUno(true);
   }
 
@@ -275,16 +287,20 @@ export class Round {
   challengeWildDrawFour(isChallenged: boolean): void {
     if (!isChallenged) {
       this.draw(4, this.currentPlayer);
+      this.statusMessage = this.getSpecificPlayer(this.currentPlayer).getName() + " did not challenge"
       this.currentPlayer = this.getNextPlayer();
       return;
     }
 
-    this.couldPlayInsteadofDrawFour()
-      ? this.draw(4, this.getPreviousPlayer())
-      : (() => {
-          this.draw(6, this.currentPlayer);
-          this.currentPlayer = this.getNextPlayer();
-        })();
+    if (this.couldPlayInsteadofDrawFour()){
+      this.draw(4, this.getPreviousPlayer())
+      this.statusMessage = this.getSpecificPlayer(this.currentPlayer).getName() + "challenged successfully"
+    }
+    else {
+      this.draw(6, this.currentPlayer);
+      this.statusMessage = this.getSpecificPlayer(this.currentPlayer).getName() + "challenged but failed"
+      this.currentPlayer = this.getNextPlayer();
+    }
   }
 
   //Helper functions
