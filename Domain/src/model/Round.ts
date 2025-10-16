@@ -36,7 +36,7 @@ export class Round {
       this.discardPile = new DiscardDeck(memento.getDiscardPile().getCards())
       this.topCard = this.discardPile.peek()
       this.drawDeckSize = memento.getDrawDeckSize()
-      this.statusMessage = "Round Restored"
+      this.statusMessage = memento.getStatusMessage()
       return;
     }
 
@@ -88,9 +88,8 @@ export class Round {
     this.players = players;
   }
 
- getCurrentPlayer(): Player | undefined {
-  // .find() is naturally safe and returns the object or undefined.
-  return this.players.find((p) => p.getID() === this.currentPlayer);
+ getCurrentPlayer(): Player {
+  return this.getSpecificPlayer(this.currentPlayer);
 }
   setCurrentPlayer(player: number): void {
     this.currentPlayer = player;
@@ -136,6 +135,9 @@ export class Round {
   //should it be called every time a move has been ma
   winner(): Player | undefined {
     const winner = this.players.find((p) => p.getHand().size() === 0);
+    if(winner){
+      this.statusMessage = winner.getName() + " Won the round!"
+    }
     return winner;
   }
   getWinner(): PlayerNames | undefined {
@@ -144,16 +146,23 @@ export class Round {
   //catchUnoFailuere)() this is responsible for a situation when an accuser player says that the accused has not said uno. if that is true so if the accussed has one card the accussed has to draw 4 cards if the accuser was wrong then they have to draw 6 cards from the draw deck
 
   catchUnoFailure(accuser: PlayerNames, accused: PlayerNames): void {
-    if (!this.getSpecificPlayer(accused).hasUno()) {
+    let accusedPlayer = this.getSpecificPlayer(accused)
+    if (!accusedPlayer.hasUno() && accusedPlayer.getHand().getCards().length === 1) {
       this.draw(4, accused);
+      this.statusMessage = this.getSpecificPlayer(accuser).getName() + " accused" + this.getSpecificPlayer(accused).getName() + " rightfully"
     } else {
       // Accuser is wrong → accuser draws 6
       this.draw(6, accuser);
+      this.statusMessage = this.getSpecificPlayer(accuser).getName() + " accused" + this.getSpecificPlayer(accused).getName() + " wrongly"
     }
   }
 
   //also takes an optional color enum for wildcards
   play(cardID: number, colour?: Colors): void {
+    if(cardID === -1){
+      this.currentPlayer = this.getNextPlayer();
+      return
+    }
     const card = this.getPlayersCard(this.currentPlayer, cardID);
     if (card == undefined) {
       console.log("I tried to take a card that doesn't exist, whoops")
@@ -163,7 +172,7 @@ export class Round {
       return
     }
 
-    this.getCurrentPlayer()?.getHand().removeCard(card);
+    let playedCard = this.getCurrentPlayer().getHand().removeCard(card)!;
     this.discardPile.addCard(card);
     this.currentCard()
 
@@ -182,8 +191,10 @@ export class Round {
       case Type.Wild:
         this.discardPile.addCard(new SpecialColoredCard(Type.Dummy, colour!));
         break;
-      case Type.Dummy:
       case Type.WildDrawFour:
+        this.discardPile.addCard(new SpecialColoredCard(Type.DummyDraw4, colour!));
+        break;
+      case Type.Dummy:
       // we don't do anything here because the GUI has to react with challengeWildDrawFour() if the player wants or after 5 seconds no matter what
       case Type.Numbered:
       // we don't do anything because it is covered above the switch
@@ -197,21 +208,20 @@ export class Round {
         return;
       }
     }
-
+    this.statusMessage = "Played: "+ playedCard.toString()
     this.currentPlayer = this.getNextPlayer();
   }
 
   draw(noCards: number, playedId: PlayerNames): void {
     for (let i = 0; i < noCards; i++) {
-      let card = this.drawPile.deal();
-      if (card == undefined) {
+      let card = this.drawPile.deal()!;
+      if (this.drawPile.peak() === undefined) {
         let [topCard, ...rest] = this.discardPile.getCards();
 
         this.discardPile = new DiscardDeck([topCard]);
-        let filtered = rest.filter((c) => c.getType() !== Type.Dummy);
+        let filtered = rest.filter((c) => c.getType() !== Type.Dummy || Type.DummyDraw4);
         this.drawPile = new DrawDeck(filtered);
         this.drawPile.shuffle(randomUtils.standardShuffler);
-        card = this.drawPile.deal()!;
       }
       if (this.getSpecificPlayer(playedId).hasUno()) {
         this.getSpecificPlayer(playedId).setUno(false);
@@ -224,6 +234,8 @@ export class Round {
         console.log("Tried to access a player's hand who doesn't exists")
       }
     }
+
+    this.statusMessage = this.getSpecificPlayer(playedId).getName() + " drew a card"
     this.drawDeckSize = this.drawPile.getCards().length
   }
 
@@ -234,16 +246,21 @@ export class Round {
     if (hand.size() === 2) {
       if (this.canPlay(0) || this.canPlay(1)) {
         specificPlayer.setUno(true);
+        this.statusMessage = this.getSpecificPlayer(player).getName() + " called UNO!"
       }
       else {
         this.draw(4, player);
+        this.statusMessage = this.getSpecificPlayer(player).getName() + " called UNO and failed!"
       }
       return;
     }
     if (hand.size() != 1) {
       this.draw(4, player);
+      this.statusMessage = this.getSpecificPlayer(player).getName() + " called UNO and failed!"
       return;
     }
+    this.statusMessage = this.getSpecificPlayer(player).getName() + " called UNO!"
+
     specificPlayer.setUno(true);
   }
 
@@ -263,29 +280,34 @@ export class Round {
         return true;
 
       case Type.Numbered:
-        if (this.currentCard().getType() === card.getType() || this.currentCard().getColor() === card.getColor()) {
-          return true;
+        if (this.currentCard().getNumber() === card.getNumber() || this.currentCard().getColor() === card.getColor()){
+            return true;
         }
         return false;
 
       case Type.Dummy:
+      case Type.DummyDraw4:
         return false
     }
   }
 
-  challengeWildDrawFour(isChallenged: boolean): void {
+  challengeWildDrawFour(isChallenged: boolean): boolean {
     if (!isChallenged) {
       this.draw(4, this.currentPlayer);
+      this.statusMessage = this.getSpecificPlayer(this.currentPlayer).getName() + " did not challenge"
       this.currentPlayer = this.getNextPlayer();
-      return;
+      return false;
     }
 
-    this.couldPlayInsteadofDrawFour()
-      ? this.draw(4, this.getPreviousPlayer())
-      : (() => {
-        this.draw(6, this.currentPlayer);
-        this.currentPlayer = this.getNextPlayer();
-      })();
+    if (this.couldPlayInsteadofDrawFour()){
+      this.draw(4, this.getPreviousPlayer())
+      this.statusMessage = this.getSpecificPlayer(this.currentPlayer).getName() + "challenged successfully"
+      return true
+    }
+    this.draw(6, this.currentPlayer);
+    this.statusMessage = this.getSpecificPlayer(this.currentPlayer).getName() + "challenged but failed"
+    this.currentPlayer = this.getNextPlayer();
+    return false
   }
 
   //Helper functions

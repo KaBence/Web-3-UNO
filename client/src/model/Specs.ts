@@ -3,7 +3,7 @@ import type { PlayerNames } from "Domain/src/model/Player"
 import type { Direction} from "domain/src/Model/Round"
 
 export type PlayerSpecs = {
-  name:String
+  name:string
   unoCalled:Boolean
   hand:HandSpecs
   playerName:PlayerNames
@@ -26,7 +26,7 @@ export type RoundSpecs = {
   currentDirection:Direction
   winner:PlayerNames
   currentPlayer:PlayerNames
-  statusMessage:String
+  statusMessage:string
 }
 
 export type CardSpecs = {

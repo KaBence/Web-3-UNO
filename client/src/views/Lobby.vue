@@ -76,6 +76,7 @@
           class="btn-create"
           type="button"
           @click="createGame"
+          :disabled="hasJoinedGame.joinedGameId !== undefined"
           v-if="hasCreatedGame == false"
         >
           Create New Game
@@ -87,35 +88,33 @@
 
 
   <script lang="ts" setup>
-  import { ref, computed } from "vue"; 
+  import { ref, computed, watch } from "vue"; 
   import { useRoute, useRouter } from "vue-router";
   import { usePlayerStore } from "@/Stores/PlayerStore";
   import * as api from '../model/api'
   import { usePendingGameStore } from "@/Stores/PendingGameStore";
+  import { useActiveGameStore } from "@/Stores/OngoingGameStore";
 
   const playerStore = usePlayerStore();
   const pendingGamesStore = usePendingGameStore()
+  const ongoingGamesStore = useActiveGameStore()
   const router = useRouter();
   const playerName = playerStore.player ? playerStore.player : "Player";
   const nameFirstLetter = playerName[0] ?? "P";
 
   const visibleGames = pendingGamesStore.games
-  const hasJoinedGame = ref({ joinedGameId: null as number | null });
+  const hasJoinedGame = ref({ joinedGameId: undefined as number | undefined });
   const hasCreatedGame = ref(false);
 
-
-
-  //Join game logic
-  
-  // const joinGame = async (gameId: number) => {
-  //   await api.joinGame(gameId, playerName)
-  //   hasJoinedGame.value.joinedGameId = gameId;
-  //   console.log("Joined game successfully")
-  // };
+  const getPlayerCount = (gameId: number) => {
+    const fromList = visibleGames.find(g => g.id === gameId);
+    const game = fromList ?? pendingGamesStore.getGame(gameId);
+    return game?.players?.length ?? 0;
+  };
 
   const joinGame = async (gameId: number) => {
     if (hasJoinedGame.value.joinedGameId === gameId) {
-      hasJoinedGame.value.joinedGameId = null;
+      hasJoinedGame.value.joinedGameId = undefined;
       return;
     } else if (hasJoinedGame.value.joinedGameId) {
       window.alert("Already in a game. Leave current game first.");
@@ -126,6 +125,13 @@
       console.log("You created a game. Leave it first.");
       return;
     }
+
+    //check if game already full
+    if (getPlayerCount(gameId) >= 10) {
+      window.alert("This game is full (10 players).");
+      return;
+    }
+
     await api.joinGame(gameId, playerName)
     playerStore.update(gameId);
     console.log("Joining game", gameId);
@@ -151,26 +157,48 @@
   await api.removePlayer(gameId, myPlayerId);
 
  
-  hasJoinedGame.value.joinedGameId = null;
+  hasJoinedGame.value.joinedGameId = undefined;
   hasCreatedGame.value = false;
   playerStore.update(0); 
 };
 
   const createGame = async () => {
+    if (hasJoinedGame.value.joinedGameId !== undefined) {
+      window.alert("You are already in a game. Leave it before creating a new one.");
+      console.log("Blocked create: already in game", hasJoinedGame.value.joinedGameId);
+      return; 
+    }
 
     const newGame = await api.createGame()
     const gameId = newGame.id;
     await joinGame(gameId);
     hasJoinedGame.value.joinedGameId = gameId;  
     console.log("Creating a new game");
-    
     hasCreatedGame.value = true
   }
 
   const StartGame = async (id: number) => {
+    const count = getPlayerCount(id)
+    if(count<2) {
+      window.alert("You need at least two players to start the game");
+      console.log("Blocked start: players =", count);
+      return;
+    };
+    
     await api.startRound(id)
-    router.push({ path: "/Game", query: { id } });
   }
+
+  watch(() => pendingGamesStore.getGame(playerStore.playerGameId),async g => {
+    if (!g) {
+      const activeGame = ongoingGamesStore.getGame(playerStore.playerGameId)
+      if (activeGame.value){
+        const id = playerStore.playerGameId.toString()
+        router.push({ path: "/Game", query: { id } });
+      }
+      else
+        router.replace('/lobby')
+    }
+  })
   </script>
 
   <style scoped>

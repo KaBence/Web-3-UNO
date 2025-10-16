@@ -17,25 +17,20 @@ import type { RefSymbol } from '@vue/reactivity';
 import { Type } from 'Domain/src/model/Card';
 import { usePopupStore, Popups } from "@/Stores/PopupStore"
 
-
-
-
 const route = useRoute();
+const ongoingGameStore = useActiveGameStore()
+const popupsStore = usePopupStore()
+const playerStore = usePlayerStore()
+
+
 const router = useRouter();
 const gameId = Number(route.query.id);
-
-const ongoingGameStore = useActiveGameStore();
-const playerStore = usePlayerStore();
 
 const game = computed(() => ongoingGameStore.games.find(g => g.id === gameId));
 const currentGameId = computed(() => game.value?.id);
 const currentPlayerId = computed(() => game.value?.currentRound?.currentPlayer);
-const myPlayerName = playerStore.player;
-const me = computed(() => game.value?.players.find(p => p.name === myPlayerName));
-const myPlayerId = computed(() => Number(me.value?.playerName));
-
-
-
+const loggedInPlayer = computed(()=> game.value?.currentRound?.players.find(p=> p.name===playerStore.player))
+const statusMessage = computed(() => game.value?.currentRound?.statusMessage ?? "")
 
 async function resetGame() {
   if (!game.value) return;
@@ -92,15 +87,13 @@ async function resetGame() {
   }
 }
 
-
-const popupsStore = usePopupStore()
 async function onSayUno() {
-  if (currentGameId.value === undefined || currentPlayerId.value === undefined) {
+  if (currentGameId.value === undefined || loggedInPlayer?.value?.playerName === undefined) {
     alert("Missing game or player ID!");
     return;
   }
   try {
-    await api.sayUno(currentGameId.value, currentPlayerId.value);
+    await api.sayUno(currentGameId.value, loggedInPlayer?.value?.playerName);
     alert("UNO called successfully!");
   } catch (err) {
     console.error(err);
@@ -109,12 +102,12 @@ async function onSayUno() {
 }
 
 async function onAccuseUno(accusedId: number) {
-  if (currentGameId.value === undefined || currentPlayerId.value === undefined) {
+  if (currentGameId.value === undefined || loggedInPlayer?.value?.playerName === undefined) {
     alert("Missing game or player ID!");
     return;
   }
   try {
-    await api.accuseUno(currentGameId.value, currentPlayerId.value, accusedId);
+    await api.accuseUno(currentGameId.value, loggedInPlayer.value?.playerName, accusedId);
     alert(`You accused player ${accusedId} of not saying UNO!`);
   } catch (err) {
     console.error(err);
@@ -123,20 +116,35 @@ async function onAccuseUno(accusedId: number) {
 }
 
 async function drawCard() {
-  await api.drawCard(gameId)
+  if(loggedInPlayer.value?.playerName === currentPlayerId.value){
+    await api.drawCard(gameId)
+    const canPlay = await api.canPlay(gameId, game.value?.currentRound?.players[loggedInPlayer.value?.playerName!-1].hand.cards.length!-1)
+    if (canPlay) {
+      await popupsStore.openPopup(Popups.Play)
+    }
+    else{
+      await api.play(gameId,-1)
+    }
+  }
 }
 
 async function playCard(cardId:number) {
-  console.log(myPlayerId+" -> "+ game.value?.currentRound?.currentPlayer)
-  if (myPlayerId.value === game.value?.currentRound?.currentPlayer) {
+  if (loggedInPlayer.value?.playerName === currentPlayerId.value) {
     let color = undefined;
-    if (game.value?.currentRound?.players[(myPlayerId.value ?? 1) - 1].hand.cards[cardId].type === Type.Wild) {
+    const cardType = game.value?.currentRound?.players[loggedInPlayer.value?.playerName!-1].hand.cards[cardId].type
+    if (cardType === Type.Wild || cardType === Type.WildDrawFour) {
       await popupsStore.openPopup(Popups.ColorChange);
       color = popupsStore.colorSelected
       await api.play(gameId, cardId, color);
     } else {
       await api.play(gameId, cardId);
     }
+  }
+}
+
+async function challengefour() {
+  if (loggedInPlayer.value?.playerName === currentPlayerId.value) {
+    await popupsStore.openPopup(Popups.Challenge)
   }
 }
 
@@ -164,9 +172,9 @@ async function startNewRound() {
 
 <template>
   <GameStatus :game="game" @playAgain="startNewRound"@endGame="resetGame" />
-  <StatusBar />
+  <StatusBar :message="statusMessage"/>
   <PlayersBar @accuse-uno="onAccuseUno" />
-  <Decks @say-uno="onSayUno" @draw="drawCard" @play="playCard"/>
+  <Decks @say-uno="onSayUno" @draw="drawCard" @play="playCard" @challenge="challengefour"/>
   <ChallengeDrawFourPopup />
   <ChallengeResultPopup />
   <ChooseColorPopup />

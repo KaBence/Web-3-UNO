@@ -1,11 +1,33 @@
 <script setup lang="ts">
 import Popup from "@/components/Game/Popups/Popup.vue";
 import Card from "../../Shared/Card.vue" 
-import {Type, WildCard} from "Domain/src/model/Card"
 import { usePopupStore } from "../../../Stores/PopupStore";
+import { useRoute } from "vue-router";
+import { useActiveGameStore } from "@/Stores/OngoingGameStore";
+import { computed } from "vue";
+
+
+const route = useRoute();
+const queryGameId = route.query.id
+let gameId: number = -1;
+if (typeof queryGameId === "string") {
+  gameId = parseInt(queryGameId)
+}
+else {
+  alert("Invalid gameID is used")
+}
 
 const popupStore = usePopupStore();
-const card = new WildCard(Type.Wild) //later get card from round store?
+const ongoingGameStore = useActiveGameStore()
+
+const game = ongoingGameStore.getGame(gameId)
+const currentPlayerId = computed(() => game?.value?.currentRound?.currentPlayer);
+
+const playerHand = computed(() => game.value?.currentRound?.players[currentPlayerId.value!-1].hand)
+const index = computed(() => playerHand.value?.cards.length! - 1) 
+const card = computed(() => playerHand.value?.cards[index.value])
+
+
 </script>
 
 <template>
@@ -13,11 +35,11 @@ const card = new WildCard(Type.Wild) //later get card from round store?
     :visible="popupStore.showPlay"
     title="Do you want to play?"
     :actions="[
-      { label: 'Play', onClick: popupStore.handlePlay },
-      { label: 'Draw', onClick: popupStore.handleDraw }
+      { label: 'Play', onClick:() => popupStore.handlePlay(gameId,card!,index) },
+      { label: 'Draw', onClick:() => popupStore.handleDraw(gameId) }
     ]"
   >
-    <Card :key="1" :card="card" />
+    <Card :key="1" :card="card!" />
   </Popup>
 </template>
 

@@ -25,7 +25,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed} from "vue"
+import { computed , watch} from "vue"
 import { storeToRefs } from "pinia";
 import { useRoute } from "vue-router";
 import UnoButton from "../Shared/UnoButton.vue"
@@ -34,6 +34,8 @@ import { usePlayerStore } from "@/Stores/PlayerStore";
 import DrawPile from "@/components/Shared/DrawPile.vue"
 import DiscardPile from "@/components/Shared/DIscardPile.vue"
 import PlayerHand from "@/components/Shared/PlayerHand.vue"
+import { usePlayerStore } from "@/Stores/PlayerStore";
+import { Type } from "Domain/src/model/Card";
 
 const route = useRoute();
 const queryGameId = route.query.id
@@ -51,10 +53,9 @@ const myPlayerName = playerStore.player;
 
 const { games } = storeToRefs(ongoingGameStore)
 const game = computed(() => games.value.find(g => g.id === gameId))
+const loggedInPlayer = computed(()=> game.value?.currentRound?.players.find(p=> p.name===playerStore.player))
 
 const cardsLeft = computed(() => game.value?.currentRound?.drawDeckSize ?? 0)
-
-
 const player = computed(() => {
   // Find the player in the game's player list whose name matches your name
   return game.value?.currentRound?.players.find(p => p.name === myPlayerName);
@@ -62,8 +63,21 @@ const player = computed(() => {
 const hand = computed(() => player.value?.hand?.cards ?? [])
 const topCard = computed(() => game.value?.currentRound?.topCard);
 
+watch(
+  [topCard, () => game.value?.currentRound?.currentPlayer],
+  ([newTopCard, newPlayer], [oldTopCard, oldPlayer]) => {
+    const isMyTurn = player.value?.playerName === newPlayer;
+    const isChallengeCard = newTopCard?.type === Type.DummyDraw4;
+    const cardWasJustPlayed = oldTopCard?.type !== Type.DummyDraw4;
 
-defineEmits(['say-uno','draw', 'play']);
+    if (isMyTurn && isChallengeCard && cardWasJustPlayed) {
+      emit('challenge');
+    }
+  },
+  { deep: true }
+);
+
+const emit = defineEmits(['say-uno','draw', 'play', 'challenge']);
 
 </script>
 

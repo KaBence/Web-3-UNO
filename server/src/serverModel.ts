@@ -32,24 +32,24 @@ export class ServerModel {
       .map((m) => from_memento(m));
   }
 
-async all_pending_games(): Promise<Game[]> {
-  const mementos = await this.store.getAllGames();
-  return mementos
-    .filter(m => !m.getCurrentRound())     
-    .map(from_memento);
-}
-  
+  async all_pending_games(): Promise<Game[]> {
+    const mementos = await this.store.getAllGames();
+    return mementos
+      .filter(m => !m.getCurrentRound())
+      .map(from_memento);
+  }
+
   async getGame(id: number): Promise<GameMemento> {
     return this.store.getGame(id);
   }
 
- 
+
   async createGame(): Promise<GameMemento> {
     this.nextId++;
     const game = new Game(this.nextId);
     return await this.store.saveGame(to_memento(game));
   }
-  
+
   async addPlayer(gameId: number, playerName: string): Promise<GameMemento> {
     const memento = await this.store.getGame(gameId);
     const game = from_memento(memento);
@@ -62,34 +62,33 @@ async all_pending_games(): Promise<Game[]> {
     return this.store.saveGame(game.createMementoFromGame());
   }
 
+  async removePlayer(gameId: number, playerId: number): Promise<GameMemento | null> {
 
-async removePlayer(gameId: number, playerId: number): Promise<GameMemento | null> {
+    const memento = await this.store.getGame(gameId);
+    if (!memento) {
+      return null; // The game doesn't exist.
+    }
 
-  const memento = await this.store.getGame(gameId);
-  if (!memento) {
-    return null; // The game doesn't exist.
+    const game = from_memento(memento);
+
+    const playerExists = game.getPlayers().some(p => p.getID() === playerId);
+    if (!playerExists) {
+      return memento; // Player not in the game, return unchanged state.
+    }
+
+    game.removePlayer(playerId);
+
+
+    if (game.getPlayers().length === 0) {
+
+      await this.store.deleteGame(gameId);
+      return null; // Signal that the game was deleted.
+    } else {
+      const updatedMemento = game.createMementoFromGame(); // or to_memento(game)
+      return await this.store.saveGame(updatedMemento);
+    }
   }
-
-  const game = from_memento(memento);
-
-const playerExists = game.getPlayers().some(p => p.getID() === playerId);
-  if (!playerExists) {
-    return memento; // Player not in the game, return unchanged state.
-  }
-  
- game.removePlayer(playerId);
-
-
-  if (game.getPlayers().length === 0) {
-    
-    await this.store.deleteGame(gameId);
-    return null; // Signal that the game was deleted.
-  } else {
-    const updatedMemento = game.createMementoFromGame(); // or to_memento(game)
-    return await this.store.saveGame(updatedMemento);
-  }
-}
- async startRound(id: number): Promise<GameMemento> {
+  async startRound(id: number): Promise<GameMemento> {
     const memento = await this.store.getGame(id);
     const game = from_memento(memento);
 
@@ -102,20 +101,41 @@ const playerExists = game.getPlayers().some(p => p.getID() === playerId);
   }
 
   async deleteGame(id: number): Promise<boolean> {
-      return this.store.deleteGame(id);
+    return this.store.deleteGame(id);
   }
 
   // --- Game Action Methods ---
-  async play(gameId: number, cardId: number, chosenColor?: string): Promise<GameMemento> {
+
+  async play(gameId: number, cardId: number, chosenColor?: string) {
+    let memento = await this.store.getGame(gameId);
+    let game = from_memento(memento);
+    let round = game.getCurrentRound()
+    if (round) {
+      round.play(cardId, chosenColor as Colors)
+      if (round.roundHasEnded()) {
+        round.winner()
+      }
+    }
+
+    return from_memento(await this.store.saveGame(to_memento(game)));
+  }
+
+
+
+  async challangeDrawFor(gameId: number) {
     const memento = await this.store.getGame(gameId);
     const game = from_memento(memento);
-    const round = game.getCurrentRound();
+    const round = game.getCurrentRound()
+    //add check in gui if its players turn
     if (round) {
-      round.play(cardId, chosenColor as Colors);
+      round.challengeWildDrawFour(true);//i need to pass it from mutation
     }
+
     return await this.store.saveGame(to_memento(game));
   }
-  
+
+
+
   async drawCard(gameId: number): Promise<GameMemento> {
     const memento = await this.store.getGame(gameId);
     const game = from_memento(memento);
@@ -136,12 +156,5 @@ const playerExists = game.getPlayers().some(p => p.getID() === playerId);
     const game = from_memento(memento);
     game.getCurrentRound()?.catchUnoFailure(accuser, accused);
     return await this.store.saveGame(to_memento(game));
-  }
-
-  async challangeDrawFor(gameId: number): Promise<GameMemento> {
-    const memento = await this.store.getGame(gameId);
-    const game = from_memento(memento);
-    game.getCurrentRound()?.challengeWildDrawFour(true); // Assumes challenge is successful
-    return await this.store.saveGame(game.createMementoFromGame());
   }
 }

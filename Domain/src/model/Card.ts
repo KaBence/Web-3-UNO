@@ -28,6 +28,25 @@ export abstract class Card{
     return this.number === number;
   }
 
+  toString(): string {
+    switch(this.type){
+      case Type.Draw:
+        return this.color+" Draw two"
+      case Type.Skip:
+        return this.color+" Skip"
+      case Type.Reverse:
+        return this.color+" Reverse"
+      case Type.Wild:
+        return this.color+ " Wild Card"
+      case Type.WildDrawFour:
+        return this.color+" Wild Draw four"
+      case Type.Numbered:
+        return this.color+ " "+this.number
+      case Type.Dummy:
+        return "Wild Card"
+    }
+  }
+
   protected pointValue: number;
   protected color?: Colors;
   protected number?: CardNumber;
@@ -44,7 +63,7 @@ export class NumberedCard extends Card {
 }
 
 export class SpecialColoredCard extends Card {
-  constructor(type: Type.Skip | Type.Reverse | Type.Draw | Type.Dummy, color: Colors) {
+  constructor(type: Type.Skip | Type.Reverse | Type.Draw | Type.Dummy | Type.DummyDraw4, color: Colors,) {
     super(type);
     this.color = color;
     this.pointValue = 20;
@@ -75,6 +94,7 @@ export enum Type {
   WildDrawFour = "WILD DRAW",
   Numbered = "NUMBERED",
   Dummy = "DUMMY",
+  DummyDraw4 = "DUMMY4"
 }
 
 export const numberValues = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9] as const;

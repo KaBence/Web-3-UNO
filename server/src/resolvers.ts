@@ -55,8 +55,11 @@ export class Resolvers {
     ) => {
       return this.api.accuseUno(gameId, accuser, accused);
     },
-    challengeDraw4: async (_: any, { gameId }: { gameId: number }) => {
-      return this.api.challengeDraw4(gameId);
+    challengeDraw4: async (_: any, { gameId, response }: { gameId: number; response: boolean }) => {
+      return this.api.challengeDraw4(gameId, response);
+    },
+    canPlay:  async (_: any, {gameId, cardId }: { gameId: number, cardId: number }) => {
+      return this.api.canPlay(gameId,cardId)
     },
 
 
