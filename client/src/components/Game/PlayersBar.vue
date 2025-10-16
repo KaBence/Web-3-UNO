@@ -1,6 +1,6 @@
 <template>
   <div class="players-bar">
-    <div v-for="player in players" :key="player.playername" class="player-column">
+    <div v-for="player in players" :key="player.playerName" class="player-column">
       <div class="player-name">{{ player.name }}</div>
 
       <div class="player-hand">
@@ -12,12 +12,11 @@
               transform: `rotate(${index * 5 - (player.hand.cards.length * 2.5)}deg) 
               translateX(${index * 12 - (player.hand.cards.length * 12) / 2}px)`
             }"
-
         >
       </div>
       </div>
       <div class="call-uno">
-        <button @click="emit('accuse-uno', player.playername)">UNO Accuse!</button>
+        <button @click="$emit('accuse-uno', player.playerName)">UNO Accuse!</button>
       </div>
     </div>
   </div>
@@ -29,6 +28,7 @@
   import { useRoute } from "vue-router";
   import { useActiveGameStore } from "@/Stores/OngoingGameStore"
   import { storeToRefs } from "pinia";
+  import { usePlayerStore } from "@/Stores/PlayerStore";
 
   const route = useRoute();
   const queryGameId = route.query.id
@@ -41,14 +41,14 @@
   }
 
   const ongoingGameStore = useActiveGameStore()
+  const playerStore = usePlayerStore()
   const { games } = storeToRefs(ongoingGameStore)
 
   const game = computed(() => games.value.find(g => g.id === gameId))
-  const players = computed(() => game.value?.currentRound?.players)
+  const loggedInPlayer = computed(()=> game.value?.currentRound?.players.find(p=> p.name===playerStore.player))
+  const players = computed(() => game.value?.currentRound?.players.filter(p=>p.name != loggedInPlayer?.value?.name))
   
-  const emit = defineEmits<{
-  (e: 'accuse-uno', playerId: number): void;
-  }>();
+  defineEmits<{(e: 'accuse-uno', playerId: number): void}>();
 
 </script>
 

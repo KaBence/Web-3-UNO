@@ -33,6 +33,7 @@ import { useActiveGameStore } from "@/Stores/OngoingGameStore"
 import DrawPile from "@/components/Shared/DrawPile.vue"
 import DiscardPile from "@/components/Shared/DiscardPile.vue"
 import PlayerHand from "@/components/Shared/PlayerHand.vue"
+import { usePlayerStore } from "@/Stores/PlayerStore";
 
 const route = useRoute();
 const queryGameId = route.query.id
@@ -44,13 +45,15 @@ else {
   alert("Invalid gameID is used")
 }
 const ongoingGameStore = useActiveGameStore()
+const playerStore = usePlayerStore()
 //const playerStore = use it to get player that is logged in
 
 const { games } = storeToRefs(ongoingGameStore)
 const game = computed(() => games.value.find(g => g.id === gameId))
+const loggedInPlayer = computed(()=> game.value?.currentRound?.players.find(p=> p.name===playerStore.player))
 
 const cardsLeft = computed(() => game.value?.currentRound?.drawDeckSize ?? 0)
-const player = computed(() => game.value?.currentRound?.players[0])
+const player = computed(() => game.value?.currentRound?.players.find(p=>p.playerName===loggedInPlayer.value?.playerName))
 const hand = computed(() => player.value?.hand?.cards ?? [])
 const topCard = computed(() => game.value?.currentRound?.topCard);
 
