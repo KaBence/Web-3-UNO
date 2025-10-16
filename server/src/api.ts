@@ -85,8 +85,6 @@ export class GameAPI {
     const game = from_memento(memento)
     this.broadcaster.gameUpdated(game);
     return game;
-
-    //  game.roundFinished();
   }
 
   /** Draw a card */
@@ -116,7 +114,6 @@ export class GameAPI {
   }
 
   async accuseUno(gameId: number, accuser: number, accused: number): Promise<Game> {
-
     try {
       await this.server.accuseUno(gameId, accuser, accused)
       const gameMemento = await this.server.getGame(gameId);
@@ -131,7 +128,7 @@ export class GameAPI {
   }
 
   async challengeDraw4(gameId: number, response: boolean): Promise<boolean> {
-    const serverResp = await this.server.challangeDrawFor(gameId,response)
+    const serverResp = await this.server.challangeDrawFour(gameId,response)
     const result = serverResp.result;
     const memento = serverResp.updated;
     const game = from_memento(memento);

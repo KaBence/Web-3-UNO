@@ -116,25 +116,31 @@ export class ServerModel {
         round.winner()
       }
     }
-
-    return from_memento(await this.store.saveGame(to_memento(game)));
-  }
-
-
-
-  async challangeDrawFor(gameId: number) {
-    const memento = await this.store.getGame(gameId);
-    const game = from_memento(memento);
-    const round = game.getCurrentRound()
-    //add check in gui if its players turn
-    if (round) {
-      round.challengeWildDrawFour(true);//i need to pass it from mutation
-    }
-
     return await this.store.saveGame(to_memento(game));
   }
 
+  async challangeDrawFour(gameId: number, response: boolean) {
+    const memento = await this.store.getGame(gameId);
+    const game = from_memento(memento);
+    const round = game.getCurrentRound()
+    let result = false
+    if (round) {
+      result = round.challengeWildDrawFour(response);
+    }
+    const updated = await this.store.saveGame(game.createMementoFromGame())
+    return { updated, result };
+  }
 
+  async canPlay(gameId: number, cardId: number) {
+    const memento = await this.store.getGame(gameId);
+    const game = from_memento(memento);
+    const round = game.getCurrentRound()
+    let bool = false
+    if (round) {
+      bool = round.canPlay(cardId);
+    }
+    return bool
+  }
 
   async drawCard(gameId: number): Promise<GameMemento> {
     const memento = await this.store.getGame(gameId);

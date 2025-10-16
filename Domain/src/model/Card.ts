@@ -44,6 +44,8 @@ export abstract class Card{
         return this.color+ " "+this.number
       case Type.Dummy:
         return "Wild Card"
+      case Type.DummyDraw4:
+        return "Wild Draw 4"
     }
   }
 

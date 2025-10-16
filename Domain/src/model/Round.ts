@@ -18,7 +18,7 @@ export class Round {
   private players: Player[];
   private currentPlayer: PlayerNames;
   private currentDirection: Direction;
-  private cardsPerPlayer: number = 7;
+  private cardsPerPlayer: number = 1;
   private roundWinner?: PlayerNames;
   private statusMessage: String;
   private topCard: Card;
@@ -399,15 +399,12 @@ export class Round {
       playerMementos.push(player.createMementoFromPlayer())
     }
     const roundWinnerObject = this.winner()
-    const currentPlayerObject = this.getCurrentPlayer();
 
     return new RoundMemento(
       playerMementos,
       this.drawPile.createMementoFromDeck(),
       this.discardPile.createMementoFromDeck(),
-//THIS CREATES A PROBLEM BUT LETS DISCUSS IT TOGETHER
-        currentPlayerObject ? currentPlayerObject.getID() : this.currentPlayer,
-
+      this.currentPlayer,
       this.currentDirection,
       this.statusMessage,
       this.topCard,
@@ -417,7 +414,6 @@ export class Round {
 
 
   public removePlayer(playerId: number): void {
-
     this.players = this.players.filter(p => p.getID() !== playerId);
   }
 }

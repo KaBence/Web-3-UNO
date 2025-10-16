@@ -1,5 +1,5 @@
 import { PlayerNames } from "./Player";
-import { Direction } from "./Round";
+import { Direction } from "./round";
 import { PlayerMemento } from "./PlayerMemento";
 import { DeckMemento } from "./DeckMemento";
 import { Card } from "./Card";

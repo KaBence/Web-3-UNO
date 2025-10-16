@@ -45,13 +45,14 @@ export async function createGame() {
   const mutation = gql`
     mutation Mutation {
       createGame {
+        winner
         scores
         id
         dealer
         players {
           unoCalled
+          playerName
           name
-          playername
           hand {
             cards {
               color
@@ -70,19 +71,19 @@ export async function createGame() {
           statusMessage
           players {
             unoCalled
+            playerName
             name
-            playername
             hand {
               cards {
-                color
-                number
                 type
+                number
+                color
               }
             }
           }
+          drawDeckSize
           currentPlayer
           currentDirection
-          drawDeckSize
         }
       }
     }
@@ -508,10 +509,10 @@ export async function onPending(subscriber: (game: GameSpecs) => any) {
 }
 
 export async function play(gameId:number, cardId:number, chosenColor?:string) {
-  console.log(chosenColor)
   const mutation = gql`
-  mutation PlayCard($gameId: Int!, $cardId: Int!, $chosenColor: String) {
+    mutation Mutation($gameId: Int!, $cardId: Int!, $chosenColor: String) {
     playCard(gameId: $gameId, cardId: $cardId, chosenColor: $chosenColor) {
+      winner
       scores
       players {
         unoCalled
@@ -519,9 +520,9 @@ export async function play(gameId:number, cardId:number, chosenColor?:string) {
         name
         hand {
           cards {
-            type
-            number
             color
+            number
+            type
           }
         }
       }
@@ -529,26 +530,27 @@ export async function play(gameId:number, cardId:number, chosenColor?:string) {
       dealer
       currentRound {
         winner
+        statusMessage
+        drawDeckSize
+        currentPlayer
+        currentDirection
         topCard {
           type
           number
           color
         }
-        statusMessage
         players {
           unoCalled
           playerName
           name
           hand {
             cards {
-              type
-              number
               color
+              number
+              type
             }
           }
         }
-        currentPlayer
-        currentDirection
       }
     }
   }
