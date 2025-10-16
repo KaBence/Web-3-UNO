@@ -8,7 +8,7 @@ import ChallengeDrawFourPopup from '@/components/Game/Popups/ChallengeDrawFourPo
 import ChooseColorPopup from '@/components/Game/Popups/ChooseColorPopup.vue'
 import Decks from '@/components/Game/Decks.vue';
 import ChallengeResultPopup from '@/components/Game/Popups/ChallengeResultPopup.vue';
-import { computed } from "vue";
+import { computed, watch } from "vue";
 import * as api from "@/model/api";
 import { useActiveGameStore } from "../Stores/OngoingGameStore";
 import {usePlayerStore} from "@/Stores/PlayerStore"
@@ -67,11 +67,7 @@ async function resetGame() {
         console.warn(` Could not remove player ${playerId}:`, err);
       }
     }
-
-   
-    await router.push("/Lobby");
     ongoingGameStore.remove({ id: gameId });
-
     console.log("All players removed, game cleaned up, returned to lobby.");
   } 
   
@@ -167,7 +163,12 @@ async function startNewRound() {
   }
 }
 
-
+watch(game, (newGame, oldGame) => {
+  if (oldGame && !newGame) {
+    console.log(`Game ${oldGame.id} has been removed. Navigating to lobby.`);
+    router.push("/Lobby");
+  }
+})
 </script>
 
 <template>

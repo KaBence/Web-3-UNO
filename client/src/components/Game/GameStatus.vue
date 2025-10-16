@@ -99,16 +99,7 @@ watch(() => props.game?.currentRound?.winner, (newWinnerId) => {
   lastScores.value = Object.fromEntries(
     Object.entries(currentScores).map(([k, v]) => [Number(k), Number(v)])
   );
-});
-
-
-
-
- 
-
-
-
- 
+}, { deep: true });
 
 </script>
 <template>

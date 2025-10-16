@@ -10,7 +10,7 @@ export class RoundMemento {
   private readonly players: PlayerMemento[];
   private readonly currentPlayer: PlayerNames ;
   private readonly currentDirection: Direction;
-  private readonly roundWinner?: PlayerNames;
+  private readonly winner?: PlayerNames;
   private readonly statusMessage: String
   private readonly topCard:Card
   private readonly drawDeckSize:number
@@ -30,7 +30,7 @@ export class RoundMemento {
     this.currentPlayer = currentPlayer;
     this.drawPile = drawPile;
     this.discardPile = discardPile;
-    this.roundWinner = roundWinner
+    this.winner = roundWinner
     this.statusMessage = statusMessage
     this.topCard=topCard
     this.drawDeckSize = drawPile.getCards().length
@@ -66,7 +66,7 @@ export class RoundMemento {
   }
 
   getWinner(): PlayerNames | undefined {
-    return this.roundWinner;
+    return this.winner;
   }
 
   getDrawDeckSize():number{

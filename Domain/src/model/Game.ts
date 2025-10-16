@@ -1,11 +1,7 @@
-// Game.ts
 import { Player, PlayerNames } from "./Player";
 import { Round } from "./round";
 import { DrawDeck } from "./Deck";
 import { GameMemento } from "./GameMemento";
-import { PlayerMemento } from "./PlayerMemento";
-import { Hand } from "./Hand";
-
 export class Game {
   private id: number;
   private players: Player[];
@@ -14,7 +10,6 @@ export class Game {
   private scores: Record<PlayerNames, number>;
   private cardsPerPlayer: number = 7;
   private dealer: number = -1;
-  // private isActive:boolean
   private winner?: PlayerNames;
 
   constructor(id: number, memento?: GameMemento) {
@@ -30,14 +25,13 @@ export class Game {
       this.dealer = memento.getDealer();
       this.players = players
       this.id = memento.getId()
+      memento.getWinner()? this.winner = memento.getWinner():undefined
       return
     }
 
     this.players = [];
     this.scores = {} as Record<PlayerNames, number>;
     this.id = id;
-    // this.currentRound = new Round([],-1)
-    // this.isActive = false
   }
 
   public getPlayer(playerId: PlayerNames): Player {
@@ -160,12 +154,8 @@ export class Game {
     if (this.currentRound?.getWinner()) {
       this.calculateRoundScores()
       this.setWinner();
-      if (!this.winner) {
-        ///????   this.createRound()
-      }
-
     }
-  }
+}
 
   public calculateRoundScores(): void {
     if (this.currentRound == undefined) {
@@ -173,15 +163,15 @@ export class Game {
     }
     let roundScore = 0;
     for (const player of this.currentRound.getPlayers()) {
-      if (player != this.currentRound.winner()) {
+      if (player != this.currentRound.roundWinner()) {
         const hand = player.getHand().getCards();
         for (const card of hand) {
           roundScore += card.getPointValue();
         }
       }
     }
-    if (this.currentRound.winner() != undefined) {
-      this.addScore(this.currentRound.winner()!.getID(), roundScore);
+    if (this.currentRound.roundWinner() != undefined) {
+      this.addScore(this.currentRound.roundWinner()!.getID(), roundScore);
     }
   }
   // helper: add score for a player

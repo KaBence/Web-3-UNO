@@ -18,8 +18,8 @@ export class Round {
   private players: Player[];
   private currentPlayer: PlayerNames;
   private currentDirection: Direction;
-  private cardsPerPlayer: number = 1;
-  private roundWinner?: PlayerNames;
+  private cardsPerPlayer: number = 7;
+  private winner?: PlayerNames;
   private statusMessage: String;
   private topCard: Card;
   private drawDeckSize: number
@@ -37,6 +37,7 @@ export class Round {
       this.topCard = this.discardPile.peek()
       this.drawDeckSize = memento.getDrawDeckSize()
       this.statusMessage = memento.getStatusMessage()
+      memento.getWinner()? this.winner=memento.getWinner():undefined
       return;
     }
 
@@ -133,7 +134,7 @@ export class Round {
   }
 
   //should it be called every time a move has been ma
-  winner(): Player | undefined {
+  roundWinner(): Player | undefined {
     const winner = this.players.find((p) => p.getHand().size() === 0);
     if(winner){
       this.statusMessage = winner.getName() + " Won the round!"
@@ -141,7 +142,7 @@ export class Round {
     return winner;
   }
   getWinner(): PlayerNames | undefined {
-    return this.roundWinner;
+    return this.winner;
   }
   //catchUnoFailuere)() this is responsible for a situation when an accuser player says that the accused has not said uno. if that is true so if the accussed has one card the accussed has to draw 4 cards if the accuser was wrong then they have to draw 6 cards from the draw deck
 
@@ -201,10 +202,9 @@ export class Round {
     }
 
     if (this.roundHasEnded()) {
-      const winner = this.winner();
+      const winner = this.roundWinner();
       if (winner) {
-        this.roundWinner = winner.getID();
-
+        this.winner = winner.getID();
         return;
       }
     }
@@ -393,12 +393,10 @@ export class Round {
   }
 
   createMementoFromRound(): RoundMemento {
-    ;
     let playerMementos: PlayerMemento[] = [];
     for (let player of this.players) {
       playerMementos.push(player.createMementoFromPlayer())
     }
-    const roundWinnerObject = this.winner()
 
     return new RoundMemento(
       playerMementos,
@@ -408,7 +406,7 @@ export class Round {
       this.currentDirection,
       this.statusMessage,
       this.topCard,
-      roundWinnerObject ? roundWinnerObject.getID() : undefined
+      this.winner
     );
   }
 

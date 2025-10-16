@@ -112,10 +112,8 @@ export class ServerModel {
     let round = game.getCurrentRound()
     if (round) {
       round.play(cardId, chosenColor as Colors)
-      if (round.roundHasEnded()) {
-        round.winner()
-      }
     }
+    game.roundFinished()
     return await this.store.saveGame(to_memento(game));
   }
 
