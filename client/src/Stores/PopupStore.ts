@@ -18,7 +18,7 @@ export const usePopupStore = defineStore("popup", {
     showPlay: false,
     challengeResult: false,
     colorSelected: "",
-    _popupResolve: null as null | (() => void),
+    _popupResolve: undefined as undefined | (() => void),
   }),
 
   actions: {
@@ -62,7 +62,7 @@ export const usePopupStore = defineStore("popup", {
 
       if (this._popupResolve) {
         this._popupResolve();
-        this._popupResolve = null;
+        this._popupResolve = undefined;
       }
     },
 

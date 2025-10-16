@@ -219,7 +219,7 @@ export class Round {
         let [topCard, ...rest] = this.discardPile.getCards();
 
         this.discardPile = new DiscardDeck([topCard]);
-        let filtered = rest.filter((c) => c.getType() !== Type.Dummy);
+        let filtered = rest.filter((c) => c.getType() !== Type.Dummy || Type.DummyDraw4);
         this.drawPile = new DrawDeck(filtered);
         this.drawPile.shuffle(randomUtils.standardShuffler);
       }
