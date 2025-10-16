@@ -200,30 +200,29 @@ export class Round {
     this.currentPlayer = this.getNextPlayer();
   }
 
-   draw(noCards: number, playedId: PlayerNames): void {
+  draw(noCards: number, playedId: PlayerNames): void {
     for (let i = 0; i < noCards; i++) {
-      let card = this.drawPile.deal();
-      if (card == undefined) {
+      let card = this.drawPile.deal()!;
+      if (this.drawPile.peak() === undefined) {
         let [topCard, ...rest] = this.discardPile.getCards();
 
         this.discardPile = new DiscardDeck([topCard]);
         let filtered = rest.filter((c) => c.getType() !== Type.Dummy);
         this.drawPile = new DrawDeck(filtered);
         this.drawPile.shuffle(randomUtils.standardShuffler);
-        card = this.drawPile.deal()!;
       }
       if (this.getSpecificPlayer(playedId).hasUno()) {
         this.getSpecificPlayer(playedId).setUno(false);
       }
       let hand = this.getPlayerHand(playedId)
-      if (hand){
+      if (hand) {
         hand.addCard(card);
       }
-      else{
+      else {
         console.log("Tried to access a player's hand who doesn't exists")
       }
     }
-    this.drawDeckSize =this.drawPile.getCards().length
+    this.drawDeckSize = this.drawPile.getCards().length
   }
 
   //if you forget to say uno and it is already the next person's round, you should still be able to call UNO
