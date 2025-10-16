@@ -76,7 +76,7 @@
           class="btn-create"
           type="button"
           @click="createGame"
-          :disabled="hasJoinedGame.joinedGameId !== null"
+          :disabled="hasJoinedGame.joinedGameId !== undefined"
           v-if="hasCreatedGame == false"
         >
           Create New Game
@@ -101,7 +101,7 @@
   const nameFirstLetter = playerName[0] ?? "P";
 
   const visibleGames = pendingGamesStore.games
-  const hasJoinedGame = ref({ joinedGameId: null as number | null });
+  const hasJoinedGame = ref({ joinedGameId: undefined as number | undefined });
   const hasCreatedGame = ref(false);
 
   const getPlayerCount = (gameId: number) => {
@@ -112,7 +112,7 @@
 
   const joinGame = async (gameId: number) => {
     if (hasJoinedGame.value.joinedGameId === gameId) {
-      hasJoinedGame.value.joinedGameId = null;
+      hasJoinedGame.value.joinedGameId = undefined;
       return;
     } else if (hasJoinedGame.value.joinedGameId) {
       window.alert("Already in a game. Leave current game first.");
@@ -142,12 +142,12 @@
       const playerId = player.value?.playerName;
     await api.leaveGame(gameId, playerId!) //here playerId
          hasCreatedGame.value = false;
-         hasJoinedGame.value.joinedGameId = null;
+         hasJoinedGame.value.joinedGameId = undefined;
          console.log("Leaving game", gameId);
   }
 
   const createGame = async () => {
-    if (hasJoinedGame.value.joinedGameId !== null) {
+    if (hasJoinedGame.value.joinedGameId !== undefined) {
       window.alert("You are already in a game. Leave it before creating a new one.");
       console.log("Blocked create: already in game", hasJoinedGame.value.joinedGameId);
       return; 
