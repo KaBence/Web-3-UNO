@@ -1,11 +1,7 @@
-// Game.ts
 import { Player, PlayerNames } from "./Player";
-import { Round } from "./Round";
+import { Round } from "./round";
 import { DrawDeck } from "./Deck";
 import { GameMemento } from "./GameMemento";
-import { PlayerMemento } from "./PlayerMemento";
-import { Hand } from "./Hand";
-
 export class Game {
   private id: number;
   private players: Player[];
@@ -14,7 +10,6 @@ export class Game {
   private scores: Record<PlayerNames, number>;
   private cardsPerPlayer: number = 7;
   private dealer: number = -1;
-  // private isActive:boolean
   private winner?: PlayerNames;
 
   constructor(id: number, memento?: GameMemento) {
@@ -30,14 +25,13 @@ export class Game {
       this.dealer = memento.getDealer();
       this.players = players
       this.id = memento.getId()
+      memento.getWinner()? this.winner = memento.getWinner():undefined
       return
     }
 
     this.players = [];
     this.scores = {} as Record<PlayerNames, number>;
     this.id = id;
-    // this.currentRound = new Round([],-1)
-    // this.isActive = false
   }
 
   public getPlayer(playerId: PlayerNames): Player {
@@ -54,10 +48,24 @@ export class Game {
     this.scores[id as PlayerNames] = 0;
   }
 
-  public removePlayer(id: PlayerNames): void {
-    let player = this.getPlayer(id);
-    let index = this.players.indexOf(player);
-    this.players.splice(index, 1)[0];
+
+  public removePlayer(playerId: number): void {
+    const initialPlayerCount = this.players.length;
+
+   
+    this.players = this.players.filter(p => p.getID() !== playerId);
+
+
+    if (this.players.length === initialPlayerCount) {
+      console.warn(`Attempted to remove player ${playerId}, but they were not found.`);
+      return;
+    }
+
+   
+    // If there is an active round, you MUST also remove the player from the round's list.
+    if (this.currentRound) {
+      this.currentRound.removePlayer(playerId);
+    }
   }
 
   public getPlayers(): Player[] {
@@ -77,7 +85,7 @@ export class Game {
     return { ...this.scores };
   }
 
-  public getId(){
+  public getId() {
     return this.id
   }
 
@@ -104,17 +112,24 @@ export class Game {
   }
 
   public createRound(): Round {
+    
     if (this.dealer === -1) {
       this.setInitialDealer();
     } else {
       this.dealer = (this.dealer + 1) % this.players.length;
     }
-    this.currentRound = new Round(
-      this.players,
-      this.dealer
+
+    // Recreate players with fresh hands
+    const freshPlayers = this.players.map(
+      (p) => new Player(p.getID(), p.getName())
     );
+
+    // Start new round with clean state
+    this.currentRound = new Round(freshPlayers, this.dealer);
+
     return this.currentRound;
   }
+
   public getCurrentRound(): Round | undefined {
     return this.currentRound;
   }
@@ -136,33 +151,27 @@ export class Game {
   }
 
   public roundFinished(): void {
-    if (this.currentRound?.getWinner())
-    {
+    if (this.currentRound?.getWinner()) {
       this.calculateRoundScores()
       this.setWinner();
-      if(!this.winner)
-      {
-        this.createRound()
-      }
-
     }
-  }
+}
 
   public calculateRoundScores(): void {
     if (this.currentRound == undefined) {
       return;
     }
     let roundScore = 0;
-    for (const player of this.players) {
-      if (player != this.currentRound.winner()) {
+    for (const player of this.currentRound.getPlayers()) {
+      if (player != this.currentRound.roundWinner()) {
         const hand = player.getHand().getCards();
         for (const card of hand) {
           roundScore += card.getPointValue();
         }
       }
     }
-    if (this.currentRound.winner() != undefined) {
-      this.addScore(this.currentRound.winner()!.getID(), roundScore);
+    if (this.currentRound.roundWinner() != undefined) {
+      this.addScore(this.currentRound.roundWinner()!.getID(), roundScore);
     }
   }
   // helper: add score for a player
@@ -174,24 +183,18 @@ export class Game {
   }
 
   public createMementoFromGame(): GameMemento {
-    let playerMementos: PlayerMemento[] = [];
-    if (this.currentRound) {
-      for (let player of this.currentRound.getPlayers()) {
-        playerMementos.push(player.createMementoFromPlayer())
-      }
-    }
-    else {
-      for (let player of this.players) {
-        playerMementos.push(player.createMementoFromPlayer())
-      }
-    }
+    const sourcePlayers = this.currentRound ? this.currentRound.getPlayers() : this.players;
+    const playerMementos = sourcePlayers.map(player => player.createMementoFromPlayer());
+
+
 
     return new GameMemento(
       this.id,
       this.scores,
       this.dealer,
       playerMementos,
-      this.currentRound ? this.currentRound.createMementoFromRound() : undefined
+      this.currentRound ? this.currentRound.createMementoFromRound() : undefined,
+      this.winner,
     );
   }
 }

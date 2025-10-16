@@ -8,36 +8,80 @@ import ChallengeDrawFourPopup from '@/components/Game/Popups/ChallengeDrawFourPo
 import ChooseColorPopup from '@/components/Game/Popups/ChooseColorPopup.vue'
 import Decks from '@/components/Game/Decks.vue';
 import ChallengeResultPopup from '@/components/Game/Popups/ChallengeResultPopup.vue';
-import { computed } from "vue";
+import { computed, watch } from "vue";
 import * as api from "@/model/api";
 import { useActiveGameStore } from "../Stores/OngoingGameStore";
 import {usePlayerStore} from "@/Stores/PlayerStore"
-import { useRoute } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
+import type { RefSymbol } from '@vue/reactivity';
 import { Type } from 'Domain/src/model/Card';
 import { usePopupStore, Popups } from "@/Stores/PopupStore"
 
+const route = useRoute();
 const ongoingGameStore = useActiveGameStore()
 const popupsStore = usePopupStore()
 const playerStore = usePlayerStore()
 
-const route = useRoute();
-const queryGameId = route.query.id
-let gameId: number = -1;
 
-if (typeof queryGameId === "string") {
-  gameId = parseInt(queryGameId)
-}
-else {
-  alert("Invalid gameID is used")
-}
+const router = useRouter();
+const gameId = Number(route.query.id);
 
-const game = ongoingGameStore.getGame(gameId)
-
-const currentGameId = computed(() => game?.value?.id);
-const currentPlayerId = computed(() => game?.value?.currentRound?.currentPlayer);
-const statusMessage = computed(() => game.value?.currentRound?.statusMessage ?? "")
+const game = computed(() => ongoingGameStore.games.find(g => g.id === gameId));
+const currentGameId = computed(() => game.value?.id);
+const currentPlayerId = computed(() => game.value?.currentRound?.currentPlayer);
 const loggedInPlayer = computed(()=> game.value?.currentRound?.players.find(p=> p.name===playerStore.player))
+const statusMessage = computed(() => game.value?.currentRound?.statusMessage ?? "")
 
+async function resetGame() {
+  if (!game.value) return;
+
+  try {
+    console.log(" Ending game and removing players...");
+    const gameId = game.value.id;
+
+    //  Copy player list before modifying anything reactive
+    const players = [...(game.value.players ?? [])];
+
+    //  Remove each player one by one
+    for (const player of players) {
+      if (!player) {
+        console.warn(" Skipping undefined player entry");
+        continue;
+      }
+
+    
+      const playerId =
+        typeof player.playerName === "number"
+          ? player.playerName
+          : Number(player.playerName);
+
+      if (isNaN(playerId)) {
+        console.warn(" Skipping invalid player ID:", player);
+        continue;
+      }
+
+      try {
+        console.log(`Removing player ${player.name} (id: ${playerId})`);
+        await api.removePlayer(gameId, playerId);
+      } catch (err) {
+        console.warn(` Could not remove player ${playerId}:`, err);
+      }
+    }
+    ongoingGameStore.remove({ id: gameId });
+    console.log("All players removed, game cleaned up, returned to lobby.");
+  } 
+  
+  catch (err) {
+    console.error(" Failed to end game (full error):", err);
+    alert(
+      `Failed to end game:\n${
+        typeof err === "object" && err !== null && "message" in err
+          ? (err as { message: string }).message
+          : JSON.stringify(err, null, 2)
+      }`
+    );
+  }
+}
 
 async function onSayUno() {
   if (currentGameId.value === undefined || loggedInPlayer?.value?.playerName === undefined) {
@@ -49,7 +93,7 @@ async function onSayUno() {
     alert("UNO called successfully!");
   } catch (err) {
     console.error(err);
-    alert("Failed to call UNO 😢");
+    alert("Failed to call UNO ");
   }
 }
 
@@ -63,7 +107,7 @@ async function onAccuseUno(accusedId: number) {
     alert(`You accused player ${accusedId} of not saying UNO!`);
   } catch (err) {
     console.error(err);
-    alert("Failed to send accusation 😢");
+    alert("Failed to send accusation ");
   }
 }
 
@@ -100,10 +144,35 @@ async function challengefour() {
   }
 }
 
+async function startNewRound() {
+  if (!game.value) return;
+
+  try {
+    console.log(" Starting a new round...");
+
+    // Call backend to start new round
+    if (!game.value) return;
+    const updatedGame = await api.startRound(game.value.id);
+    const clonedGame = structuredClone(updatedGame);
+    ongoingGameStore.update(clonedGame);
+
+    console.log("New round loaded.");
+  } catch (err) {
+    console.error(" Failed to start new round:", err);
+    alert("Failed to start new round");
+  }
+}
+
+watch(game, (newGame, oldGame) => {
+  if (oldGame && !newGame) {
+    console.log(`Game ${oldGame.id} has been removed. Navigating to lobby.`);
+    router.push("/Lobby");
+  }
+})
 </script>
 
 <template>
-  <GameStatus />
+  <GameStatus :game="game" @playAgain="startNewRound"@endGame="resetGame" />
   <StatusBar :message="statusMessage"/>
   <PlayersBar @accuse-uno="onAccuseUno" />
   <Decks @say-uno="onSayUno" @draw="drawCard" @play="playCard" @challenge="challengefour"/>

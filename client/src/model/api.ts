@@ -10,7 +10,9 @@ import { GraphQLWsLink } from "@apollo/client/link/subscriptions";
 import { getMainDefinition } from "@apollo/client/utilities";
 import { createClient } from "graphql-ws";
 import type { GameSpecs } from "@/model/Specs";
-import type { Colors } from "Domain/src/model/Card";
+
+import { usePendingGameStore } from "@/Stores/PendingGameStore";
+import { useActiveGameStore } from "@/Stores/OngoingGameStore";
 
 const wsLink = new GraphQLWsLink(
   createClient({
@@ -43,11 +45,13 @@ export async function createGame() {
   const mutation = gql`
     mutation Mutation {
       createGame {
+        winner
         scores
         id
         dealer
         players {
           unoCalled
+          playerName
           name
           hand {
             cards {
@@ -67,18 +71,19 @@ export async function createGame() {
           statusMessage
           players {
             unoCalled
+            playerName
             name
             hand {
               cards {
-                color
-                number
                 type
+                number
+                color
               }
             }
           }
+          drawDeckSize
           currentPlayer
           currentDirection
-          drawDeckSize
         }
       }
     }
@@ -97,49 +102,53 @@ export async function createGame() {
 
 export async function getPendingGames() {
   const query = gql`
-    query PendingGames {
-      pendingGames {
-        dealer
-        id
-        scores
-        players {
-          playerName
-          unoCalled
-          name
-          hand {
-            cards {
-              color
-              number
-              type
-            }
+   
+query PendingGames {
+  pendingGames {
+    currentRound {
+      players {
+        name
+        unoCalled
+        hand {
+          cards {
+            type
+            color
+            number
           }
         }
-        currentRound {
-          winner
-          topCard {
-            type
-            number
-            color
-          }
-          statusMessage
-          players {
-            playerName
-            unoCalled
-            name
-            hand {
-              cards {
-                color
-                number
-                type
-              }
-            }
-          }
-          currentPlayer
-          currentDirection
-          drawDeckSize
+        playerName
+      }
+      drawDeckSize
+      topCard {
+        type
+        color
+        number
+      }
+      currentDirection
+      winner
+      currentPlayer
+      statusMessage
+    }
+    players {
+      name
+      unoCalled
+      hand {
+        cards {
+          type
+          color
+          number
         }
       }
+      playerName
+      
     }
+    scores
+    dealer
+    id
+    winner
+    
+  }
+}
   `;
   try {
     const { data } = await apolloClient.query({ query, fetchPolicy: "network-only", });
@@ -153,49 +162,51 @@ export async function getPendingGames() {
 
 export async function getActiveGames() {
   const query = gql`
-    query PendingGames {
+    query ActiveGames {
       activeGames {
-        dealer
-        id
-        scores
-        players {
-          unoCalled
-          name
-          playerName
-          hand {
-            cards {
-              color
-              number
-              type
-            }
-          }
-        }
         currentRound {
-          winner
+          drawDeckSize
           topCard {
             type
-            number
             color
+            number
           }
+          currentDirection
+          winner
+          currentPlayer
           statusMessage
           players {
-            unoCalled
             name
-            playerName
+            unoCalled
             hand {
               cards {
+                type
                 color
                 number
-                type
               }
             }
+            playerName
           }
-          currentPlayer
-          currentDirection
-          drawDeckSize
         }
+        players {
+          name
+          unoCalled
+          hand {
+            cards {
+              type
+              color
+              number
+            }
+          }
+          playerName
+        }
+        scores
+        dealer
+        id
+        winner
       }
     }
+
   `;
   try {
     const { data } = await apolloClient.query({ query, fetchPolicy: "network-only", });
@@ -207,56 +218,58 @@ export async function getActiveGames() {
   }
 }
 
+
 export async function startRound(gameId: number) {
   const mutation = gql`
-    mutation Mutation($gameId: Int!) {
-      startRound(gameId: $gameId) {
-        scores
-        players {
-          unoCalled
-          playerName
-          name
-          hand {
-            cards {
-              color
-              number
-              type
-            }
-          }
-        }
-        id
-        dealer
-        currentRound {
-          winner
-          topCard {
+ mutation StartRound($gameId: Int!) {
+  startRound(gameId: $gameId) {
+    currentRound {
+      drawDeckSize
+      topCard {
+        type
+        color
+        number
+      }
+      currentDirection
+      winner
+      currentPlayer
+      statusMessage
+      players {
+        name
+        unoCalled
+        playerName
+        hand {
+          cards {
             type
-            number
             color
+            number
           }
-          statusMessage
-          players {
-            unoCalled
-            playerName
-            name
-            hand {
-              cards {
-                color
-                number
-                type
-              }
-            }
-          }
-          currentPlayer
-          currentDirection
-          drawDeckSize
         }
       }
     }
+    players {
+      name
+      unoCalled
+      playerName
+      hand {
+        cards {
+          type
+          color
+          number
+        }
+      }
+    }
+    scores
+    dealer
+    id
+    winner
+  }
+}
   `;
 
   const { data } = await apolloClient.mutate({
     mutation,
-    variables: { gameId }, 
+    variables: { gameId },
     fetchPolicy: "network-only",
   });
 
@@ -265,49 +278,51 @@ export async function startRound(gameId: number) {
 
 export async function drawCard(gameId: number) {
   const mutation = gql`
-  mutation Mutation($gameId: Int!) {
-  drawCard(gameId: $gameId) {
-    scores
-    players {
-      unoCalled
-      playerName
-      name
-      hand {
-        cards {
-          color
-          number
-          type
-        }
-      }
-    }
-    id
-    dealer
-    currentRound {
-      winner
-      topCard {
-        type
-        number
-        color
-      }
-      statusMessage
-      players {
-        unoCalled
-        playerName
-        name
-        hand {
-          cards {
+    mutation DrawCard($gameId: Int!) {
+      drawCard(gameId: $gameId) {
+        currentRound {
+          players {
+            name
+            unoCalled
+            hand {
+              cards {
+                type
+                color
+                number
+              }
+            }
+            playerName
+          }
+          drawDeckSize
+          topCard {
+            type
             color
             number
-            type
           }
+          currentDirection
+          winner
+          currentPlayer
+          statusMessage
         }
+        players {
+          name
+          unoCalled
+          hand {
+            cards {
+              type
+              color
+              number
+            }
+          }
+          playerName
+        }
+        scores
+        dealer
+        id
+        winner
+        
       }
-      currentPlayer
-      currentDirection
-      drawDeckSize
-    }
-  }
-}`
+    }`
 
   const { data } = await apolloClient.mutate({
     mutation,
@@ -323,43 +338,45 @@ export async function sayUno(gameId: number, playerId: number) {
   mutation UnoCall($gameId: Int!, $playerId: Int!) {
   unoCall(gameId: $gameId, playerId: $playerId) {
     currentRound {
+      drawDeckSize
+      topCard {
+        type
+        color
+        number
+      }
       currentDirection
+      winner
       currentPlayer
+      statusMessage
       players {
-        hand {
-          cards {
-            color
-            number
-            type
-          }
-        }
         name
         unoCalled
         playerName
-      }
-      winner
-      topCard {
-        type
-        number
-        color
-      }
-      statusMessage
-    }
-    scores
-    players {
-      unoCalled
-      playerName
-      name
-      hand {
-        cards {
-          type
-          number
-          color
+        hand {
+          cards {
+            type
+            color
+            number
+          }
         }
       }
     }
-    id
+    players {
+      name
+      unoCalled
+      hand {
+        cards {
+          type
+          color
+          number
+        }
+      }
+      playerName
+    }
+    scores
     dealer
+    id
+    winner
   }
 }
   `
@@ -376,49 +393,50 @@ export async function sayUno(gameId: number, playerId: number) {
 
 export async function accuseUno(gameId: number, accuser: number, accused: number) {
   const mutation = gql`
- 
-mutation AccuseUno($gameId: Int!, $accuser: Int!, $accused: Int!) {
-  accuseUno(gameId: $gameId, accuser: $accuser, accused: $accused) {
-    currentRound {
-      winner
-      topCard {
-        type
-        number
-        color
-      }
-      statusMessage
-      players {
-        unoCalled
-        playerName
-        name
-        hand {
-          cards {
+    mutation AccuseUno($gameId: Int!, $accuser: Int!, $accused: Int!) {
+      accuseUno(gameId: $gameId, accuser: $accuser, accused: $accused) {
+        currentRound {
+          drawDeckSize
+          topCard {
             type
-            number
             color
+            number
+          }
+          currentDirection
+          winner
+          currentPlayer
+          statusMessage
+          players {
+            name
+            unoCalled
+            hand {
+              cards {
+                type
+                color
+                number
+              }
+            }
+            playerName
           }
         }
-      }
-      currentPlayer
-      currentDirection
-    }
-    dealer
-    id
-    players {
-      unoCalled
-      playerName
-      name
-      hand {
-        cards {
-          type
-          number
-          color
+        players {
+          name
+          unoCalled
+          hand {
+            cards {
+              type
+              color
+              number
+            }
+          }
+          playerName
         }
+        scores
+        dealer
+        id
+        winner
       }
-    }
-    scores
-  }
-}`
+    }`
 
   const { data } = await apolloClient.mutate({
     mutation,
@@ -428,67 +446,6 @@ mutation AccuseUno($gameId: Int!, $accuser: Int!, $accused: Int!) {
 
   });
   return data.accuseUno;
-}
-
-export async function onGame(subscriber: (game: GameSpecs) => any) {
-  const gameSubscriptionQuery = gql`
-    subscription Subscription {
-  active {
-    currentRound {
-      currentDirection
-      currentPlayer
-      drawDeckSize
-      players {
-        hand {
-          cards {
-            color
-            number
-            type
-          }
-        }
-        name
-        playerName
-        unoCalled
-      }
-      statusMessage
-      topCard {
-        type
-        number
-        color
-      }
-      winner
-    }
-    dealer
-    id
-    players {
-      unoCalled
-      playerName
-      name
-      hand {
-        cards {
-          color
-          number
-          type
-        }
-      }
-    }
-    scores
-  }
-}
-  `;
-  const gameObservable = apolloClient.subscribe({
-    query: gameSubscriptionQuery,
-    fetchPolicy: "network-only",
-  });
-  gameObservable.subscribe({
-    next({ data }) {
-      const game: GameSpecs = data.active;
-      subscriber(game);
-    },
-    error(err) {
-      console.error(err);
-    },
-  });
 }
 
 export async function onPending(subscriber: (game: GameSpecs) => any) {
@@ -539,7 +496,6 @@ export async function onPending(subscriber: (game: GameSpecs) => any) {
   `;
   const gameObservable = apolloClient.subscribe({
     query: gameSubscriptionQuery,
-    fetchPolicy: "network-only",
   });
   gameObservable.subscribe({
     next({ data }) {
@@ -554,8 +510,9 @@ export async function onPending(subscriber: (game: GameSpecs) => any) {
 
 export async function play(gameId:number, cardId:number, chosenColor?:string) {
   const mutation = gql`
-  mutation PlayCard($gameId: Int!, $cardId: Int!, $chosenColor: String) {
+    mutation Mutation($gameId: Int!, $cardId: Int!, $chosenColor: String) {
     playCard(gameId: $gameId, cardId: $cardId, chosenColor: $chosenColor) {
+      winner
       scores
       players {
         unoCalled
@@ -563,9 +520,9 @@ export async function play(gameId:number, cardId:number, chosenColor?:string) {
         name
         hand {
           cards {
-            type
-            number
             color
+            number
+            type
           }
         }
       }
@@ -573,34 +530,35 @@ export async function play(gameId:number, cardId:number, chosenColor?:string) {
       dealer
       currentRound {
         winner
+        statusMessage
+        drawDeckSize
+        currentPlayer
+        currentDirection
         topCard {
           type
           number
           color
         }
-        statusMessage
         players {
           unoCalled
           playerName
           name
           hand {
             cards {
-              type
-              number
               color
+              number
+              type
             }
           }
         }
-        currentPlayer
-        currentDirection
       }
     }
   }
   `;
   try {
-    const { data } = await apolloClient.mutate({ 
+    const { data } = await apolloClient.mutate({
       mutation,
-      variables: {gameId,cardId,chosenColor},
+      variables: { gameId, cardId, chosenColor },
       fetchPolicy: "network-only",
     });
 
@@ -636,7 +594,6 @@ export async function canPlay(gameId:number, cardId:number) {
   }
 }
 
-
 export async function challengeDraw4(gameId:number, response: boolean) { //get the challngeStatus from mutation - to be added
   const mutation = gql`
   mutation ChallengeDraw4($gameId: Int!, $response: Boolean!) {
@@ -659,12 +616,135 @@ export async function challengeDraw4(gameId:number, response: boolean) { //get t
 
 export async function joinGame(gameId: number, playerName: string) {
   const mutation = gql`
-    mutation AddPlayer($gameId: Int!, $playerName: String!) {
-    addPlayer(gameId: $gameId, playerName: $playerName) {
+  mutation AddPlayer($gameId: Int!, $playerName: String!) {
+  addPlayer(gameId: $gameId, playerName: $playerName) {
+    currentRound {
+      drawDeckSize
+      topCard {
+        type
+        color
+        number
+      }
+      currentDirection
+      winner
+      currentPlayer
+      statusMessage
+      players {
+        name
+        unoCalled
+        playerName
+        hand {
+          cards {
+            type
+            color
+            number
+          }
+        }
+      }
+    }
+    players {
+      name
+      unoCalled
+      playerName
+      hand {
+        cards {
+          type
+          color
+          number
+        }
+      }
+    }
+    scores
+    dealer
+    id
+    winner
+  }
+}
+    `;
+
+  const { data } = await apolloClient.mutate({
+    mutation,
+    variables: { gameId, playerName },
+    fetchPolicy: "network-only",
+  });
+  return data.addPlayer;
+}
+
+export async function removePlayer(gameId: number, playerId: number) {
+  const mutation = gql`
+  mutation RemovePlayer($gameId: Int!, $playerId: Int!) {
+  removePlayer(gameId: $gameId, playerId: $playerId) {
+    currentRound {
+      drawDeckSize
+      topCard {
+        type
+        color
+        number
+      }
+      currentDirection
+      winner
+      currentPlayer
+      statusMessage
+      players {
+        name
+        unoCalled
+        playerName
+        hand {
+          cards {
+            type
+            color
+            number
+          }
+        }
+      }
+    }
+    players {
+      name
+      unoCalled
+      playerName
+      hand {
+        cards {
+          type
+          color
+          number
+        }
+      }
+    }
+    scores
+    dealer
+    id
+    winner
+  }
+}`;
+
+  const { data } = await apolloClient.mutate({
+    mutation,
+    variables: { gameId, playerId },
+    fetchPolicy: "network-only",
+  });
+  return data.removePlayer;
+}
+
+const PENDING_GAMES_SUBSCRIPTION = gql`
+ subscription PendingGamesFeed {
+  pendingGamesFeed {
+    action
+    gameId
+    game {
+      __typename
       currentRound {
+        drawDeckSize
+        topCard {
+          type
+          color
+          number
+        }
         currentDirection
+        winner
         currentPlayer
+        statusMessage
         players {
+          __typename
           name
           unoCalled
           hand {
@@ -676,16 +756,7 @@ export async function joinGame(gameId: number, playerName: string) {
           }
           playerName
         }
-        statusMessage
-        topCard {
-          type
-          color
-          number
-        }
-        winner
       }
-      dealer
-      id
       players {
         name
         unoCalled
@@ -699,46 +770,33 @@ export async function joinGame(gameId: number, playerName: string) {
         playerName
       }
       scores
+      dealer
+      id
+      winner
     }
+    
   }
-    `;
+}
 
-    const {data} = await apolloClient.mutate({
-      mutation,
-      variables: {gameId, playerName},
-      fetchPolicy: "network-only",
-    });
-    return data.addPlayer;
-  }
-  
-export async function leaveGame(gameId: number, playerId: number) {
-  const mutation = gql`
-      mutation Mutation($gameId: Int!, $playerId: Int!) {
-      removePlayer(gameId: $gameId, playerId: $playerId) {
-        currentRound {
-          players {
-            name
-            unoCalled
-            hand {
-              cards {
-                type
-                color
-                number
-              }
-            }
-            playerName
-          }
-          drawDeckSize
-          topCard {
-            type
-            color
-            number
-          }
-          currentDirection
-          winner
-          currentPlayer
-          statusMessage
+ 
+`;
+
+const ACTIVE_GAMES_SUBSCRIPTION = gql`
+  subscription ActiveGamesFeed {
+  activeGamesFeed {
+    action
+    game {
+      currentRound {
+        drawDeckSize
+        topCard {
+          type
+          color
+          number
         }
+        currentDirection
+        winner
+        currentPlayer
+        statusMessage
         players {
           name
           unoCalled
@@ -751,17 +809,74 @@ export async function leaveGame(gameId: number, playerId: number) {
           }
           playerName
         }
-        scores
-        dealer
-        id
       }
-    }`;
-
-    const {data} = await apolloClient.mutate({
-      mutation,
-      variables: {gameId, playerId},
-      fetchPolicy: "network-only",
-    });
-    return data.removePlayer;
+      players {
+        name
+        unoCalled
+        hand {
+          cards {
+            type
+            color
+            number
+          }
+        }
+        playerName
+      }
+      scores
+      dealer
+      id
+      winner
+    }
+    gameId
   }
- 
+}
+`;
+
+export function initializeGameSubscriptions() {
+  console.log("Initializing real-time game subscriptions...");
+
+  // Get instances of your Pinia stores
+  const pendingGameStore = usePendingGameStore();
+  const activeGameStore = useActiveGameStore();
+
+  // Subscribe to the PENDING games feed
+  apolloClient.subscribe({ query: PENDING_GAMES_SUBSCRIPTION }).subscribe({
+    next({ data }) {
+      if (!data?.pendingGamesFeed) return;
+
+      const { action, game, gameId } = data.pendingGamesFeed;
+
+      switch (action) {
+        case 'ADDED':
+        case 'UPDATED':
+          pendingGameStore.upsert(game);
+          break;
+        case 'REMOVED':
+          pendingGameStore.remove({ id: gameId });
+          break;
+      }
+    },
+    error: (err) => console.error("Pending subscription error:", err),
+  });
+
+  // Subscribe to the ACTIVE games feed
+  apolloClient.subscribe({ query: ACTIVE_GAMES_SUBSCRIPTION }).subscribe({
+    next({ data }) {
+      if (!data?.activeGamesFeed) return;
+
+      const { action, game, gameId } = data.activeGamesFeed;
+
+      switch (action) {
+        case 'ADDED':
+        case 'UPDATED':
+          activeGameStore.upsert(game);
+          break;
+        case 'REMOVED':
+          activeGameStore.remove({ id: gameId });
+          break;
+      }
+    },
+    error: (err) => console.error("Active subscription error:", err),
+  });
+}
+

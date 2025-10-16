@@ -19,16 +19,16 @@ export class Round {
   private currentPlayer: PlayerNames;
   private currentDirection: Direction;
   private cardsPerPlayer: number = 7;
-  private roundWinner?: PlayerNames;
+  private winner?: PlayerNames;
   private statusMessage: String;
-  private topCard:Card;
-  private drawDeckSize:number
+  private topCard: Card;
+  private drawDeckSize: number
 
-  constructor(players: Player[], dealer: number, memento?:RoundMemento) {
+  constructor(players: Player[], dealer: number, memento?: RoundMemento) {
     if (memento) {
       this.players = []
       for (let playerMem of memento.getPlayers()) {
-        this.players.push(new Player(playerMem.getId(),playerMem.getName(),playerMem))
+        this.players.push(new Player(playerMem.getId(), playerMem.getName(), playerMem))
       }
       this.currentDirection = memento.getCurrentDirection();
       this.currentPlayer = memento.getCurrentPlayer();
@@ -37,17 +37,18 @@ export class Round {
       this.topCard = this.discardPile.peek()
       this.drawDeckSize = memento.getDrawDeckSize()
       this.statusMessage = memento.getStatusMessage()
+      memento.getWinner()? this.winner=memento.getWinner():undefined
       return;
     }
-    
+
     this.players = players;
     this.currentDirection = Direction.Clockwise;
     this.currentPlayer = this.players.length === 0 ? -1 : ((dealer + 1) % this.players.length) + 1; //should be next player after dealer
-    
+
     this.drawPile = new DrawDeck();
     for (let i = 0; i < this.cardsPerPlayer; i++) {
       for (const player of this.players) {
-        this.draw(1,player.getID())
+        this.draw(1, player.getID())
       }
     }
     this.discardPile = new DiscardDeck([this.drawPile.deal()!]);
@@ -88,10 +89,9 @@ export class Round {
     this.players = players;
   }
 
-  getCurrentPlayer(): Player {
-    return this.getSpecificPlayer(this.currentPlayer);
-  }
-
+ getCurrentPlayer(): Player {
+  return this.getSpecificPlayer(this.currentPlayer);
+}
   setCurrentPlayer(player: number): void {
     this.currentPlayer = player;
   }
@@ -104,11 +104,11 @@ export class Round {
     return this.cardsPerPlayer;
   }
 
-  getStatusMessage():String{
+  getStatusMessage(): String {
     return this.statusMessage
   }
 
-  getPlayerHand(player: PlayerNames): Hand | undefined{ 
+  getPlayerHand(player: PlayerNames): Hand | undefined {
     let p = this.players.find((p) => p.getID() === player)
     return p ? p.getHand() : undefined
   }
@@ -134,7 +134,7 @@ export class Round {
   }
 
   //should it be called every time a move has been ma
-  winner(): Player | undefined {
+  roundWinner(): Player | undefined {
     const winner = this.players.find((p) => p.getHand().size() === 0);
     if(winner){
       this.statusMessage = winner.getName() + " Won the round!"
@@ -142,7 +142,7 @@ export class Round {
     return winner;
   }
   getWinner(): PlayerNames | undefined {
-    return this.roundWinner;
+    return this.winner;
   }
   //catchUnoFailuere)() this is responsible for a situation when an accuser player says that the accused has not said uno. if that is true so if the accussed has one card the accussed has to draw 4 cards if the accuser was wrong then they have to draw 6 cards from the draw deck
 
@@ -171,7 +171,7 @@ export class Round {
     }
     if (!this.canPlay(cardID)) {
       return
-    } 
+    }
 
     let playedCard = this.getCurrentPlayer().getHand().removeCard(card)!;
     this.discardPile.addCard(card);
@@ -202,9 +202,9 @@ export class Round {
     }
 
     if (this.roundHasEnded()) {
-      const winner = this.winner();
+      const winner = this.roundWinner();
       if (winner) {
-        this.roundWinner = winner.getID();
+        this.winner = winner.getID();
         return;
       }
     }
@@ -269,13 +269,13 @@ export class Round {
     switch (card.getType()) {
       case Type.Reverse:
       case Type.Draw:
-      case Type.Skip :
+      case Type.Skip:
         if (this.currentCard().getType() === card.getType() || this.currentCard().getColor() === card.getColor()) {
           return true;
         }
         return false;
 
-      case Type.Wild :
+      case Type.Wild:
       case Type.WildDrawFour:
         return true;
 
@@ -284,7 +284,7 @@ export class Round {
             return true;
         }
         return false;
-      
+
       case Type.Dummy:
       case Type.DummyDraw4:
         return false
@@ -314,9 +314,9 @@ export class Round {
 
   getNextPlayer(): PlayerNames {
     let index = 0;
-    if (this.getCurrentDirection() === Direction.Clockwise) 
+    if (this.getCurrentDirection() === Direction.Clockwise)
       index = (this.players.findIndex((p) => p.getID() === this.currentPlayer) + 1) % this.players.length;
-    else 
+    else
       index = (this.players.findIndex((p) => p.getID() === this.currentPlayer) - 1 + this.players.length) % this.players.length;
 
     return this.players[index].getID();
@@ -325,7 +325,7 @@ export class Round {
   getPreviousPlayer(): PlayerNames {
     let index = 0;
     if (this.getCurrentDirection() === Direction.Clockwise) {
-      index =(this.players.findIndex((p) => p.getID() === this.currentPlayer) - 1 + this.players.length) % this.players.length;
+      index = (this.players.findIndex((p) => p.getID() === this.currentPlayer) - 1 + this.players.length) % this.players.length;
     } else {
       index = (this.players.findIndex((p) => p.getID() === this.currentPlayer) + 1) % this.players.length;
     }
@@ -341,7 +341,7 @@ export class Round {
         case Type.Reverse:
         case Type.Draw:
         case Type.Skip:
-          if (this.currentCard().getType() === hand[i].getType() || this.currentCard().getColor() === hand[i].getColor()){
+          if (this.currentCard().getType() === hand[i].getType() || this.currentCard().getColor() === hand[i].getColor()) {
             return true;
           }
           break;
@@ -349,7 +349,7 @@ export class Round {
         case Type.WildDrawFour:
           break;
         case Type.Numbered:
-          if (this.currentCard().getNumber() === hand[i].getNumber() || this.currentCard().getColor() === hand[i].getColor()){
+          if (this.currentCard().getNumber() === hand[i].getNumber() || this.currentCard().getColor() === hand[i].getColor()) {
             return true;
           }
         case Type.Dummy:
@@ -371,7 +371,7 @@ export class Round {
         this.currentPlayer = this.getNextPlayer()
         return;
       case Type.Draw:
-        this.draw(2,this.currentPlayer)
+        this.draw(2, this.currentPlayer)
         this.currentPlayer = this.getNextPlayer()
         return;
       case Type.WildDrawFour:
@@ -381,22 +381,37 @@ export class Round {
         this.discardPile.addCard(this.drawPile.deal()!);
         this.handleStartRound();
       case Type.Wild:
-        // not doing anything in this case, cause the GUI has to notice the wild card and the logic will happen there and calling different function in Round
+      // not doing anything in this case, cause the GUI has to notice the wild card and the logic will happen there and calling different function in Round
       case Type.Numbered:
       case Type.Dummy:
         return;
     }
   }
 
-  setWildColor(color:Colors) : void{
+  setWildColor(color: Colors): void {
     this.discardPile.addCard(CreateSpecialColoredCard(Type.Dummy, color))
   }
 
-  createMementoFromRound():RoundMemento{
+  createMementoFromRound(): RoundMemento {
     let playerMementos: PlayerMemento[] = [];
-    for (let player of this.players){
+    for (let player of this.players) {
       playerMementos.push(player.createMementoFromPlayer())
     }
-    return new RoundMemento(playerMementos,this.drawPile.createMementoFromDeck(),this.discardPile.createMementoFromDeck(),this.currentPlayer,this.currentDirection,this.statusMessage,this.topCard,this.getWinner())
+
+    return new RoundMemento(
+      playerMementos,
+      this.drawPile.createMementoFromDeck(),
+      this.discardPile.createMementoFromDeck(),
+      this.currentPlayer,
+      this.currentDirection,
+      this.statusMessage,
+      this.topCard,
+      this.winner
+    );
+  }
+
+
+  public removePlayer(playerId: number): void {
+    this.players = this.players.filter(p => p.getID() !== playerId);
   }
 }

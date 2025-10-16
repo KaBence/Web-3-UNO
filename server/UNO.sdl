@@ -1,3 +1,19 @@
+
+# Defines the type of change that occurred.
+enum GameListAction {
+  ADDED
+  UPDATED
+  REMOVED
+}
+
+# The payload for our subscription events.
+# It is clean, type-safe, and efficient.
+type GameListUpdate {
+  action: GameListAction!
+  gameId: Int!
+  game: Game # Null for REMOVED, present for ADDED/UPDATED
+}
+
 type Player {
     name: String!
     unoCalled: Boolean!
@@ -29,6 +45,7 @@ type Game {
     scores: JSON
     dealer: Int!
     id: Int!
+    winner: Int
 }
 
 type Hand{
@@ -43,7 +60,7 @@ type Query {
 type Mutation {
     createGame: Game!
     addPlayer(gameId: Int!, playerName: String!): Game!
-    removePlayer(gameId: Int!, playerId: Int!): Game!
+    removePlayer(gameId: Int!, playerId: Int!): Game
     startRound(gameId: Int!): Game!
     playCard(gameId: Int!, cardId: Int!, chosenColor: String): Game!
     drawCard(gameId: Int!): Game!
@@ -53,7 +70,8 @@ type Mutation {
     canPlay(gameId: Int! ,cardId: Int!): Boolean!
 }
 
+# The new, event-based subscription system.
 type Subscription {
-  active: Game,
-  pending: Game
+  activeGamesFeed: GameListUpdate!
+  pendingGamesFeed: GameListUpdate!
 }

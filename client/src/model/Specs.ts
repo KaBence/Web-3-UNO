@@ -15,6 +15,7 @@ export type GameSpecs = {
   currentRound?:RoundSpecs
   scores:Record<PlayerNames,Number>
   dealer:number
+  winner?: PlayerNames | undefined;
 }
 
 export type RoundSpecs = {

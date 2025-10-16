@@ -22,14 +22,47 @@ import { Game } from "Domain/src/model/Game";
 
 async function startServer(store: GameStore) {
   const pubsub: PubSub = new PubSub();
+
+
+
+
+  const PENDING_GAMES_FEED = "pendingGamesFeed";
+  const ACTIVE_GAMES_FEED = "activeGamesFeed";
+
   const broadcaster = {
-    async send(game: Game) {
-      if (game.getCurrentRound() == undefined) {
-        pubsub.publish("PENDING_UPDATED", { pending: game });
-      } else {
-        pubsub.publish("ACTIVE_UPDATED", { active: game });
-      }
+    
+    gameAdded(game: Game) {
+      const topic = game.getCurrentRound() ? ACTIVE_GAMES_FEED : PENDING_GAMES_FEED;
+      pubsub.publish(topic, {
+        [topic]: {
+          action: 'ADDED',
+          gameId: game.getId(),
+          game: game
+        }
+      });
     },
+
+      gameUpdated(game: Game) {
+      const topic = game.getCurrentRound() ? ACTIVE_GAMES_FEED : PENDING_GAMES_FEED;
+      pubsub.publish(topic, {
+        [topic]: {
+          action: 'UPDATED',
+          gameId: game.getId(),
+          game: game
+        }
+      });
+    },
+
+     gameRemoved(gameId: number, from: 'pending' | 'active') {
+      const topic = from === 'pending' ? PENDING_GAMES_FEED : ACTIVE_GAMES_FEED;
+      pubsub.publish(topic, {
+        [topic]: {
+          action: 'REMOVED',
+          gameId: gameId,
+          game: null // The game object is null, as required
+        }
+      });
+    }
   };
   const api = new GameAPI(broadcaster, store);
 
@@ -61,6 +94,7 @@ async function startServer(store: GameStore) {
 
     const wsServer = new WebSocketServer({
       server: httpServer,
+      path: "/graphql",
     });
 
     const subscriptionServer = useServer({ schema }, wsServer);
@@ -90,7 +124,7 @@ async function startServer(store: GameStore) {
 }
 
 function configAndStart() {
-  startServer(new MemoryStore());
+  startServer(new MemoryStore);
 }
 
 configAndStart();

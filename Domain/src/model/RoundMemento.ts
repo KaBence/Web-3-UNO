@@ -1,5 +1,5 @@
 import { PlayerNames } from "./Player";
-import { Direction } from "./Round";
+import { Direction } from "./round";
 import { PlayerMemento } from "./PlayerMemento";
 import { DeckMemento } from "./DeckMemento";
 import { Card } from "./Card";
@@ -8,9 +8,9 @@ export class RoundMemento {
   private readonly drawPile: DeckMemento;
   private readonly discardPile: DeckMemento;
   private readonly players: PlayerMemento[];
-  private readonly currentPlayer: PlayerNames;
+  private readonly currentPlayer: PlayerNames ;
   private readonly currentDirection: Direction;
-  private readonly roundWinner?: PlayerNames;
+  private readonly winner?: PlayerNames;
   private readonly statusMessage: String
   private readonly topCard:Card
   private readonly drawDeckSize:number
@@ -19,7 +19,7 @@ export class RoundMemento {
     players: PlayerMemento[],
     drawPile: DeckMemento,
     discardPile: DeckMemento,
-    currentPlayer: PlayerNames,
+    currentPlayer: PlayerNames ,
     currentDirection: Direction,
     statusMessage:String,
     topCard:Card,
@@ -30,7 +30,7 @@ export class RoundMemento {
     this.currentPlayer = currentPlayer;
     this.drawPile = drawPile;
     this.discardPile = discardPile;
-    this.roundWinner = roundWinner
+    this.winner = roundWinner
     this.statusMessage = statusMessage
     this.topCard=topCard
     this.drawDeckSize = drawPile.getCards().length
@@ -66,7 +66,7 @@ export class RoundMemento {
   }
 
   getWinner(): PlayerNames | undefined {
-    return this.roundWinner;
+    return this.winner;
   }
 
   getDrawDeckSize():number{

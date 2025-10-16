@@ -30,10 +30,10 @@ import { storeToRefs } from "pinia";
 import { useRoute } from "vue-router";
 import UnoButton from "../Shared/UnoButton.vue"
 import { useActiveGameStore } from "@/Stores/OngoingGameStore"
+import { usePlayerStore } from "@/Stores/PlayerStore";
 import DrawPile from "@/components/Shared/DrawPile.vue"
 import DiscardPile from "@/components/Shared/DIscardPile.vue"
 import PlayerHand from "@/components/Shared/PlayerHand.vue"
-import { usePlayerStore } from "@/Stores/PlayerStore";
 import { Type } from "Domain/src/model/Card";
 
 const route = useRoute();
@@ -46,7 +46,8 @@ else {
   alert("Invalid gameID is used")
 }
 const ongoingGameStore = useActiveGameStore()
-const playerStore = usePlayerStore()
+const playerStore = usePlayerStore();
+const myPlayerName = playerStore.player; 
 //const playerStore = use it to get player that is logged in
 
 const { games } = storeToRefs(ongoingGameStore)
@@ -54,7 +55,10 @@ const game = computed(() => games.value.find(g => g.id === gameId))
 const loggedInPlayer = computed(()=> game.value?.currentRound?.players.find(p=> p.name===playerStore.player))
 
 const cardsLeft = computed(() => game.value?.currentRound?.drawDeckSize ?? 0)
-const player = computed(() => game.value?.currentRound?.players.find(p=>p.playerName===loggedInPlayer.value?.playerName))
+const player = computed(() => {
+  // Find the player in the game's player list whose name matches your name
+  return game.value?.currentRound?.players.find(p => p.name === myPlayerName);
+});
 const hand = computed(() => player.value?.hand?.cards ?? [])
 const topCard = computed(() => game.value?.currentRound?.topCard);
 

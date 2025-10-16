@@ -61,23 +61,19 @@ export class Resolvers {
     canPlay:  async (_: any, {gameId, cardId }: { gameId: number, cardId: number }) => {
       return this.api.canPlay(gameId,cardId)
     },
+
+
   };
 
   Subscription = {
-    active: {
-      subscribe: () => this.pubsub.asyncIterableIterator(['ACTIVE_UPDATED'])
+    pendingGamesFeed: {
+      subscribe: () => this.pubsub.asyncIterableIterator(['pendingGamesFeed'])
     },
-    pending: {
-      subscribe: () => this.pubsub.asyncIterableIterator(['PENDING_UPDATED'])
+
+    activeGamesFeed: {
+      subscribe: () => this.pubsub.asyncIterableIterator(['activeGamesFeed'])
     }
   }
-  // public toGraphQLPendingGame(game:GameMemento):PendingGame{
-  //     return {
-  //         players:game.getPlayers()
-  //         scores: game.getScores()
-  //         dealer: game.getDealer()\
-  //     }
-  // }
 
   public getResolverMap() {
     return {
