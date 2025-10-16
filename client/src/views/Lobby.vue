@@ -76,6 +76,7 @@
           class="btn-create"
           type="button"
           @click="createGame"
+          :disabled="hasJoinedGame.joinedGameId !== null"
           v-if="hasCreatedGame == false"
         >
           Create New Game
@@ -103,15 +104,11 @@
   const hasJoinedGame = ref({ joinedGameId: null as number | null });
   const hasCreatedGame = ref(false);
 
-
-
-  //Join game logic
-  
-  // const joinGame = async (gameId: number) => {
-  //   await api.joinGame(gameId, playerName)
-  //   hasJoinedGame.value.joinedGameId = gameId;
-  //   console.log("Joined game successfully")
-  // };
+  const getPlayerCount = (gameId: number) => {
+    const fromList = visibleGames.find(g => g.id === gameId);
+    const game = fromList ?? pendingGamesStore.getGame(gameId);
+    return game?.players?.length ?? 0;
+  };
 
   const joinGame = async (gameId: number) => {
     if (hasJoinedGame.value.joinedGameId === gameId) {
@@ -126,6 +123,13 @@
       console.log("You created a game. Leave it first.");
       return;
     }
+
+    //check if game already full
+    if (getPlayerCount(gameId) >= 10) {
+      window.alert("This game is full (10 players).");
+      return;
+    }
+
     await api.joinGame(gameId, playerName)
     playerStore.update(gameId);
     console.log("Joining game", gameId);
@@ -143,17 +147,28 @@
   }
 
   const createGame = async () => {
+    if (hasJoinedGame.value.joinedGameId !== null) {
+      window.alert("You are already in a game. Leave it before creating a new one.");
+      console.log("Blocked create: already in game", hasJoinedGame.value.joinedGameId);
+      return; 
+    }
 
     const newGame = await api.createGame()
     const gameId = newGame.id;
     await joinGame(gameId);
     hasJoinedGame.value.joinedGameId = gameId;  
     console.log("Creating a new game");
-    // Implement start game logic here
     hasCreatedGame.value = true
   }
 
   const StartGame = async (id: number) => {
+    const count = getPlayerCount(id)
+    if(count<2) {
+      window.alert("You need at least two players to start the game");
+      console.log("Blocked start: players =", count);
+      return;
+    };
+    
     await api.startRound(id)
     router.push({ path: "/Game", query: { id } });
   }
