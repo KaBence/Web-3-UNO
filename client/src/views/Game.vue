@@ -13,7 +13,6 @@ import * as api from "@/model/api";
 import { useActiveGameStore } from "../Stores/OngoingGameStore";
 import {usePlayerStore} from "@/Stores/PlayerStore"
 import { useRoute } from "vue-router";
-import type { RefSymbol } from '@vue/reactivity';
 import { Type } from 'Domain/src/model/Card';
 import { usePopupStore, Popups } from "@/Stores/PopupStore"
 
@@ -69,9 +68,9 @@ async function onAccuseUno(accusedId: number) {
 }
 
 async function drawCard() {
-  if(player.playerGameId === currentPlayerId.value){
+  if(loggedInPlayer.value?.playerName === currentPlayerId.value){
     await api.drawCard(gameId)
-    const canPlay = await api.canPlay(gameId, game.value?.currentRound?.players[player.playerGameId-1].hand.cards.length!-1)
+    const canPlay = await api.canPlay(gameId, game.value?.currentRound?.players[loggedInPlayer.value?.playerName!-1].hand.cards.length!-1)
     if (canPlay) {
       await popupsStore.openPopup(Popups.Play)
     }
@@ -82,9 +81,9 @@ async function drawCard() {
 }
 
 async function playCard(cardId:number) {
-  if (player.playerGameId === currentPlayerId.value) {
+  if (loggedInPlayer.value?.playerName === currentPlayerId.value) {
     let color = undefined;
-    const cardType = game.value?.currentRound?.players[player.playerGameId - 1].hand.cards[cardId].type
+    const cardType = game.value?.currentRound?.players[loggedInPlayer.value?.playerName!-1].hand.cards[cardId].type
     if (cardType === Type.Wild || cardType === Type.WildDrawFour) {
       await popupsStore.openPopup(Popups.ColorChange);
       color = popupsStore.colorSelected
@@ -96,7 +95,7 @@ async function playCard(cardId:number) {
 }
 
 async function challengefour() {
-  if (player.playerGameId === currentPlayerId.value) {
+  if (loggedInPlayer.value?.playerName === currentPlayerId.value) {
     await popupsStore.openPopup(Popups.Challenge)
   }
 }
