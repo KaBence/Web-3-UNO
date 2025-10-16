@@ -69,14 +69,23 @@ async function onAccuseUno(accusedId: number) {
 }
 
 async function drawCard() {
-  await api.drawCard(gameId)
+  if(player.playerGameId === currentPlayerId.value){
+    await api.drawCard(gameId)
+    const canPlay = await api.canPlay(gameId, game.value?.currentRound?.players[player.playerGameId-1].hand.cards.length!-1)
+    if (canPlay) {
+      await popupsStore.openPopup(Popups.Play)
+    }
+    else{
+      await api.play(gameId,-1)
+    }
+  }
 }
 
 async function playCard(cardId:number) {
-  console.log(player.playerGameId+" -> "+ game.value?.currentRound?.currentPlayer)
-  if (player.playerGameId === game.value?.currentRound?.currentPlayer) {
+  if (player.playerGameId === currentPlayerId.value) {
     let color = undefined;
-    if (game.value?.currentRound?.players[player.playerGameId - 1].hand.cards[cardId].type === Type.Wild) {
+    const cardType = game.value?.currentRound?.players[player.playerGameId - 1].hand.cards[cardId].type
+    if (cardType === Type.Wild || cardType === Type.WildDrawFour) {
       await popupsStore.openPopup(Popups.ColorChange);
       color = popupsStore.colorSelected
       await api.play(gameId, cardId, color);
@@ -86,13 +95,19 @@ async function playCard(cardId:number) {
   }
 }
 
+async function challengefour() {
+  if (player.playerGameId === currentPlayerId.value) {
+    await popupsStore.openPopup(Popups.Challenge)
+  }
+}
+
 </script>
 
 <template>
   <GameStatus />
   <StatusBar :message="statusMessage"/>
   <PlayersBar @accuse-uno="onAccuseUno" />
-  <Decks @say-uno="onSayUno" @draw="drawCard" @play="playCard"/>
+  <Decks @say-uno="onSayUno" @draw="drawCard" @play="playCard" @challenge="challengefour"/>
   <ChallengeDrawFourPopup />
   <ChallengeResultPopup />
   <ChooseColorPopup />

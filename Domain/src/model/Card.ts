@@ -63,7 +63,7 @@ export class NumberedCard extends Card {
 }
 
 export class SpecialColoredCard extends Card {
-  constructor(type: Type.Skip | Type.Reverse | Type.Draw | Type.Dummy, color: Colors) {
+  constructor(type: Type.Skip | Type.Reverse | Type.Draw | Type.Dummy | Type.DummyDraw4, color: Colors,) {
     super(type);
     this.color = color;
     this.pointValue = 20;
@@ -94,6 +94,7 @@ export enum Type {
   WildDrawFour = "WILD DRAW",
   Numbered = "NUMBERED",
   Dummy = "DUMMY",
+  DummyDraw4 = "DUMMY4"
 }
 
 export const numberValues = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9] as const;

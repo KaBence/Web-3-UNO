@@ -25,15 +25,16 @@
 </template>
 
 <script setup lang="ts">
-import { computed} from "vue"
+import { computed , watch} from "vue"
 import { storeToRefs } from "pinia";
 import { useRoute } from "vue-router";
 import UnoButton from "../Shared/UnoButton.vue"
 import { useActiveGameStore } from "@/Stores/OngoingGameStore"
 import DrawPile from "@/components/Shared/DrawPile.vue"
-import DiscardPile from "@/components/Shared/DiscardPile.vue"
+import DiscardPile from "@/components/Shared/DIscardPile.vue"
 import PlayerHand from "@/components/Shared/PlayerHand.vue"
 import { usePlayerStore } from "@/Stores/PlayerStore";
+import { Type } from "Domain/src/model/Card";
 
 const route = useRoute();
 const queryGameId = route.query.id
@@ -57,8 +58,21 @@ const player = computed(() => game.value?.currentRound?.players.find(p=>p.player
 const hand = computed(() => player.value?.hand?.cards ?? [])
 const topCard = computed(() => game.value?.currentRound?.topCard);
 
+watch(
+  [topCard, () => game.value?.currentRound?.currentPlayer],
+  ([newTopCard, newPlayer], [oldTopCard, oldPlayer]) => {
+    const isMyTurn = player.value?.playerName === newPlayer;
+    const isChallengeCard = newTopCard?.type === Type.DummyDraw4;
+    const cardWasJustPlayed = oldTopCard?.type !== Type.DummyDraw4;
 
-defineEmits(['say-uno','draw', 'play']);
+    if (isMyTurn && isChallengeCard && cardWasJustPlayed) {
+      emit('challenge');
+    }
+  },
+  { deep: true }
+);
+
+const emit = defineEmits(['say-uno','draw', 'play', 'challenge']);
 
 </script>
 

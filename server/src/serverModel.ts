@@ -129,21 +129,34 @@ export class ServerModel {
     let round = game.getCurrentRound()
     if(round){
       round.play(cardId,chosenColor as Colors)
+      if(round.roundHasEnded()){
+        round.winner()
+      }
     }
-
     return from_memento(await this.store.updateGame(to_memento(game)));
   }
 
-    async challangeDrawFor(gameId: number) {
+    async challangeDrawFor(gameId: number,response: boolean) { //also return the status of a challange
     const memento = await this.store.getGame(gameId); 
     const game = from_memento(memento);
     const round = game.getCurrentRound()
-    //add check in gui if its players turn
+    let result = false
     if(round){
-      round.challengeWildDrawFour(true);//i need to pass it from mutation
+      result = round.challengeWildDrawFour(response);
     }
-  
-    return await this.store.updateGame(game.createMementoFromGame());
+    const updated = await this.store.updateGame(game.createMementoFromGame())
+    return {updated, result};
+  }
+
+  async canPlay(gameId: number, cardId: number) {
+    const memento = await this.store.getGame(gameId); 
+    const game = from_memento(memento);
+    const round = game.getCurrentRound()
+    let bool = false
+    if(round){
+      bool = round.canPlay(cardId);
+    }
+    return bool
   }
 
  

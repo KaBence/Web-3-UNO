@@ -483,7 +483,6 @@ export async function onGame(subscriber: (game: GameSpecs) => any) {
   gameObservable.subscribe({
     next({ data }) {
       const game: GameSpecs = data.active;
-      console.log("onGameSub happened")
       subscriber(game);
     },
     error(err) {
@@ -554,7 +553,6 @@ export async function onPending(subscriber: (game: GameSpecs) => any) {
 }
 
 export async function play(gameId:number, cardId:number, chosenColor?:string) {
-  console.log(chosenColor)
   const mutation = gql`
   mutation PlayCard($gameId: Int!, $cardId: Int!, $chosenColor: String) {
     playCard(gameId: $gameId, cardId: $cardId, chosenColor: $chosenColor) {
@@ -616,30 +614,43 @@ export async function play(gameId:number, cardId:number, chosenColor?:string) {
   }
 }
 
-
-
-
-
-
-
-export async function challengeDraw4(gameId:number) {
+export async function canPlay(gameId:number, cardId:number) {
   const mutation = gql`
-  mutation ChallengeDraw4($gameId: Int!) {
-    challengeDraw4(gameId: $gameId) {
-      id
-    }
+  mutation CanPlay($gameId: Int!, $cardId: Int!) {
+    canPlay(gameId: $gameId, cardId: $cardId)
   }
   `;
   try {
     const { data } = await apolloClient.mutate({ 
       mutation,
-      variables: {gameId},
+      variables: {gameId,cardId},
       fetchPolicy: "network-only",
     });
 
-    const game = data.play;
-    console.log(game)
-    return game;
+    // The union will return either PendingGame or ActiveGame
+    const flag = data.canPlay;
+    return flag;
+  } catch (error: any) {
+    console.error("Failed when checking if can play:", error);
+    throw error;
+  }
+}
+
+
+export async function challengeDraw4(gameId:number, response: boolean) { //get the challngeStatus from mutation - to be added
+  const mutation = gql`
+  mutation ChallengeDraw4($gameId: Int!, $response: Boolean!) {
+    challengeDraw4(gameId: $gameId, response: $response)
+  }
+  `;
+  try {
+    const { data } = await apolloClient.mutate({ 
+      mutation,
+      variables: {gameId, response},
+      fetchPolicy: "network-only",
+    });
+    const result = data.challengeDraw4;
+    return result;
   } catch (error: any) {
     console.error("Failed to execute challenge draw 4:", error);
     throw error;
