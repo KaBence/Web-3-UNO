@@ -167,7 +167,7 @@
         router.push({ path: "/Game", query: { id } });
       }
       else
-        router.replace('/')
+        router.replace('/lobby')
     }
   })
   </script>
