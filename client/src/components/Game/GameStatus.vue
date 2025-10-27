@@ -14,12 +14,7 @@ const props = defineProps({
   },
 });
 
-const router = useRouter();
-
 // Local UI state
-const rounds = ref<{ winner: string; points: number }[]>([]);
-const lastScores = ref<Record<number, number>>({});
-
 const timer = ref(20);
 const isCritical = ref(false);
 
@@ -79,28 +74,6 @@ watch(() => props.game?.currentRound?.currentPlayer, () => {
   }
 }, { immediate: true });
 
-watch(() => props.game?.currentRound?.winner, (newWinnerId) => {
-  if (!newWinnerId || !props.game?.currentRound || !props.game?.scores) return;
-
-  // find winner info
-  const winnerPlayer = props.game.players.find(p => p.playerName === newWinnerId);
-  if (!winnerPlayer) return;
-
-  // compute points won THIS round
-  const currentScores = props.game.scores;
-  const prevScore = Number(lastScores.value[newWinnerId] ?? 0);
-  const currentScore = Number(currentScores[newWinnerId] ?? 0);
-  const pointsWon = currentScore - prevScore;
-
-  // record this round in the round history
-  rounds.value.push({ winner: `${winnerPlayer.name}`, points: pointsWon });
-
-  // update last scores snapshot
-  lastScores.value = Object.fromEntries(
-    Object.entries(currentScores).map(([k, v]) => [Number(k), Number(v)])
-  );
-}, { deep: true });
-
 </script>
 <template>
     <div class="gamestatus">
@@ -112,17 +85,17 @@ watch(() => props.game?.currentRound?.winner, (newWinnerId) => {
         <div class="Rounds">
           <h1>Round History</h1>
           <div class="round-List">
-     <div
-  v-for="(round, index) in rounds"
+<div
+  v-for="([winner,points], index) in props.game?.roundHistory || []"
   :key="index"
   class="player"
-  :class="{ current: index === rounds.length - 1 }"
+  :class="{ current: index === ((props.game?.roundHistory?.length ?? 0) - 1) }"
 >
   <span class="rank">
     Round {{ index + 1 }}:
   </span>
-  <span class="name">{{ round.winner }}</span>
-  <span class="score">{{ round.points }} Points</span>
+  <span class="name">{{ winner }}</span>
+  <span class="score">{{ points }} Points</span>
 </div>
 
           </div>
