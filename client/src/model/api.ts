@@ -204,6 +204,7 @@ export async function getActiveGames() {
         dealer
         id
         winner
+        roundHistory
       }
     }
 
@@ -263,6 +264,7 @@ export async function startRound(gameId: number) {
     dealer
     id
     winner
+    roundHistory
   }
 }
   `;
@@ -791,6 +793,7 @@ const PENDING_GAMES_SUBSCRIPTION = gql`
     action
     gameId
     game {
+      roundHistory
       __typename
       currentRound {
         drawDeckSize
@@ -846,6 +849,7 @@ const ACTIVE_GAMES_SUBSCRIPTION = gql`
   activeGamesFeed {
     action
     game {
+      roundHistory
       currentRound {
         drawDeckSize
         topCard {

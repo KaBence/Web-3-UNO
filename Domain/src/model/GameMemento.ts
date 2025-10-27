@@ -3,22 +3,22 @@ import { PlayerMemento } from "./PlayerMemento";
 import { RoundMemento } from "./RoundMemento";
 
 export class GameMemento {
-  private readonly id:number
+  private readonly id: number
   private readonly players: PlayerMemento[];
   private readonly currentRound?: RoundMemento;
   private readonly scores: Record<PlayerNames, number>;
   private readonly dealer: number;
- 
-  private readonly winner?:PlayerNames
+  private readonly roundHistory: [string, number][];
+  private readonly winner?: PlayerNames
 
-  constructor(id:number,scores:Record<PlayerNames,number>,dealer:number,players: PlayerMemento[], round?:RoundMemento,winner?:PlayerNames) {
+  constructor(id: number, scores: Record<PlayerNames, number>, dealer: number, players: PlayerMemento[], history: [string, number][], round?: RoundMemento, winner?: PlayerNames) {
     this.players = [...players];
-    this.scores = {...scores};
+    this.scores = { ...scores };
     this.dealer = dealer;
-    this.currentRound = round 
+    this.currentRound = round
     this.winner = winner;
-    this.id=id;
-   
+    this.id = id;
+    this.roundHistory = history
   }
 
   public getPlayers(): PlayerMemento[] {
@@ -30,21 +30,23 @@ export class GameMemento {
     return { ...this.scores };
   }
 
-  public getCurrentRound(){
+  public getCurrentRound() {
     return this.currentRound;
   }
 
-  public getDealer(){
+  public getDealer() {
     return this.dealer;
   }
 
-  public getId(){
+  public getId() {
     return this.id;
   }
 
- 
+  public getRoundHistory() {
+    return this.roundHistory;
+  }
 
-  public getWinner(){
+  public getWinner() {
     return this.winner
   }
 }
