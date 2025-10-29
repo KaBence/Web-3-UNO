@@ -36,6 +36,8 @@ import DiscardPile from "@/components/Shared/DIscardPile.vue"
 import PlayerHand from "@/components/Shared/PlayerHand.vue"
 import { Type } from "Domain/src/model/Card";
 
+const emit = defineEmits(['say-uno','draw', 'play', 'challenge','setWildColor']);
+
 const route = useRoute();
 const queryGameId = route.query.id
 let gameId: number = -1;
@@ -68,15 +70,17 @@ watch(
     const isMyTurn = player.value?.playerName === newPlayer;
     const isChallengeCard = newTopCard?.type === Type.DummyDraw4;
     const cardWasJustPlayed = oldTopCard?.type !== Type.DummyDraw4;
+    const statusMessage = game.value?.currentRound?.statusMessage || "";
 
     if (isMyTurn && isChallengeCard && cardWasJustPlayed) {
       emit('challenge');
     }
+    if (isMyTurn && newTopCard?.type === Type.Wild && statusMessage.includes("Round Created")) {
+      emit('setWildColor')
+    }
   },
-  { deep: true }
+  { deep: true, immediate: true}
 );
-
-const emit = defineEmits(['say-uno','draw', 'play', 'challenge']);
 
 </script>
 

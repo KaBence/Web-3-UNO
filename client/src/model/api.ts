@@ -572,6 +572,66 @@ export async function play(gameId:number, cardId:number, chosenColor?:string) {
   }
 }
 
+export async function changeWildCardColor(gameId:number,chosenColor:string){
+  const mutation = gql`
+    mutation Mutation($gameId: Int!, $chosenColor: String!) {
+    changeWildCardColor(gameId: $gameId, chosenColor: $chosenColor) {
+      winner
+      scores
+      id
+      dealer
+      players {
+        unoCalled
+        playerName
+        name
+        hand {
+          cards {
+            color
+            number
+            type
+          }
+        }
+      }
+      currentRound {
+        winner
+        topCard {
+          type
+          number
+          color
+        }
+        statusMessage
+        drawDeckSize
+        currentPlayer
+        currentDirection
+        players {
+          unoCalled
+          playerName
+          name
+          hand {
+            cards {
+              color
+              number
+              type
+            }
+          }
+        }
+      }
+    }
+  }`
+  try {
+    const { data } = await apolloClient.mutate({ 
+      mutation,
+      variables: {gameId,chosenColor},
+      fetchPolicy: "network-only",
+    });
+
+    return data.changeWildCardColor;
+  } catch (error: any) {
+    console.error("Failed to change Wild Card Color:", error);
+    throw error;
+  }
+}
+
 export async function canPlay(gameId:number, cardId:number) {
   const mutation = gql`
   mutation CanPlay($gameId: Int!, $cardId: Int!) {
