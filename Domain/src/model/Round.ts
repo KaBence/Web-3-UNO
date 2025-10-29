@@ -299,7 +299,7 @@ export class Round {
       return false;
     }
 
-    if (this.couldPlayInsteadofDrawFour()){
+    if (!this.couldPlayInsteadofDrawFour()){
       this.draw(4, this.getPreviousPlayer())
       this.statusMessage = this.getSpecificPlayer(this.currentPlayer).getName() + "challenged successfully"
       return true
@@ -334,7 +334,7 @@ export class Round {
   }
 
   couldPlayInsteadofDrawFour(): boolean {
-    const hand = this.getPlayerHand(this.getNextPlayer())!.getCards();
+    const hand = this.getPlayerHand(this.getPreviousPlayer())!.getCards();
 
     for (let i = 0; i < hand.length; i++) {
       switch (hand[i].getType()) {
@@ -345,14 +345,15 @@ export class Round {
             return true;
           }
           break;
-        case Type.Wild:
-        case Type.WildDrawFour:
-          break;
         case Type.Numbered:
           if (this.currentCard().getNumber() === hand[i].getNumber() || this.currentCard().getColor() === hand[i].getColor()) {
             return true;
           }
+        case Type.Wild:
+        case Type.WildDrawFour:
         case Type.Dummy:
+        case Type.DummyDraw4:
+          break;
       }
     }
     return false;
