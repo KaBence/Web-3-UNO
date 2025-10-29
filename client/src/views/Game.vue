@@ -27,6 +27,7 @@ const router = useRouter();
 const gameId = Number(route.query.id);
 
 const game = computed(() => ongoingGameStore.games.find(g => g.id === gameId));
+const winnerRound = computed(() => game.value?.currentRound?.winner);
 const currentGameId = computed(() => game.value?.id);
 const currentPlayerId = computed(() => game.value?.currentRound?.currentPlayer);
 const loggedInPlayer = computed(()=> game.value?.currentRound?.players.find(p=> p.name===playerStore.player))
@@ -84,63 +85,73 @@ async function resetGame() {
 }
 
 async function onSayUno() {
-  if (currentGameId.value === undefined || loggedInPlayer?.value?.playerName === undefined) {
-    alert("Missing game or player ID!");
-    return;
-  }
-  try {
-    await api.sayUno(currentGameId.value, loggedInPlayer?.value?.playerName);
-    alert("UNO called successfully!");
-  } catch (err) {
-    console.error(err);
-    alert("Failed to call UNO ");
+  if(!winnerRound.value){
+    if (currentGameId.value === undefined || loggedInPlayer?.value?.playerName === undefined) {
+      alert("Missing game or player ID!");
+      return;
+    }
+    try {
+      await api.sayUno(currentGameId.value, loggedInPlayer?.value?.playerName);
+      alert("UNO called successfully!");
+    } catch (err) {
+      console.error(err);
+      alert("Failed to call UNO ");
+    }
   }
 }
 
 async function onAccuseUno(accusedId: number) {
-  if (currentGameId.value === undefined || loggedInPlayer?.value?.playerName === undefined) {
-    alert("Missing game or player ID!");
-    return;
-  }
-  try {
-    await api.accuseUno(currentGameId.value, loggedInPlayer.value?.playerName, accusedId);
-    alert(`You accused player ${accusedId} of not saying UNO!`);
-  } catch (err) {
-    console.error(err);
-    alert("Failed to send accusation ");
+  if(!winnerRound.value){
+    if (currentGameId.value === undefined || loggedInPlayer?.value?.playerName === undefined) {
+      alert("Missing game or player ID!");
+      return;
+    }
+    try {
+      await api.accuseUno(currentGameId.value, loggedInPlayer.value?.playerName, accusedId);
+      alert(`You accused player ${accusedId} of not saying UNO!`);
+    } catch (err) {
+      console.error(err);
+      alert("Failed to send accusation ");
+    }
   }
 }
 
 async function drawCard() {
-  if(loggedInPlayer.value?.playerName === currentPlayerId.value){
-    await api.drawCard(gameId)
-    const canPlay = await api.canPlay(gameId, game.value?.currentRound?.players[loggedInPlayer.value?.playerName!-1].hand.cards.length!-1)
-    if (canPlay) {
-      await popupsStore.openPopup(Popups.Play)
-    }
-    else{
-      await api.play(gameId,-1)
+  if(!winnerRound.value){
+    if(loggedInPlayer.value?.playerName === currentPlayerId.value){
+      await api.drawCard(gameId)
+      const canPlay = await api.canPlay(gameId, game.value?.currentRound?.players[loggedInPlayer.value?.playerName!-1].hand.cards.length!-1)
+      if (canPlay) {
+        await popupsStore.openPopup(Popups.Play)
+      }
+      else{
+        await api.play(gameId,-1)
+      }
     }
   }
 }
 
 async function playCard(cardId:number) {
-  if (loggedInPlayer.value?.playerName === currentPlayerId.value) {
-    let color = undefined;
-    const cardType = game.value?.currentRound?.players[loggedInPlayer.value?.playerName!-1].hand.cards[cardId].type
-    if (cardType === Type.Wild || cardType === Type.WildDrawFour) {
-      await popupsStore.openPopup(Popups.ColorChange);
-      color = popupsStore.colorSelected
-      await api.play(gameId, cardId, color);
-    } else {
-      await api.play(gameId, cardId);
+  if(!winnerRound.value){
+    if (loggedInPlayer.value?.playerName === currentPlayerId.value) {
+      let color = undefined;
+      const cardType = game.value?.currentRound?.players[loggedInPlayer.value?.playerName!-1].hand.cards[cardId].type
+      if (cardType === Type.Wild || cardType === Type.WildDrawFour) {
+        await popupsStore.openPopup(Popups.ColorChange);
+        color = popupsStore.colorSelected
+        await api.play(gameId, cardId, color);
+      } else {
+        await api.play(gameId, cardId);
+      }
     }
   }
 }
 
 async function challengefour() {
-  if (loggedInPlayer.value?.playerName === currentPlayerId.value) {
-    await popupsStore.openPopup(Popups.Challenge)
+  if(!winnerRound.value){
+    if (loggedInPlayer.value?.playerName === currentPlayerId.value) {
+      await popupsStore.openPopup(Popups.Challenge)
+    }
   }
 }
 

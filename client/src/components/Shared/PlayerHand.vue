@@ -2,7 +2,7 @@
   <div class="hand">
     <UnoCard
       v-for="(c, i) in hand" 
-      :key="`${c.type}-${c.number ?? ''}-${i}`"
+      :key="`${c.type}-${c.color ?? ''}-${c.number ?? ''}-${i}`"
       :card="c"
       class="hand-card"
       :style="cardStyle(i, hand.length)"
