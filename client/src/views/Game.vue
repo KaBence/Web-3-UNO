@@ -144,6 +144,14 @@ async function challengefour() {
   }
 }
 
+async function setWildColor(){
+  if (!game.value) return;
+
+  await popupsStore.openPopup(Popups.ColorChange)
+  let color = popupsStore.colorSelected
+  await api.changeWildCardColor(game.value?.id,color);
+}
+
 async function startNewRound() {
   if (!game.value) return;
 
@@ -175,7 +183,7 @@ watch(game, (newGame, oldGame) => {
   <GameStatus :game="game" @playAgain="startNewRound"@endGame="resetGame" />
   <StatusBar :message="statusMessage"/>
   <PlayersBar @accuse-uno="onAccuseUno" />
-  <Decks @say-uno="onSayUno" @draw="drawCard" @play="playCard" @challenge="challengefour"/>
+  <Decks @say-uno="onSayUno" @draw="drawCard" @play="playCard" @challenge="challengefour" @set-wild-color="setWildColor"/>
   <ChallengeDrawFourPopup />
   <ChallengeResultPopup />
   <ChooseColorPopup />
