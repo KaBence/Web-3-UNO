@@ -2,16 +2,20 @@
   "name": "unogame",
   "version": "1.0.0",
   "workspaces": [
-    "client",
-    "server"
+    "OO/*",
+    "Functional/*"
   ],
   "scripts": {
-    "test": "jest"
+    "test": "jest",
+    "oserver": "npm run start --workspace=OO/server",
+    "oclient": "npm run start --workspace=OO/client",
+    "fserver": "npm run start --workspace=Functional/server",
+    "fclient": "npm run start --workspace=Functional/client",
+    "startoo": "start cmd /k npm run oserver && start cmd /k npm run oclient && start cmd /k npm run oclient"
   },
   "author": "Sir Filip Witkiewicz, Michaela Veselovská, Barbara Abramczyk, Bence Kabály",
   "dependencies": {
     "@graphql-tools/schema": "^10.0.25",
-    "domain": "../domain",
     "graphql-subscriptions": "^3.0.0",
     "graphql-ws": "^6.0.6",
     "pinia": "^3.0.3",

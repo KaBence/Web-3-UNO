@@ -1,5 +1,5 @@
 {
-  "name": "uno",
+  "name": "unofunctionaldomain",
   "version": "0.0.1",
   "description": "Uno",
   "main": "index.js",
@@ -8,11 +8,8 @@
   },
   "keywords": [
     "uno",
-    "oo",
     "functional"
   ],
-  "author": "Ole Ildsgaard Hougaard",
-  "license": "ISC",
   "dependencies": {
     "@babel/core": "^7.24.6",
     "@babel/preset-env": "^7.24.6",
