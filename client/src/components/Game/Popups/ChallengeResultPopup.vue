@@ -6,6 +6,7 @@ import PlayerHand from "../../Shared/PlayerHand.vue";
 import type { HandSpecs } from "@/model/Specs"; // Use your own defined types
 import { Popups, usePopupStore } from "../../../Stores/PopupStore";
 import { useActiveGameStore } from "@/Stores/OngoingGameStore";
+import { Direction } from "Domain/src/model/Round";
 
 const route = useRoute();
 const popupStore = usePopupStore();
@@ -19,29 +20,33 @@ const gameId = computed(() => {
 const game = computed(() => ongoingGameStore.getGame(gameId.value)?.value);
 const result = computed(() => popupStore.challengeResult)
 
-const challengeHand = computed((): HandSpecs => {
+const challengeHand = computed<HandSpecs>(() => {
+  const ctx = popupStore.challengeContext;
+
+  // Prefer the exact snapshot/id captured at challenge time
+  if (ctx?.handBeforeDraw?.cards) return ctx.handBeforeDraw;
+
   const round = game.value?.currentRound;
-  
-  if (!round || !round.players || round.players.length === 0) {
-    return { cards: [] };
+  if (!round || !round.players?.length) return { cards: [] };
+
+  // If an id was provided but no snapshot (edge case), resolve by id
+  if (ctx?.challengedPlayerId != null) {
+    const p = round.players.find(pl => pl.playerName === ctx.challengedPlayerId);
+    return p?.hand ?? { cards: [] };
   }
 
-  const { players, currentPlayer, currentDirection } = round;
-  const currentPlayerIndex = players.findIndex((p) => p.playerName === currentPlayer);
+  // LAST RESORT: derive previous player from direction (ensure exact strings!)
+  const idx = round.players.findIndex(p => p.playerName === round.currentPlayer);
+  if (idx === -1) return { cards: [] };
 
-  if (currentPlayerIndex === -1) {
-    return { cards: [] };
-  }
+  const clockwise = round.currentDirection === Direction.Clockwise;// make sure values are exactly "Clockwise"/"CounterClockwise"
+  const challengedIdx = clockwise
+    ? (idx - 1 + round.players.length) % round.players.length
+    : (idx + 1) % round.players.length;
 
-  let challengedPlayerIndex;
-  if (currentDirection as String === "Clockwise") {
-    challengedPlayerIndex = (currentPlayerIndex - 1 + players.length) % players.length;
-  } else {
-    challengedPlayerIndex = (currentPlayerIndex + 1) % players.length;
-  }
-
-  return players[challengedPlayerIndex]?.hand ?? { cards: [] };
+  return round.players[challengedIdx]?.hand ?? { cards: [] };
 });
+
 
 const handStyle = computed(() => {
   return {

@@ -83,6 +83,34 @@ async function resetGame() {
   }
 }
 
+async function onTimeUp() {
+  if (!game.value) return;
+
+  const myId = loggedInPlayer.value?.playerName;
+  const currentId = game.value.currentRound?.currentPlayer;
+  const roundOver = !!game.value.currentRound?.winner;
+
+  const isMyTurn = myId != null && currentId === myId;
+  if (!isMyTurn || roundOver) return;
+
+  try {
+    // 1) draw one
+    await api.drawCard(game.value.id);
+
+    // 2) still my turn? then pass/advance turn via sentinel -1
+    const stillMyTurn =
+      game.value.currentRound?.currentPlayer === myId &&
+      !game.value.currentRound?.winner;
+
+    if (stillMyTurn) {
+      await api.play(game.value.id, -1); // <- “pass turn” using your existing endpoint
+    }
+  } catch (e) {
+    console.error("Timeout flow failed:", e);
+  }
+}
+
+
 async function onSayUno() {
   if (currentGameId.value === undefined || loggedInPlayer?.value?.playerName === undefined) {
     alert("Missing game or player ID!");
@@ -172,7 +200,7 @@ watch(game, (newGame, oldGame) => {
 </script>
 
 <template>
-  <GameStatus :game="game" @playAgain="startNewRound"@endGame="resetGame" />
+  <GameStatus  v-if="game" :game="game"  :my-player-id="loggedInPlayer?.playerName ?? -1"  @playAgain="startNewRound"@endGame="resetGame" @timeUp="onTimeUp"  />
   <StatusBar :message="statusMessage"/>
   <PlayersBar @accuse-uno="onAccuseUno" />
   <Decks @say-uno="onSayUno" @draw="drawCard" @play="playCard" @challenge="challengefour"/>

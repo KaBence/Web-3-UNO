@@ -1,7 +1,15 @@
 import { defineStore } from "pinia";
 import { Colors, Type } from "Domain/src/model/Card";
 import * as api from "@/model/api";
-import type { CardSpecs } from "@/model/Specs";
+import type { CardSpecs, HandSpecs } from "@/model/Specs";
+import { useActiveGameStore } from "./OngoingGameStore";
+import { Direction } from "Domain/src/model/Round";
+import { toRaw, isReactive } from "vue";     
+
+function toPlain<T>(v: T): T {
+  const raw = isReactive(v) ? toRaw(v as any) : v;
+  return JSON.parse(JSON.stringify(raw));
+}
 
 export enum Popups {
   Challenge = "Challenge",
@@ -9,6 +17,12 @@ export enum Popups {
   ColorChange = "ColorChange",
   Play = "Play",
 }
+
+
+type ChallengeContext = {
+  challengedPlayerId: number;
+  handBeforeDraw: HandSpecs;
+};
 
 export const usePopupStore = defineStore("popup", {
   state: () => ({
@@ -18,6 +32,7 @@ export const usePopupStore = defineStore("popup", {
     showPlay: false,
     challengeResult: false,
     colorSelected: "",
+    challengeContext: undefined as ChallengeContext | undefined,
     _popupResolve: undefined as undefined | (() => void),
   }),
 
@@ -28,7 +43,7 @@ export const usePopupStore = defineStore("popup", {
           this.showChallenge = true;
           break;
         case Popups.ChallengeResult:
-          this.challengeResult = result!;
+          this.challengeResult = !!result;
           this.showChallengeResult = true;
           break;
         case Popups.ColorChange:
@@ -51,6 +66,7 @@ export const usePopupStore = defineStore("popup", {
           break;
         case Popups.ChallengeResult:
           this.showChallengeResult = false;
+          this.challengeContext = undefined;    
           break;
         case Popups.ColorChange:
           this.showChangeColor = false;
@@ -65,12 +81,58 @@ export const usePopupStore = defineStore("popup", {
         this._popupResolve = undefined;
       }
     },
+    
+    openChallengeResultWithSnapshot(payload: {
+      result: boolean;
+      challengedPlayerId: number;
+      handBeforeDraw: HandSpecs;
+    }) {
+      this.challengeResult = payload.result;
+      this.challengeContext = {
+        challengedPlayerId: payload.challengedPlayerId,
+        handBeforeDraw: toPlain(payload.handBeforeDraw),
+      };
+      this.showChallengeResult = true;
+    },
 
-    async handleChallengeTrue(gameId: number) {
+   async handleChallengeTrue(gameId: number) {
       if (gameId === -1) return;
+
+      // 1) Snapshot challenged player's hand BEFORE API call
+      const ongoing = useActiveGameStore();
+      const game = ongoing.getGame(gameId)?.value;
+      const round = game?.currentRound;
+      if (!round?.players?.length) return;
+
+      // In Draw4 challenge, the "challenged" is the player who played WDF.
+      // That is the previous player relative to the current player in the current direction.
+      const players = round.players;
+      const currIdx = players.findIndex(p => p.playerName === round.currentPlayer);
+      if (currIdx === -1) return;
+
+      const clockwise = round.currentDirection === Direction.Clockwise;
+      const challengedIdx = clockwise
+        ? (currIdx - 1 + players.length) % players.length
+        : (currIdx + 1) % players.length;
+
+      const challenged = players[challengedIdx];
+
+      const handBeforeDraw: HandSpecs = toPlain({
+            cards: challenged.hand.cards,
+          });
+
+      this.openChallengeResultWithSnapshot({
+        result: false, // temporary; will set real result after API
+        challengedPlayerId: challenged.playerName,
+        handBeforeDraw,
+      });
+
+      // 2) Now call API (which will mutate state)
       const result = await api.challengeDraw4(gameId, true);
+
+      // 3) Update only the boolean result in the already-open popup
+      this.challengeResult = result;
       this.closePopup(Popups.Challenge);
-      this.openPopup(Popups.ChallengeResult, result);
     },
 
     async handleChallengeFalse(gameId: number) {
