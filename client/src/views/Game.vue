@@ -8,7 +8,7 @@ import ChallengeDrawFourPopup from '@/components/Game/Popups/ChallengeDrawFourPo
 import ChooseColorPopup from '@/components/Game/Popups/ChooseColorPopup.vue'
 import Decks from '@/components/Game/Decks.vue';
 import ChallengeResultPopup from '@/components/Game/Popups/ChallengeResultPopup.vue';
-import { computed, watch } from "vue";
+import { computed, watch, nextTick } from "vue";                   
 import * as api from "@/model/api";
 import { useActiveGameStore } from "../Stores/OngoingGameStore";
 import {usePlayerStore} from "@/Stores/PlayerStore"
@@ -22,7 +22,6 @@ const ongoingGameStore = useActiveGameStore()
 const popupsStore = usePopupStore()
 const playerStore = usePlayerStore()
 
-
 const router = useRouter();
 const gameId = Number(route.query.id);
 
@@ -32,6 +31,20 @@ const currentPlayerId = computed(() => game.value?.currentRound?.currentPlayer);
 const loggedInPlayer = computed(()=> game.value?.currentRound?.players.find(p=> p.name===playerStore.player))
 const statusMessage = computed(() => game.value?.currentRound?.statusMessage ?? "")
 
+
+async function pickMessage(apiRes: any, fallbackText: string) {
+  const apiMsg =
+    (apiRes && (apiRes.message || apiRes.statusMessage)) ||
+    (typeof apiRes === "string" ? apiRes : "");
+  if (apiMsg) return apiMsg;
+
+
+  await nextTick();
+  if (statusMessage.value) return statusMessage.value;
+
+  return fallbackText;
+}
+
 async function resetGame() {
   if (!game.value) return;
 
@@ -39,17 +52,13 @@ async function resetGame() {
     console.log(" Ending game and removing players...");
     const gameId = game.value.id;
 
-    //  Copy player list before modifying anything reactive
     const players = [...(game.value.players ?? [])];
-
-    //  Remove each player one by one
     for (const player of players) {
       if (!player) {
         console.warn(" Skipping undefined player entry");
         continue;
       }
 
-    
       const playerId =
         typeof player.playerName === "number"
           ? player.playerName
@@ -70,7 +79,6 @@ async function resetGame() {
     ongoingGameStore.remove({ id: gameId });
     console.log("All players removed, game cleaned up, returned to lobby.");
   } 
-  
   catch (err) {
     console.error(" Failed to end game (full error):", err);
     alert(
@@ -94,21 +102,20 @@ async function onTimeUp() {
   if (!isMyTurn || roundOver) return;
 
   try {
-    // 1) draw one
     await api.drawCard(game.value.id);
 
-    // 2) still my turn? then pass/advance turn via sentinel -1
     const stillMyTurn =
       game.value.currentRound?.currentPlayer === myId &&
       !game.value.currentRound?.winner;
 
     if (stillMyTurn) {
-      await api.play(game.value.id, -1); // <- “pass turn” using your existing endpoint
+      await api.play(game.value.id, -1);
     }
   } catch (e) {
     console.error("Timeout flow failed:", e);
   }
 }
+
 
 
 async function onSayUno() {
@@ -117,11 +124,13 @@ async function onSayUno() {
     return;
   }
   try {
-    await api.sayUno(currentGameId.value, loggedInPlayer?.value?.playerName);
-    alert("UNO called successfully!");
-  } catch (err) {
+    const res = await api.sayUno(currentGameId.value, loggedInPlayer.value.playerName);
+    const msg = await pickMessage(res, "UNO action processed.");
+    alert(msg);
+  } catch (err: any) {
     console.error(err);
-    alert("Failed to call UNO ");
+    const message = err?.response?.data?.message ?? err?.message ?? "Unknown error";
+    alert(`Failed to call UNO: ${message}`);
   }
 }
 
@@ -131,11 +140,13 @@ async function onAccuseUno(accusedId: number) {
     return;
   }
   try {
-    await api.accuseUno(currentGameId.value, loggedInPlayer.value?.playerName, accusedId);
-    alert(`You accused player ${accusedId} of not saying UNO!`);
-  } catch (err) {
+    const res = await api.accuseUno(currentGameId.value, loggedInPlayer.value.playerName, accusedId);
+    const msg = await pickMessage(res, "Accusation processed.");
+    alert(msg); 
+  } catch (err: any) {
     console.error(err);
-    alert("Failed to send accusation ");
+    const message = err?.response?.data?.message ?? err?.message ?? "Unknown error";
+    alert(`Failed to send accusation: ${message}`);
   }
 }
 
@@ -177,13 +188,10 @@ async function startNewRound() {
 
   try {
     console.log(" Starting a new round...");
-
-    // Call backend to start new round
     if (!game.value) return;
     const updatedGame = await api.startRound(game.value.id);
     const clonedGame = structuredClone(updatedGame);
     ongoingGameStore.update(clonedGame);
-
     console.log("New round loaded.");
   } catch (err) {
     console.error(" Failed to start new round:", err);
@@ -200,7 +208,14 @@ watch(game, (newGame, oldGame) => {
 </script>
 
 <template>
-  <GameStatus  v-if="game" :game="game"  :my-player-id="loggedInPlayer?.playerName ?? -1"  @playAgain="startNewRound"@endGame="resetGame" @timeUp="onTimeUp"  />
+  <GameStatus
+    v-if="game"
+    :game="game"
+    :my-player-id="loggedInPlayer?.playerName ?? -1"
+    @playAgain="startNewRound"
+    @endGame="resetGame"
+    @timeUp="onTimeUp"
+  />
   <StatusBar :message="statusMessage"/>
   <PlayersBar @accuse-uno="onAccuseUno" />
   <Decks @say-uno="onSayUno" @draw="drawCard" @play="playCard" @challenge="challengefour"/>
@@ -208,7 +223,6 @@ watch(game, (newGame, oldGame) => {
   <ChallengeResultPopup />
   <ChooseColorPopup />
   <PlayAfterDrawPopup />
-
 </template>
 
 <style>
