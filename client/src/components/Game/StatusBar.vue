@@ -1,12 +1,56 @@
 <script setup lang="ts">
 import { ref } from 'vue';
+import { computed } from 'vue'
+import { useRoute } from 'vue-router'
+import { storeToRefs } from 'pinia'
+import { useActiveGameStore } from '@/Stores/OngoingGameStore'
+import { usePlayerStore } from '@/Stores/PlayerStore'
+
 
 defineProps<{ message: string }>()
 
+  const route = useRoute();
+  const queryGameId = route.query.id
+  let gameId: number = -1;
+  if (typeof queryGameId === "string") {
+    gameId = parseInt(queryGameId)
+  }
+  else {
+    alert("Invalid gameID is used")
+  }
+
+const ongoingGameStore = useActiveGameStore()
+const playerStore = usePlayerStore()
+const { games } = storeToRefs(ongoingGameStore)
+
+const game = computed(() => games.value.find(g => g.id === gameId))
+const loggedInPlayer = computed(()=> game.value?.currentRound?.players.find(p=> p.name===playerStore.player) )
+
+
+const isYourTurn = computed<boolean>(() => {
+  const you = loggedInPlayer.value?.playerName
+  return you === game.value?.currentRound?.currentPlayer
+})
+  
+const score = computed(() => {
+  const you = loggedInPlayer.value?.playerName! 
+  return game.value?.scores[you] ?? 0
+  
+})
+
+const arrowAngle = computed(() => {
+  let dir = game.value?.currentRound?.currentDirection
+  if (dir === "clockwise" ) {
+    return 0
+  }
+  else
+    return 180
+})
+
 // Example data
-const isYourTurn = ref(true);
-const score = ref(120);
-const arrowAngle = ref(180); 
+// const isYourTurn = ref(true);
+// const score = ref(120);
+// const arrowAngle = ref(180); 
 </script>
 
 <template>
@@ -18,7 +62,7 @@ const arrowAngle = ref(180);
         </div>
         <div class="turn-indicator" :class="{ active: isYourTurn }">
             <span v-if="isYourTurn">Your Turn</span>
-            <span v-else="">Someone's turn</span>
+            <span v-else>Someone's turn</span>
         </div>
         <div class="score">
             Your Score: {{ score }}
