@@ -15,13 +15,9 @@ const props = defineProps<{
   myPlayerId: number;
 }>();
 
-const route = useRoute();
 const popupStore = usePopupStore();
 
-// ------ Local UI state ------
-const rounds = ref<{ winner: string; points: number }[]>([]);
-const lastScores = ref<Record<number, number>>({});
-
+// Local UI state
 const timer = ref(20);
 const isCritical = ref(false);
 
@@ -184,20 +180,19 @@ onUnmounted(() => clearTick());
       <h1>Round History</h1>
       <div class="round-List">
         <div
-          v-for="(round, index) in rounds"
+          v-for="([winner,points], index) in props.game?.roundHistory || []"
           :key="index"
           class="player"
-          :class="{ current: index === rounds.length - 1 }"
+          :class="{ current: index === ((props.game?.roundHistory?.length ?? 0) - 1) }"
         >
           <span class="rank">Round {{ index + 1 }}:</span>
-          <span class="name">{{ round.winner }}</span>
-          <span class="score">{{ round.points }} Points</span>
+          <span class="name">{{ winner }}</span>
+          <span class="score">{{ points }} Points</span>
         </div>
       </div>
     </div>
 
     <div class="empty"></div>
-
     <h1>Scoreboard</h1>
     <div class="player-list">
       <div v-for="(player, index) in sortedPlayers" :key="index" class="player">

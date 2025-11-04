@@ -8,9 +8,9 @@ export class Game {
   private currentRound?: Round;
   private targetScore: number = 500;
   private scores: Record<PlayerNames, number>;
-  private cardsPerPlayer: number = 7;
   private dealer: number = -1;
   private winner?: PlayerNames;
+  private roundHistory: [string,number][];
 
   constructor(id: number, memento?: GameMemento) {
     if (memento) {
@@ -25,10 +25,12 @@ export class Game {
       this.dealer = memento.getDealer();
       this.players = players
       this.id = memento.getId()
-      memento.getWinner()? this.winner = memento.getWinner():undefined
+      this.winner = memento.getWinner()
+      this.roundHistory = memento.getRoundHistory()
       return
     }
 
+    this.roundHistory = [];
     this.players = [];
     this.scores = {} as Record<PlayerNames, number>;
     this.id = id;
@@ -75,10 +77,6 @@ export class Game {
 
   public getTargetScore(): number {
     return this.targetScore;
-  }
-
-  public getCardsPerPlayer(): number {
-    return this.cardsPerPlayer;
   }
 
   public getScores(): Record<PlayerNames, number> {
@@ -172,6 +170,7 @@ export class Game {
     }
     if (this.currentRound.roundWinner() != undefined) {
       this.addScore(this.currentRound.roundWinner()!.getID(), roundScore);
+      this.roundHistory.push([this.currentRound.roundWinner()!.getName(), roundScore]);
     }
   }
   // helper: add score for a player
@@ -186,13 +185,12 @@ export class Game {
     const sourcePlayers = this.currentRound ? this.currentRound.getPlayers() : this.players;
     const playerMementos = sourcePlayers.map(player => player.createMementoFromPlayer());
 
-
-
     return new GameMemento(
       this.id,
       this.scores,
       this.dealer,
       playerMementos,
+      this.roundHistory,
       this.currentRound ? this.currentRound.createMementoFromRound() : undefined,
       this.winner,
     );
