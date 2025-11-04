@@ -203,7 +203,7 @@ onUnmounted(() => clearTick());
     </div>
 
     <!-- ROUND WINNER DISPLAY -->
-    <div class="winner-section" v-if="roundEnded">
+    <div class="winner-section" v-if="roundEnded && !showPlayAgainAfterGame">
       <div class="winner-banner">
         🏆 Round Winner: {{ roundWinnerName }} 🏆
       </div>
