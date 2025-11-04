@@ -152,4 +152,10 @@ export class GameAPI {
       throw new Error(error.message);
     }
   }
+
+  async changeWildCardColor(gameId: number, chosenColor: string) {
+    const game = from_memento(await this.server.changeWildCardColor(gameId,chosenColor));
+    this.broadcaster.gameUpdated(game);
+    return game;
+  }
 }

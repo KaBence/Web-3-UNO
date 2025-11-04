@@ -161,4 +161,10 @@ export class ServerModel {
     game.getCurrentRound()?.catchUnoFailure(accuser, accused);
     return await this.store.saveGame(to_memento(game));
   }
+
+  async changeWildCardColor(gameId: number, chosenColor: string): Promise<GameMemento>  {
+    const game = from_memento(await this.store.getGame(gameId));
+    game.getCurrentRound()?.setWildColor(chosenColor as Colors);
+    return await this.store.saveGame(to_memento(game));
+  }
 }

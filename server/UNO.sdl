@@ -68,6 +68,7 @@ type Mutation {
     accuseUno(gameId: Int!, accuser: Int!, accused:Int!): Game!
     challengeDraw4(gameId: Int!, response: Boolean!): Boolean!
     canPlay(gameId: Int! ,cardId: Int!): Boolean!
+    changeWildCardColor(gameId: Int!, chosenColor: String!): Game!
 }
 
 # The new, event-based subscription system.

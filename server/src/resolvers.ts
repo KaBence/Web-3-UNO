@@ -61,7 +61,12 @@ export class Resolvers {
     canPlay:  async (_: any, {gameId, cardId }: { gameId: number, cardId: number }) => {
       return this.api.canPlay(gameId,cardId)
     },
-
+    changeWildCardColor: async (
+      _: any,
+      { gameId, chosenColor }: { gameId: number; chosenColor: string }
+    ) => {
+      return this.api.changeWildCardColor(gameId, chosenColor);
+    },
 
   };
 
