@@ -225,7 +225,8 @@ export class Round {
     for (let i = 0; i < noCards; i++) {
       let card = this.drawPile.deal()!;
       if (this.drawPile.peak() === undefined) {
-        let [topCard, ...rest] = this.discardPile.getCards();
+        let topCard = this.discardPile.deal()!;
+        let rest = this.discardPile.getCards();
 
         this.discardPile = new DiscardDeck([topCard]);
         let filtered = rest.filter((c) => c.getType() !== Type.Dummy && c.getType() !== Type.DummyDraw4);
@@ -308,13 +309,13 @@ export class Round {
       return false;
     }
 
-    if (!this.couldPlayInsteadofDrawFour()){
+    if (this.couldPlayInsteadofDrawFour()){
       this.draw(4, this.getPreviousPlayer())
-      this.statusMessage = this.getSpecificPlayer(this.currentPlayer).getName() + "challenged successfully"
+      this.statusMessage = this.getSpecificPlayer(this.currentPlayer).getName() + " challenged successfully"
       return true
     }
     this.draw(6, this.currentPlayer);
-    this.statusMessage = this.getSpecificPlayer(this.currentPlayer).getName() + "challenged but failed"
+    this.statusMessage = this.getSpecificPlayer(this.currentPlayer).getName() + " challenged but failed"
     this.currentPlayer = this.getNextPlayer();
     return false
   }
