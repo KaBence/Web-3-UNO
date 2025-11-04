@@ -6,12 +6,15 @@
     "server"
   ],
   "scripts": {
-    "test": "jest"
+    "test": "jest",
+    "oserver": "npm run start -w server",
+    "oclient": "npm run start -w client",
+    "startoo": "start cmd /k npm run oserver && start cmd /k npm run oclient && start cmd /k npm run oclient"
   },
   "author": "Sir Filip Witkiewicz, Michaela Veselovská, Barbara Abramczyk, Bence Kabály",
   "dependencies": {
     "@graphql-tools/schema": "^10.0.25",
-    "domain": "../domain",
+    "domain": "/Domain",
     "graphql-subscriptions": "^3.0.0",
     "graphql-ws": "^6.0.6",
     "pinia": "^3.0.3",
