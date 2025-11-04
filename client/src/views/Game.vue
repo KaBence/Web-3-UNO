@@ -16,6 +16,7 @@ import { useRoute, useRouter } from "vue-router";
 import type { RefSymbol } from '@vue/reactivity';
 import { Type } from 'Domain/src/model/Card';
 import { usePopupStore, Popups } from "@/Stores/PopupStore"
+import type { GameSpecs } from '@/model/Specs';
 
 const route = useRoute();
 const ongoingGameStore = useActiveGameStore()
@@ -32,11 +33,11 @@ const loggedInPlayer = computed(()=> game.value?.currentRound?.players.find(p=> 
 const statusMessage = computed(() => game.value?.currentRound?.statusMessage ?? "")
 
 
-async function pickMessage(apiRes: any, fallbackText: string) {
-  const apiMsg =
-    (apiRes && (apiRes.message || apiRes.statusMessage)) ||
-    (typeof apiRes === "string" ? apiRes : "");
+async function pickMessage(apiRes: GameSpecs | undefined, fallbackText: string) {
+  const apiMsg = apiRes?.currentRound?.statusMessage;
   if (apiMsg) return apiMsg;
+   
+ 
 
 
   await nextTick();

@@ -65,13 +65,13 @@ const sortedPlayers = computed(() => {
 });
 
 // ------ Read result popup hand (unchanged from your result component needs) ------
-const result = computed(() => popupStore.challengeResult);
-const challengeHand = computed<HandSpecs>(() => {
+//const result = computed(() => popupStore.challengeResult);
+//const challengeHand = computed<HandSpecs>(() => {
   // If you show the hand here, read your snapshot first if you use this component for it.
   // Keeping a safe default:
-  return { cards: [] };
-});
-const handStyle = computed(() => ({ "--num-cards": challengeHand.value.cards.length }));
+  //return { cards: [] };
+//});
+//const handStyle = computed(() => ({ "--num-cards": challengeHand.value.cards.length }));
 
 // ------ Timer control ------
 let timerInterval: number | undefined;
