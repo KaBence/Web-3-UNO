@@ -44,6 +44,7 @@ export class Round {
     this.players = players;
     this.currentDirection = Direction.Clockwise;
     this.currentPlayer = this.players.length === 0 ? -1 : ((dealer + 1) % this.players.length) + 1; //should be next player after dealer
+    
 
     this.drawPile = new DrawDeck();
     for (let i = 0; i < this.cardsPerPlayer; i++) {
@@ -91,7 +92,7 @@ export class Round {
 
  getCurrentPlayer(): Player {
   return this.getSpecificPlayer(this.currentPlayer);
-}
+  }
   setCurrentPlayer(player: number): void {
     this.currentPlayer = player;
   }
@@ -183,8 +184,16 @@ export class Round {
         this.currentPlayer = this.getNextPlayer();
         break;
       case Type.Reverse:
-        this.changeCurrentDirection();
-        break;
+        if (this.players.length === 2) {
+          this.currentPlayer = this.getNextPlayer();
+          this.changeCurrentDirection();
+          console.log("Reverse acted as skip due to 2 players")       
+          break;
+        }
+        else{
+          this.changeCurrentDirection();
+          break;
+        }
       case Type.Draw:
         this.draw(2, this.getNextPlayer());
         this.currentPlayer = this.getNextPlayer();
@@ -219,7 +228,7 @@ export class Round {
         let [topCard, ...rest] = this.discardPile.getCards();
 
         this.discardPile = new DiscardDeck([topCard]);
-        let filtered = rest.filter((c) => c.getType() !== Type.Dummy || Type.DummyDraw4);
+        let filtered = rest.filter((c) => c.getType() !== Type.Dummy && c.getType() !== Type.DummyDraw4);
         this.drawPile = new DrawDeck(filtered);
         this.drawPile.shuffle(randomUtils.standardShuffler);
       }
