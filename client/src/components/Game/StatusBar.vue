@@ -24,7 +24,7 @@ const playerStore = usePlayerStore()
 const { games } = storeToRefs(ongoingGameStore)
 
 const game = computed(() => games.value.find(g => g.id === gameId))
-const loggedInPlayer = computed(()=> game.value?.currentRound?.players.find(p=> p.name===playerStore.player))
+const loggedInPlayer = computed(()=> game.value?.currentRound?.players.find(p=> p.name===playerStore.player) )
 
 
 const isYourTurn = computed<boolean>(() => {
@@ -32,10 +32,10 @@ const isYourTurn = computed<boolean>(() => {
   return you === game.value?.currentRound?.currentPlayer
 })
   
-const score = computed<number>(() => {
-  const you = playerStore.player
-  const p: any = game.value?.currentRound?.players?.find((x: any) => x.name === you)
-  return p?.score ?? p?.points ?? p?.totalScore ?? 0
+const score = computed(() => {
+  const you = loggedInPlayer.value?.playerName! 
+  return game.value?.scores[you] ?? 0
+  
 })
 
 const arrowAngle = computed(() => {

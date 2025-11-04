@@ -18,7 +18,7 @@ export class Round {
   private players: Player[];
   private currentPlayer: PlayerNames;
   private currentDirection: Direction;
-  private cardsPerPlayer: number = 50;
+  private cardsPerPlayer: number = 7;
   private winner?: PlayerNames;
   private statusMessage: String;
   private topCard: Card;
@@ -112,10 +112,6 @@ export class Round {
   getPlayerHand(player: PlayerNames): Hand | undefined {
     let p = this.players.find((p) => p.getID() === player)
     return p ? p.getHand() : undefined
-  }
-
-  getPlayerCount(): number {
-    return this.players.length;
   }
 
   //Game logic methods
